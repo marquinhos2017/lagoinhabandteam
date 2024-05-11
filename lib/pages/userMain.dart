@@ -70,35 +70,33 @@ class _userMainPageState extends State<userMainPage> {
                           itemBuilder: (context, index) {
                             final culto = cultosProvider.cultos[index];
                             return ListTile(
-                              title: Container(
-                                decoration: BoxDecoration(
-                                    color: Color(0xff010101),
-                                    borderRadius: BorderRadius.circular(12)),
-                                width: MediaQuery.of(context).size.width,
-                                margin: EdgeInsets.only(top: 0),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 30.0, vertical: 12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          print(culto.nome);
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  adminCultoForm(
-                                                      cultoatual: Culto(
-                                                          nome: culto.nome)),
-                                            ),
-                                          );
-                                          //Navigator.pushNamed(
-                                          //    context, '/adminCultoForm');
-                                        },
-                                        child: Column(
+                              title: GestureDetector(
+                                onTap: () {
+                                  print(culto.nome);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => adminCultoForm(
+                                          cultoatual: Culto(nome: culto.nome)),
+                                    ),
+                                  );
+                                  //Navigator.pushNamed(
+                                  //    context, '/adminCultoForm');
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Color(0xff010101),
+                                      borderRadius: BorderRadius.circular(12)),
+                                  width: MediaQuery.of(context).size.width,
+                                  margin: EdgeInsets.only(top: 0),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 30.0, vertical: 12),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           crossAxisAlignment:
@@ -120,11 +118,11 @@ class _userMainPageState extends State<userMainPage> {
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      Column(
-                                        children: [Text("14/abr")],
-                                      )
-                                    ],
+                                        Column(
+                                          children: [Text("14/abr")],
+                                        )
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),

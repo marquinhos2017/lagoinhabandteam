@@ -65,11 +65,7 @@ class MusicianSelect extends StatelessWidget {
                         builder: (BuildContext context) => AlertDialog(
                           backgroundColor: Color(0xff171717),
                           title: const Text(
-                            'Convidar Marcos ?',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          content: const Text(
-                            'Convidar Marcos ?',
+                            'Enviar solicitação para Marcos ?',
                             style: TextStyle(color: Colors.white),
                           ),
                           actions: <Widget>[
@@ -125,7 +121,7 @@ class MusicianSelect extends StatelessWidget {
                                   child: Text(
                                     "Keyboard",
                                     style: TextStyle(
-                                        color: Color(0xffCCFFD1), fontSize: 10),
+                                        color: Color(0xff558FFF), fontSize: 10),
                                   ),
                                 ),
                               ),
@@ -140,11 +136,7 @@ class MusicianSelect extends StatelessWidget {
                         builder: (BuildContext context) => AlertDialog(
                           backgroundColor: Color(0xff171717),
                           title: const Text(
-                            'Convidar Lucas Almeida ?',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          content: const Text(
-                            'Convidar Lucas Almeida ?',
+                            'Enviar solicitação para Lucas ?',
                             style: TextStyle(color: Colors.white),
                           ),
                           actions: <Widget>[
@@ -209,44 +201,77 @@ class MusicianSelect extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Container(
-                      margin: EdgeInsets.only(top: 20),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(25)),
+                    GestureDetector(
+                      onTap: () => showDialog<String>(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          backgroundColor: Color(0xff171717),
+                          title: const Text(
+                            'Enviar solicitação para Rafaela ?',
+                            style: TextStyle(color: Colors.white),
                           ),
-                          Container(
-                            margin: EdgeInsets.only(left: 24),
-                            child: Text(
-                              "Rafaela Souza",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'Cancel'),
+                              child: const Text('Cancel'),
                             ),
-                          ),
-                          Container(
-                            width: 70,
-                            margin: EdgeInsets.only(left: 24),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Center(
-                                child: Text(
-                                  "Vocal",
-                                  style: TextStyle(
-                                      color: Color(0xffCCFFD1), fontSize: 10),
-                                ),
+                            TextButton(
+                              onPressed: () {
+                                cultosProvider.cultos[index].musicos
+                                    .add(Musico("Rafaela", "Vocal"));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => adminCultoForm(
+                                        cultoatual:
+                                            Culto(nome: cultoatual.nome)),
+                                  ),
+                                );
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      child: Container(
+                        margin: EdgeInsets.only(top: 20),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(25)),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(left: 24),
+                              child: Text(
+                                "Rafaela",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10),
                               ),
                             ),
-                          )
-                        ],
+                            Container(
+                              width: 70,
+                              margin: EdgeInsets.only(left: 24),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Text(
+                                    "Guitarra",
+                                    style: TextStyle(
+                                        color: Color(0xffCCFFD1), fontSize: 10),
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
