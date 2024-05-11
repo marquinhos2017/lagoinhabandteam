@@ -90,97 +90,99 @@ class adminCultoForm extends StatelessWidget {
                                     fontWeight: FontWeight.bold),
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.zero,
-                              height: 100,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      child: ListView.builder(
-                                        padding: EdgeInsets.zero,
-                                        itemCount:
-                                            cultoEspecifico.musicos.length,
-                                        itemBuilder: (context, index) {
-                                          final musico =
-                                              cultoEspecifico.musicos;
-                                          return ListTile(
-                                            contentPadding: EdgeInsets.zero,
-                                            title: GestureDetector(
-                                              onTap: () {
-                                                //Navigator.pushNamed(
-                                                //    context, '/adminCultoForm');
-                                              },
-                                              child: Container(
-                                                padding: EdgeInsets.zero,
-                                                height: 150,
-                                                child: ListView.builder(
+                            SizedBox(
+                              height: cultoEspecifico.musicos.length * 30.0,
+                              child: Container(
+                                padding: EdgeInsets.zero,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        child: ListView.builder(
+                                          padding: EdgeInsets.zero,
+                                          itemCount:
+                                              cultoEspecifico.musicos.length,
+                                          itemBuilder: (context, index) {
+                                            final musico =
+                                                cultoEspecifico.musicos;
+                                            return ListTile(
+                                              contentPadding: EdgeInsets.zero,
+                                              title: GestureDetector(
+                                                onTap: () {
+                                                  //Navigator.pushNamed(
+                                                  //    context, '/adminCultoForm');
+                                                },
+                                                child: Container(
                                                   padding: EdgeInsets.zero,
-                                                  itemCount: cultoEspecifico
-                                                      .musicos.length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    final musico =
-                                                        cultoEspecifico
-                                                            .musicos[index];
-                                                    return Column(
-                                                      children: [
-                                                        Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .spaceBetween,
-                                                          children: [
-                                                            Text(
-                                                              musico.nome,
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontSize: 10,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                Container(
-                                                                  margin: EdgeInsets
-                                                                      .only(
-                                                                          right:
-                                                                              20),
-                                                                  child: Text(
-                                                                    musico
-                                                                        .instrumento,
-                                                                    style: TextStyle(
-                                                                        color: Color(
-                                                                            0xff558FFF),
-                                                                        fontSize:
-                                                                            8),
+                                                  height: 150,
+                                                  child: ListView.builder(
+                                                    padding: EdgeInsets.zero,
+                                                    itemCount: cultoEspecifico
+                                                        .musicos.length,
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      final musico =
+                                                          cultoEspecifico
+                                                              .musicos[index];
+                                                      return Column(
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceBetween,
+                                                            children: [
+                                                              Text(
+                                                                musico.nome,
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        10,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                              Row(
+                                                                children: [
+                                                                  Container(
+                                                                    margin: EdgeInsets.only(
+                                                                        right:
+                                                                            20),
+                                                                    child: Text(
+                                                                      musico
+                                                                          .instrumento,
+                                                                      style: TextStyle(
+                                                                          color: Color(
+                                                                              0xff558FFF),
+                                                                          fontSize:
+                                                                              8),
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                                Icon(
-                                                                  Icons
-                                                                      .keyboard,
-                                                                  color: Colors
-                                                                      .white,
-                                                                )
-                                                              ],
-                                                            )
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
+                                                                  Icon(
+                                                                    Icons
+                                                                        .keyboard,
+                                                                    color: Colors
+                                                                        .white,
+                                                                  )
+                                                                ],
+                                                              )
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          );
-                                        },
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                             Center(
