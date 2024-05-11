@@ -45,11 +45,11 @@ class adminCultoForm extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Culto " + cultoatual.nome,
+                  "Culto: " + cultoatual.nome,
                   style: TextStyle(color: Colors.white),
                 ),
                 Text(
-                  "Musicos:" + nomes,
+                  "Musicos: " + nomes,
                   style: TextStyle(color: Colors.white),
                 ),
                 Container(

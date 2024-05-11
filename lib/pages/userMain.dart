@@ -44,7 +44,7 @@ class _userMainPageState extends State<userMainPage> {
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(top: 30),
+                      margin: EdgeInsets.only(top: 30, bottom: 20),
                       child: Text(
                         "Cultos",
                         style: TextStyle(
@@ -64,8 +64,10 @@ class _userMainPageState extends State<userMainPage> {
                   child: Column(
                     children: [
                       Container(
-                        height: 200,
+                        height: 400,
+                        padding: EdgeInsets.zero,
                         child: ListView.builder(
+                          padding: EdgeInsets.zero,
                           itemCount: cultosProvider.cultos.length,
                           itemBuilder: (context, index) {
                             final culto = cultosProvider.cultos[index];
