@@ -53,7 +53,7 @@ class adminCultoForm extends StatelessWidget {
                   style: TextStyle(color: Colors.white),
                 ),
                 Container(
-                  margin: EdgeInsets.only(top: 20, bottom: 20),
+                  margin: EdgeInsets.only(top: 20, bottom: 0),
                   child: GestureDetector(
                       onTap: () => Navigator.of(context)
                           .popUntil((route) => route.isFirst),
@@ -63,10 +63,21 @@ class adminCultoForm extends StatelessWidget {
                       )),
                 ),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       child: Text(
                         "${cultosProvider.cultos}",
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(bottom: 20),
+                      child: Text(
+                        cultoEspecifico.nome,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                     Container(

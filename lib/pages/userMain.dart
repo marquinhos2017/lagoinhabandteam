@@ -22,6 +22,7 @@ class _userMainPageState extends State<userMainPage> {
       backgroundColor: const Color(0xff171717),
       body: Container(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               margin: EdgeInsets.only(top: 150),
@@ -53,87 +54,102 @@ class _userMainPageState extends State<userMainPage> {
                             fontWeight: FontWeight.bold),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              child: Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 400,
+                    SizedBox(
+                      height: cultosProvider.cultos.length * 60.0,
+                      child: Container(
                         padding: EdgeInsets.zero,
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: cultosProvider.cultos.length,
-                          itemBuilder: (context, index) {
-                            final culto = cultosProvider.cultos[index];
-                            return ListTile(
-                              title: GestureDetector(
-                                onTap: () {
-                                  print(culto.nome);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => adminCultoForm(
-                                          cultoatual: Culto(nome: culto.nome)),
-                                    ),
-                                  );
-                                  //Navigator.pushNamed(
-                                  //    context, '/adminCultoForm');
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Color(0xff010101),
-                                      borderRadius: BorderRadius.circular(12)),
-                                  width: MediaQuery.of(context).size.width,
-                                  margin: EdgeInsets.only(top: 0),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 30.0, vertical: 12),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              culto.nome,
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.zero,
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  itemCount: cultosProvider.cultos.length,
+                                  itemBuilder: (context, index) {
+                                    final culto = cultosProvider.cultos[index];
+                                    return ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      title: GestureDetector(
+                                        onTap: () {
+                                          print(culto.nome);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  adminCultoForm(
+                                                      cultoatual: Culto(
+                                                          nome: culto.nome)),
                                             ),
-                                            Text(
-                                              "19:30 - 21:00",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w300,
-                                                  fontSize: 10),
+                                          );
+                                          //Navigator.pushNamed(
+                                          //    context, '/adminCultoForm');
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              color: Color(0xff010101),
+                                              borderRadius:
+                                                  BorderRadius.circular(0)),
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 30.0, vertical: 12),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      culto.nome,
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 14),
+                                                    ),
+                                                    Text(
+                                                      "19:30 - 21:00",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.w300,
+                                                          fontSize: 10),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Column(
+                                                  children: [Text("14/abr")],
+                                                )
+                                              ],
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                        Column(
-                                          children: [Text("14/abr")],
-                                        )
-                                      ],
-                                    ),
-                                  ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    cultosProvider.cultos.isEmpty
+                        ? Text(
+                            "Nenhum culto encontrado, adicione um",
+                            style: TextStyle(color: Colors.white),
+                          )
+                        : Text(""),
+                  ],
                 ),
               ),
             ),
