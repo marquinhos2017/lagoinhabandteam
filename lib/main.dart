@@ -42,9 +42,9 @@ class MyApp extends StatelessWidget {
       home: const userMainPage(),
       routes: {
         '/intro_page': (context) => const userMainPage(),
-        '/adminCultoForm': (context) => const adminCultoForm(),
-        '/MusicianSelect': (context) => const MusicianSelect(),
-        '/AddtoPlaylist': (context) => const AddtoPlaylist(),
+        // '/adminCultoForm': (context) => adminCultoForm(culto: Culto(nome: n),),
+        //'/MusicianSelect': (context) => MusicianSelect(),
+        '/AddtoPlaylist': (context) => AddtoPlaylist(),
       },
     );
   }

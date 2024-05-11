@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:lagoinha_music/main.dart';
+import 'package:lagoinha_music/models/culto.dart';
+import 'package:lagoinha_music/models/musico.dart';
+import 'package:lagoinha_music/pages/adminCultoForm.dart';
+import 'package:provider/provider.dart';
 
 class MusicianSelect extends StatelessWidget {
-  const MusicianSelect({super.key});
+  late Culto cultoatual;
+
+  MusicianSelect({required this.cultoatual});
 
   @override
   Widget build(BuildContext context) {
+    CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
+    int index = cultosProvider.cultos
+        .indexWhere((culto) => culto.nome == cultoatual.nome);
+    print("Index: $index");
+
     return Scaffold(
       backgroundColor: Color(0xff010101),
       body: Container(
@@ -66,8 +78,18 @@ class MusicianSelect extends StatelessWidget {
                               child: const Text('Cancel'),
                             ),
                             TextButton(
-                              onPressed: () => Navigator.popUntil(context,
-                                  ModalRoute.withName('/adminCultoForm')),
+                              onPressed: () {
+                                cultosProvider.cultos[index].musicos
+                                    .add(Musico("Marcos", "Bateria"));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => adminCultoForm(
+                                        cultoatual:
+                                            Culto(nome: cultoatual.nome)),
+                                  ),
+                                );
+                              },
                               child: const Text('OK'),
                             ),
                           ],
@@ -112,42 +134,79 @@ class MusicianSelect extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Container(
-                      margin: EdgeInsets.only(top: 20),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(25)),
+                    GestureDetector(
+                      onTap: () => showDialog<String>(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          backgroundColor: Color(0xff171717),
+                          title: const Text(
+                            'Convidar Lucas Almeida ?',
+                            style: TextStyle(color: Colors.white),
                           ),
-                          Container(
-                            margin: EdgeInsets.only(left: 24),
-                            child: Text(
-                              "Lucas Almeida",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10),
+                          content: const Text(
+                            'Convidar Lucas Almeida ?',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'Cancel'),
+                              child: const Text('Cancel'),
                             ),
-                          ),
-                          Container(
-                            width: 70,
-                            margin: EdgeInsets.only(left: 24),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Center(
-                                child: Text(
-                                  "Guitar",
-                                  style: TextStyle(
-                                      color: Color(0xff96C0FF), fontSize: 10),
-                                ),
+                            TextButton(
+                              onPressed: () {
+                                cultosProvider.cultos[index].musicos
+                                    .add(Musico("Lucas", "Guitarra"));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => adminCultoForm(
+                                        cultoatual:
+                                            Culto(nome: cultoatual.nome)),
+                                  ),
+                                );
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      child: Container(
+                        margin: EdgeInsets.only(top: 20),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(25)),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(left: 24),
+                              child: Text(
+                                "Lucas Almeida",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10),
                               ),
                             ),
-                          )
-                        ],
+                            Container(
+                              width: 70,
+                              margin: EdgeInsets.only(left: 24),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Text(
+                                    "Guitarra",
+                                    style: TextStyle(
+                                        color: Color(0xffCCFFD1), fontSize: 10),
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                     ),
                     Container(

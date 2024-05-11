@@ -1,13 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
+import 'package:lagoinha_music/models/culto.dart';
+import 'package:lagoinha_music/models/musico.dart';
+import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
 import 'package:provider/provider.dart';
 
 class adminCultoForm extends StatelessWidget {
-  const adminCultoForm({super.key});
+  late Culto cultoatual;
+
+  adminCultoForm({required this.cultoatual});
 
   @override
   Widget build(BuildContext context) {
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
+    int index = cultosProvider.cultos
+        .indexWhere((culto) => culto.nome == cultoatual.nome);
+    print(index);
+
+    Culto cultoEspecifico = cultosProvider.cultos[index];
+    String nomes = "";
+    print("Culto: " + cultoEspecifico.nome);
+    for (Musico musico in cultoEspecifico.musicos) {
+      //print(musico.nome);
+      nomes = nomes + musico.nome;
+      print(
+          nomes); // Supondo que 'nome' seja o atributo que você deseja imprimir
+    }
+
+    //print(cultosProvider.cultos.toString());
     return Scaffold(
       backgroundColor: Color(0xff010101),
       body: Container(
@@ -17,10 +37,19 @@ class adminCultoForm extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                "Culto " + cultoatual.nome,
+                style: TextStyle(color: Colors.white),
+              ),
+              Text(
+                "Musicos:" + nomes,
+                style: TextStyle(color: Colors.white),
+              ),
               Container(
                 margin: EdgeInsets.only(top: 20, bottom: 20),
                 child: GestureDetector(
-                    onTap: () => Navigator.of(context).pushNamed('/intro_page'),
+                    onTap: () => Navigator.of(context)
+                        .popUntil((route) => route.isFirst),
                     child: Icon(
                       Icons.arrow_back_ios,
                       color: Colors.white,
@@ -31,7 +60,6 @@ class adminCultoForm extends StatelessWidget {
                   Container(
                     child: Text(
                       "${cultosProvider.cultos}",
-                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                   Container(
@@ -129,8 +157,14 @@ class adminCultoForm extends StatelessWidget {
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: GestureDetector(
-                                  onTap: () => Navigator.pushNamed(
-                                      context, '/MusicianSelect'),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MusicianSelect(
+                                          cultoatual: Culto(
+                                              nome: cultoEspecifico.nome)),
+                                    ),
+                                  ),
                                   child: Center(
                                     child: Text(
                                       "ADD MUSICIAN",

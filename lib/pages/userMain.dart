@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
+import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:provider/provider.dart';
 
 class userMainPage extends StatefulWidget {
@@ -18,10 +19,8 @@ class _userMainPageState extends State<userMainPage> {
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
     String servicename = '';
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: const Color(0xff171717),
       body: Container(
-        margin: EdgeInsets.zero,
-        color: Color(0xff171717),
         child: Column(
           children: [
             Container(
@@ -54,88 +53,90 @@ class _userMainPageState extends State<userMainPage> {
                             fontWeight: FontWeight.bold),
                       ),
                     ),
-                    Container(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 30.0, vertical: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Culto Fé",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
-                                ),
-                                Text(
-                                  "19:30 - 21:00",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w300,
-                                      fontSize: 10),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              children: [Text("14/abr")],
-                            )
-                          ],
-                        ),
-                      ),
-                      decoration: BoxDecoration(
-                          color: Color(0xff010101),
-                          borderRadius: BorderRadius.circular(12)),
-                      width: MediaQuery.of(context).size.width,
-                      margin: EdgeInsets.only(top: 12),
-                    ),
-                    Container(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 30.0, vertical: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Culto Batismo",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
-                                ),
-                                Text(
-                                  "19:30 - 21:00",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w300,
-                                      fontSize: 10),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              children: [Text("14/abr")],
-                            )
-                          ],
-                        ),
-                      ),
-                      decoration: BoxDecoration(
-                          color: Color(0xff010101),
-                          borderRadius: BorderRadius.circular(12)),
-                      width: MediaQuery.of(context).size.width,
-                      margin: EdgeInsets.only(top: 12),
-                    ),
                   ],
                 ),
               ),
-            )
+            ),
+            Container(
+              child: Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 200,
+                        child: ListView.builder(
+                          itemCount: cultosProvider.cultos.length,
+                          itemBuilder: (context, index) {
+                            final culto = cultosProvider.cultos[index];
+                            return ListTile(
+                              title: Container(
+                                decoration: BoxDecoration(
+                                    color: Color(0xff010101),
+                                    borderRadius: BorderRadius.circular(12)),
+                                width: MediaQuery.of(context).size.width,
+                                margin: EdgeInsets.only(top: 0),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 30.0, vertical: 12),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          print(culto.nome);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  adminCultoForm(
+                                                      cultoatual: Culto(
+                                                          nome: culto.nome)),
+                                            ),
+                                          );
+                                          //Navigator.pushNamed(
+                                          //    context, '/adminCultoForm');
+                                        },
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              culto.nome,
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14),
+                                            ),
+                                            Text(
+                                              "19:30 - 21:00",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w300,
+                                                  fontSize: 10),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Column(
+                                        children: [Text("14/abr")],
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -202,7 +203,7 @@ class _userMainPageState extends State<userMainPage> {
 
                     // Cria um novo culto com o nome inserido
                     Culto newCulto = Culto(
-                      servicename,
+                      nome: servicename,
                     );
 
                     // Adiciona o novo culto ao array
@@ -212,7 +213,7 @@ class _userMainPageState extends State<userMainPage> {
                     Navigator.pop(context);
 
                     // Navega para a página de formulário de administração de culto
-                    Navigator.pushNamed(context, '/adminCultoForm');
+                    //   Navigator.pushNamed(context, '/adminCultoForm');
                   }
                 },
                 child: const Text('OK'),
