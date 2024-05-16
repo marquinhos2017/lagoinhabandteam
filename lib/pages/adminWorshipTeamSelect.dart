@@ -3,6 +3,7 @@ import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musico.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
+import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 
 class MusicianSelect extends StatelessWidget {
@@ -76,15 +77,13 @@ class MusicianSelect extends StatelessWidget {
                             TextButton(
                               onPressed: () {
                                 cultosProvider.cultos[index].musicos
-                                    .add(Musico("Marcos", "Bateria"));
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => adminCultoForm(
-                                        cultoatual:
-                                            Culto(nome: cultoatual.nome)),
-                                  ),
-                                );
+                                    .add(Musico("Marcos Rodrigues", "Bateria"));
+                                Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                        builder: (context) => adminCultoForm(
+                                            cultoatual:
+                                                Culto(nome: cultoatual.nome))),
+                                    (Route<dynamic> route) => false);
                               },
                               child: const Text('OK'),
                             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
+import 'package:lagoinha_music/pages/login.dart';
 import 'package:provider/provider.dart';
 
 class userMainPage extends StatefulWidget {
@@ -34,6 +35,19 @@ class _userMainPageState extends State<userMainPage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Container(
+                      margin: EdgeInsets.only(top: 20, bottom: 0),
+                      child: GestureDetector(
+                          onTap: () => Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => login()),
+                              ),
+                          child: Icon(
+                            Icons.login,
+                            color: Colors.white,
+                          )),
+                    ),
                     Container(
                       margin: EdgeInsets.only(top: 2),
                       child: const Text(

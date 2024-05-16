@@ -4,25 +4,17 @@ import 'package:lagoinha_music/models/musician.dart';
 class Shop extends ChangeNotifier {
   final List<Musician> _shop = [
     Musician(
-      name: "Marcos Rodrigues",
-      instrument: "Guitar",
-      color: "white",
-    ),
+        name: "Marcos Rodrigues",
+        instrument: "Guitar",
+        color: "white",
+        password: "08041999",
+        tipo: "musico"),
     Musician(
-      name: "Lucas Barbosa",
-      instrument: "Vocal",
-      color: "white",
-    ),
-    Musician(
-      name: "Maria Eduarda",
-      instrument: "Drum",
-      color: "white",
-    ),
-    Musician(
-      name: "Product 4",
-      instrument: "Guitar",
-      color: "Blue",
-    ),
+        name: "Lucas Barbosa",
+        instrument: "Vocal",
+        color: "white",
+        password: "123456789",
+        tipo: "musico"),
   ];
 
   List<Musician> _cart = [];

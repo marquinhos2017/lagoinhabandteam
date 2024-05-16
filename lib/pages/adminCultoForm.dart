@@ -3,6 +3,8 @@ import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musico.dart';
 import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
+import 'package:lagoinha_music/pages/login.dart';
+import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 
 class adminCultoForm extends StatelessWidget {
@@ -44,19 +46,22 @@ class adminCultoForm extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                /*Text(
                   "Culto: " + cultoatual.nome,
                   style: TextStyle(color: Colors.white),
                 ),
                 Text(
                   "Musicos: " + nomes,
                   style: TextStyle(color: Colors.white),
-                ),
+                ),*/
                 Container(
                   margin: EdgeInsets.only(top: 20, bottom: 0),
                   child: GestureDetector(
-                      onTap: () => Navigator.of(context)
-                          .popUntil((route) => route.isFirst),
+                      onTap: () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => userMainPage()),
+                          ),
                       child: Icon(
                         Icons.arrow_back_ios,
                         color: Colors.white,
