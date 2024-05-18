@@ -1,6 +1,8 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musician.dart';
+import 'package:lagoinha_music/models/musico.dart';
 import 'package:lagoinha_music/pages/adminAddtoPlaylist.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
@@ -37,12 +39,27 @@ class CultosProvider extends ChangeNotifier {
     _cultos.removeAt(index);
     notifyListeners();
   }
+
+  void addMarcos(CultosProvider culto, int index) {
+    culto.cultos[index].musicos.add(Musician(
+        color: "grey",
+        instrument: "guitar",
+        name: "Marcos Rodrigues",
+        password: "08041999",
+        tipo: "user"));
+
+    notifyListeners();
+  }
 }
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => CultosProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CultosProvider()),
+      ],
       child: MyApp(),
     ),
   );

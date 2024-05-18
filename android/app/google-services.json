@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "822418720763",
+    "project_id": "lagoinhamusic-dc9f6",
+    "storage_bucket": "lagoinhamusic-dc9f6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:822418720763:android:05a82a2f49c08c7e242d5e",
+        "android_client_info": {
+          "package_name": "com.example.lagoinha_music"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzRKOd6SU3xTzyA4Tqnw1zjV3d_ruaeeo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

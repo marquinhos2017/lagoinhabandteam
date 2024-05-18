@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
+import 'package:lagoinha_music/models/musician.dart';
 import 'package:lagoinha_music/models/musico.dart';
 import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
 import 'package:lagoinha_music/pages/login.dart';
@@ -23,12 +24,12 @@ class adminCultoForm extends StatelessWidget {
     Culto cultoEspecifico = cultosProvider.cultos[index];
     String nomes = "";
     print("Culto: " + cultoEspecifico.nome);
-    for (Musico musico in cultoEspecifico.musicos) {
+    for (Musician musico in cultoEspecifico.musicos) {
       //print(musico.nome);
       if (nomes.isEmpty) {
-        nomes = nomes + musico.nome;
+        nomes = nomes + musico.name;
       } else {
-        nomes = nomes + ", " + musico.nome;
+        nomes = nomes + ", " + musico.name;
       }
 
       print(
@@ -150,7 +151,7 @@ class adminCultoForm extends StatelessWidget {
                                                                     .spaceBetween,
                                                             children: [
                                                               Text(
-                                                                musico.nome,
+                                                                musico.name,
                                                                 style: TextStyle(
                                                                     color: Colors
                                                                         .white,
@@ -168,7 +169,7 @@ class adminCultoForm extends StatelessWidget {
                                                                             20),
                                                                     child: Text(
                                                                       musico
-                                                                          .instrumento,
+                                                                          .instrument,
                                                                       style: TextStyle(
                                                                           color: Color(
                                                                               0xff558FFF),

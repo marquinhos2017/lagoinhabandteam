@@ -1,14 +1,15 @@
 import 'package:lagoinha_music/models/musica.dart';
+import 'package:lagoinha_music/models/musician.dart';
 import 'package:lagoinha_music/models/musico.dart';
 
 class Culto {
   String nome;
-  List<Musico> musicos = [];
+  List<Musician> musicos = [];
   List<Musica> musicas = [];
 
   Culto({
     required this.nome,
-    List<Musico>? musicos,
+    List<Musician>? musicos,
     List<Musica>? musicas,
   }) {
     this.musicos =
@@ -19,7 +20,7 @@ class Culto {
 }
 
 // Exemplo de como adicionar um músico a um culto específico
-void adicionarMusicoAoCulto(Musico musico, Culto culto) {
+void adicionarMusicoAoCulto(Musician musico, Culto culto) {
   culto.musicos.add(musico);
 }
 

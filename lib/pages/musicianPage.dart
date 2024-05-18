@@ -13,7 +13,7 @@ class MusicianPage extends StatelessWidget {
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
     List<Culto> findCultosForMusician(String musicianName) {
       return cultosProvider.cultos.where((culto) {
-        return culto.musicos.any((musician) => musician.nome == musicianName);
+        return culto.musicos.any((musician) => musician.name == musicianName);
       }).toList();
     }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
+import 'package:lagoinha_music/models/musician.dart';
 import 'package:lagoinha_music/models/musico.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
@@ -14,6 +15,16 @@ class MusicianSelect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
+
+    void addMarcos(int id) {
+      cultosProvider.cultos[id].musicos.add(Musician(
+          color: "grey",
+          instrument: "guitar",
+          name: "Marcos Rodrigues",
+          password: "08041999",
+          tipo: "user"));
+    }
+
     int index = cultosProvider.cultos
         .indexWhere((culto) => culto.nome == cultoatual.nome);
     print("Index: $index");
@@ -76,8 +87,8 @@ class MusicianSelect extends StatelessWidget {
                             ),
                             TextButton(
                               onPressed: () {
-                                cultosProvider.cultos[index].musicos
-                                    .add(Musico("Marcos Rodrigues", "Bateria"));
+                                addMarcos(index);
+
                                 Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(
                                         builder: (context) => adminCultoForm(
@@ -145,8 +156,13 @@ class MusicianSelect extends StatelessWidget {
                             ),
                             TextButton(
                               onPressed: () {
-                                cultosProvider.cultos[index].musicos
-                                    .add(Musico("Lucas", "Guitarra"));
+                                cultosProvider.cultos[index].musicos.add(
+                                    Musician(
+                                        color: "grey",
+                                        instrument: "Guitar",
+                                        name: "Marcos",
+                                        password: "08041999",
+                                        tipo: "user"));
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -216,8 +232,13 @@ class MusicianSelect extends StatelessWidget {
                             ),
                             TextButton(
                               onPressed: () {
-                                cultosProvider.cultos[index].musicos
-                                    .add(Musico("Rafaela", "Vocal"));
+                                cultosProvider.cultos[index].musicos.add(
+                                    Musician(
+                                        color: "grey",
+                                        instrument: "Vocal",
+                                        name: "Rafaela",
+                                        password: "08041999",
+                                        tipo: "user"));
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
