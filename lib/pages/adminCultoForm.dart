@@ -1,4 +1,8 @@
+import 'dart:ffi';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lagoinha_music/firestoreservice.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musician.dart';
@@ -16,8 +20,50 @@ class adminCultoForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
+    print("Nome do culto: " + cultoatual.nome);
 
-    int index = cultosProvider.cultos
+    Future<String?> findDocumentId(
+        String collectionPath, String fieldName, String value) async {
+      try {
+        // Consulta para encontrar documentos com o campo 'fieldName' igual a 'value'
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection(collectionPath)
+            .where(fieldName, isEqualTo: value)
+            .limit(1) // Limite para 1 documento (espera-se que haja apenas um)
+            .get();
+
+        // Verifica se a consulta retornou algum documento
+        if (querySnapshot.docs.isNotEmpty) {
+          // Retorna o ID do primeiro documento encontrado
+          return querySnapshot.docs.first.id;
+        } else {
+          // Retorna null se nenhum documento for encontrado
+          return null;
+        }
+      } catch (e) {
+        // Trata qualquer erro que possa ocorrer durante a consulta
+        print('Erro ao buscar documento: $e');
+        return null;
+      }
+    }
+
+    /*Future<String> Encontrar() async {
+      String? documentId =
+          await findDocumentId('Cultos', 'nome', 'Culto Batismo');
+      if (documentId != null) {
+        return documentId;
+      } else {
+        // Lidar com o caso em que o documento não foi encontrado, se necessário
+        // Por exemplo, você pode lançar uma exceção ou retornar uma string vazia
+        throw Exception(
+            'O documento com o nome "Culto Batismo" não foi encontrado.');
+      }
+    }
+
+    Encontrar();
+    */
+
+    /*int index = cultosProvider.cultos
         .indexWhere((culto) => culto.nome == cultoatual.nome);
     print(index);
 
@@ -35,6 +81,7 @@ class adminCultoForm extends StatelessWidget {
       print(
           nomes); // Supondo que 'nome' seja o atributo que você deseja imprimir
     }
+    */
 
     //print(cultosProvider.cultos.toString());
     return Scaffold(
@@ -79,7 +126,7 @@ class adminCultoForm extends StatelessWidget {
                     Container(
                       margin: EdgeInsets.only(bottom: 20),
                       child: Text(
-                        cultoEspecifico.nome,
+                        "", //cultoEspecifico.nome//,
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -108,7 +155,7 @@ class adminCultoForm extends StatelessWidget {
                               ),
                             ),
                             SizedBox(
-                              height: cultoEspecifico.musicos.length * 30.0,
+                              height: 200,
                               child: Container(
                                 padding: EdgeInsets.zero,
                                 child: Column(
@@ -117,7 +164,76 @@ class adminCultoForm extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: Container(
-                                        child: ListView.builder(
+                                        child: StreamBuilder<QuerySnapshot>(
+                                          stream: FirebaseFirestore.instance
+                                              .collection('Cultos')
+                                              .where('nome',
+                                                  isEqualTo: cultoatual.nome)
+                                              .snapshots(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              );
+                                            }
+
+                                            if (!snapshot.hasData ||
+                                                snapshot.data!.docs.isEmpty) {
+                                              return Center(
+                                                child: Text(
+                                                    'Culto de Batismo não encontrado'),
+                                              );
+                                            }
+
+                                            var cultoDoc =
+                                                snapshot.data!.docs.first;
+                                            var cultoData = cultoDoc.data()
+                                                as Map<String, dynamic>;
+
+                                            print("Documento do Culto: " +
+                                                cultoDoc.id);
+                                            print("Musicos Escalados: " +
+                                                (cultoData['musicos']
+                                                    .toString()));
+
+                                            // Verifica se o campo 'musicos' está presente e não é nulo
+                                            if (cultoData
+                                                    .containsKey('musicos') &&
+                                                cultoData['musicos'] != null) {
+                                              var musicos = cultoData['musicos']
+                                                  as List<dynamic>;
+
+                                              return ListView.builder(
+                                                itemCount: musicos.length,
+                                                itemBuilder: (context, index) {
+                                                  var musicoData = musicos[
+                                                          index]
+                                                      as Map<String, dynamic>;
+                                                  return ListTile(
+                                                    title: Text(
+                                                      musicoData['name'] ?? '',
+                                                      style: TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                    subtitle: Text(musicoData[
+                                                            'instrument'] ??
+                                                        ''),
+                                                    // Adicione mais campos conforme necessário
+                                                  );
+                                                },
+                                              );
+                                            } else {
+                                              return Center(
+                                                child: Text(
+                                                    'Não há músicos neste culto de Batismo'),
+                                              );
+                                            }
+                                          },
+                                        ),
+
+                                        /* child: ListView.builder(
                                           padding: EdgeInsets.zero,
                                           itemCount:
                                               cultoEspecifico.musicos.length,
@@ -195,7 +311,7 @@ class adminCultoForm extends StatelessWidget {
                                               ),
                                             );
                                           },
-                                        ),
+                                        ),*/
                                       ),
                                     ),
                                   ],
@@ -208,8 +324,9 @@ class adminCultoForm extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => MusicianSelect(
-                                        cultoatual:
-                                            Culto(nome: cultoEspecifico.nome)),
+                                        cultoatual: Culto(
+                                            nome: cultoatual
+                                                .nome)), //cultoEspecifico.nome//)),
                                   ),
                                 ),
                                 child: Container(

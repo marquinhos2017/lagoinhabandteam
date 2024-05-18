@@ -1,16 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musician.dart';
-import 'package:lagoinha_music/models/musico.dart';
+
 import 'package:lagoinha_music/pages/adminAddtoPlaylist.dart';
-import 'package:lagoinha_music/pages/adminCultoForm.dart';
-import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
+
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 
 class CultosProvider extends ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Culto> _cultos = [];
   List<Musician> _musicians = [
     Musician(
@@ -50,6 +51,57 @@ class CultosProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<void> adicionarMusico(
+      Culto culto_atual, String nome, String instrumento) async {
+    // Criar um novo músico como um mapa
+    var novoMusico = {
+      'name': nome,
+      'instrument': instrumento,
+    };
+
+    // Referência para a coleção 'Cultos' no Firestore
+    var cultoCollection = FirebaseFirestore.instance.collection('Cultos');
+
+    try {
+      // Encontrar o documento do culto pelo nome
+      QuerySnapshot querySnapshot = await cultoCollection
+          .where('nome', isEqualTo: culto_atual.nome)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Se o documento existe, obter a referência do documento
+        var cultoRef = querySnapshot.docs.first.reference;
+
+        // Tentar adicionar o novo músico ao array de músicos
+        await cultoRef.update({
+          'musicos': FieldValue.arrayUnion([novoMusico])
+        });
+        print('Músico adicionado com sucesso!');
+      } else {
+        // Se o documento não existe, criar o documento com o array de músicos
+        await cultoCollection.doc().set({
+          'nome': culto_atual.nome,
+          'musicos': [novoMusico]
+        });
+        print('Documento criado e músico adicionado com sucesso!');
+
+        await _firestore
+            .collection('notifications')
+            .doc('musico_adicionado')
+            .update({
+          'name': novoMusico['name'],
+          'instrument': novoMusico['instrument'],
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+        print('Notification updated');
+
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Erro ao adicionar músico: $e');
+    }
+  }
 }
 
 Future<void> main() async {
@@ -83,7 +135,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       home: const login(),
       routes: {
-        '/intro_page': (context) => const userMainPage(),
+        // '/intro_page': (context) => const userMainPage(),
         // '/adminCultoForm': (context) => adminCultoForm(culto: Culto(nome: n),),
         //'/MusicianSelect': (context) => MusicianSelect(),
         '/AddtoPlaylist': (context) => AddtoPlaylist(),

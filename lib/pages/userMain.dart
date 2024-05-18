@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
@@ -68,8 +69,120 @@ class _userMainPageState extends State<userMainPage> {
                             fontWeight: FontWeight.bold),
                       ),
                     ),
-                    SizedBox(
-                      height: cultosProvider.cultos.length * 60.0,
+                    Container(
+                      height: 400,
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('Cultos')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+
+                          if (!snapshot.hasData ||
+                              snapshot.data!.docs.isEmpty) {
+                            return Center(
+                              child: Text(
+                                'Nenhum culto encontrado',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            itemCount: snapshot.data!.docs.length,
+                            padding: EdgeInsets.zero,
+                            itemBuilder: (context, index) {
+                              var culto = snapshot.data!.docs[index];
+                              var cultoData =
+                                  culto.data() as Map<String, dynamic>;
+                              String cultoNome =
+                                  cultoData['nome'] ?? 'Nome não disponível';
+
+                              return GestureDetector(
+                                onTap: () {
+                                  print(cultoData['nome']);
+
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => adminCultoForm(
+                                          cultoatual: Culto(nome: cultoNome)),
+                                    ),
+                                  );
+                                  //Navigator.pushNamed(
+                                  //    context, '/adminCultoForm');
+
+                                  //Navigator.pushNamed(
+                                  //    context, '/adminCultoForm');
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.only(bottom: 10),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xff010101),
+                                      borderRadius: BorderRadius.circular(0)),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 30.0, vertical: 12),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              cultoNome,
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14),
+                                            ),
+                                            Text(
+                                              "19:30 - 21:00",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w300,
+                                                  fontSize: 10),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            print("ID: " + culto.id);
+                                            _deleteCulto(culto.id);
+                                          },
+                                          child: Icon(
+                                            Icons.delete,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+
+                              // Adicione mais campos conforme necessário
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    /*     SizedBox(
+                      height: cultosProvider.cultos.length * 70.0,
                       child: Container(
                         padding: EdgeInsets.zero,
                         child: Column(
@@ -156,13 +269,13 @@ class _userMainPageState extends State<userMainPage> {
                           ],
                         ),
                       ),
-                    ),
-                    cultosProvider.cultos.isEmpty
+                    ),*/
+                    /*cultosProvider.cultos.isEmpty
                         ? Text(
                             "Nenhum culto encontrado, adicione um",
                             style: TextStyle(color: Colors.white),
                           )
-                        : Text(""),
+                        : Text(""),*/
                   ],
                 ),
               ),
@@ -225,19 +338,34 @@ class _userMainPageState extends State<userMainPage> {
                 child: const Text('Cancel'),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   // Verifica se o formulário é válido
                   if (_formKey.currentState!.validate()) {
                     // Salva o valor do input
                     _formKey.currentState!.save();
 
+                    Future<void> _addCulto(String name) async {
+                      // Dados do novo culto
+                      Map<String, dynamic> cultoData = {
+                        'nome': name,
+                        'musicos': [],
+                      };
+
+                      // Adicionar o documento na coleção 'cultos'
+                      await FirebaseFirestore.instance
+                          .collection('Cultos')
+                          .add(cultoData);
+                    }
+
                     // Cria um novo culto com o nome inserido
-                    Culto newCulto = Culto(
+                    /*Culto newCulto = Culto(
                       nome: servicename,
                     );
 
                     // Adiciona o novo culto ao array
-                    cultosProvider.adicionarCulto(newCulto);
+                    cultosProvider.adicionarCulto(newCulto);*/
+
+                    await _addCulto(servicename);
 
                     // Fecha o diálogo
                     Navigator.pop(context);
@@ -257,5 +385,14 @@ class _userMainPageState extends State<userMainPage> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+}
+
+void _deleteCulto(String cultoId) async {
+  try {
+    await FirebaseFirestore.instance.collection('Cultos').doc(cultoId).delete();
+    print('Culto deletado com sucesso');
+  } catch (e) {
+    print('Erro ao deletar culto: $e');
   }
 }

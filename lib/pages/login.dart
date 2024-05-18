@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
@@ -33,98 +34,188 @@ class _LoginStateState extends State<login> {
       appBar: AppBar(
         title: Text("Login"),
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child: TextFormField(
-                  controller: emailController,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(), labelText: "Email"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    return null;
+      body: Column(
+        children: [
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('Cultos').where(
+                'musicos',
+                arrayContains: {'name': 'Marcos'}).snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(
+                  child: Text('Não há cultos com Marcos'),
+                );
+              }
+
+              return ListView.builder(
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  var cultoDoc = snapshot.data!.docs[index];
+                  var cultoData = cultoDoc.data() as Map<String, dynamic>;
+                  var cultoName = cultoData['nome'] ?? '';
+
+                  return ListTile(
+                    title: Text(cultoName),
+                    // Adicione mais campos conforme necessário
+                  );
+                },
+              );
+            },
+          ),
+          /*
+          Container(
+            height: 200,
+            child: StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance.collection('Cultos').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: Text('Nenhum culto encontrado'),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    var culto = snapshot.data!.docs[index];
+                    var cultoData = culto.data() as Map<String, dynamic>;
+
+                    return ListTile(
+                      title: Text(cultoData['nome'] ?? ''),
+                      subtitle: Text(
+                          'Data: ${cultoData['data']}'), // Substitua 'data' pelo campo correto
+                      // Adicione mais campos conforme necessário
+                    );
                   },
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child: TextFormField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(), labelText: "Password"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16.0),
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Navigate the user to the Home page
-                        bool exists = cultosProvider.musician.any((musician) =>
-                            musician.name == emailController.text);
-                        int index = cultosProvider.musician.indexWhere(
-                            (musician) =>
-                                musician.name == emailController.text);
-                        if (index >= 0) {
-                          if (passwordController.text ==
-                              cultosProvider.musician[index].password) {
-                            if (cultosProvider.musician[index].tipo ==
-                                "musico") {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => MusicianPage(
-                                          email: emailController.text,
-                                        )),
-                              );
+                );
+              },
+            ),
+          ),*/
+          Form(
+            key: _formKey,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                    child: TextFormField(
+                      controller: emailController,
+                      decoration: const InputDecoration(
+                          border: OutlineInputBorder(), labelText: "Email"),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                    child: TextFormField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                          border: OutlineInputBorder(), labelText: "Password"),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 16.0),
+                    child: Center(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            // Verifica se o e-mail está presente no banco de dados
+                            QuerySnapshot querySnapshot =
+                                await FirebaseFirestore.instance
+                                    .collection('musicos')
+                                    .where('name',
+                                        isEqualTo: emailController.text)
+                                    .get();
+
+                            if (querySnapshot.docs.isNotEmpty) {
+                              // E-mail encontrado
+                              // Verifica se a senha está correta
+                              DocumentSnapshot musicianDoc =
+                                  querySnapshot.docs[0];
+                              Map<String, dynamic> musicianData =
+                                  musicianDoc.data() as Map<String, dynamic>;
+                              if (musicianData['password'] ==
+                                  passwordController.text) {
+                                // Senha correta
+                                // Navegue para a página correta com base no tipo de usuário
+                                String musicianType = musicianData['tipo'];
+                                if (musicianType == 'user') {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            MusicianPage(id: musicianDoc.id)),
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => userMainPage()),
+                                  );
+                                }
+                              } else {
+                                // Senha incorreta
+                                print('Senha incorreta');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Senha incorreta')),
+                                );
+                              }
                             } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => userMainPage()),
+                              // E-mail não encontrado
+                              print('Usuario não encontrado');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('E-mail não encontrado')),
                               );
                             }
                           } else {
-                            print("Senha Incorreda");
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Por favor, preencha os campos')),
+                            );
                           }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Invalid Credentials')),
-                          );
-                        }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please fill input')),
-                        );
-                      }
-                    },
-                    child: const Text('Submit'),
+                        },
+                        child: const Text('Submit'),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
