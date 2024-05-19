@@ -1,10 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:lagoinha_music/main.dart';
-import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/pages/login.dart';
-import 'package:provider/provider.dart';
 
 class MusicianPage extends StatefulWidget {
   const MusicianPage({super.key, required this.id});
@@ -54,8 +50,10 @@ class _MusicianPageState extends State<MusicianPage> {
 
           // Verifica se a chave 'name' existe no mapa
           if (musicianData.containsKey('name')) {
-            String name = musicianData['name'];
-            print('O nome do músico com ID $musicianId é: $name');
+            setState(() {
+              musicianName = musicianData['name'];
+            });
+            print('O nome do músico com ID $musicianId é: $musicianName');
           } else {
             print(
                 'O campo "name" não foi encontrado no documento do músico com ID $musicianId.');
@@ -74,43 +72,10 @@ class _MusicianPageState extends State<MusicianPage> {
 
   @override
   Widget build(BuildContext context) {
-    /*
-    CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
-    List<Culto> findCultosForMusician(String musicianName) {
-      return cultosProvider.cultos.where((culto) {
-        return culto.musicos.any((musician) => musician.name == musicianName);
-      }).toList();
-    }
-
-    List<Culto> cultosWithMarcos = findCultosForMusician("Marcos Rodrigues");
-
-    for (var culto in cultosWithMarcos) {
-      print("Marcos Rodrigues está escalado para: ${culto.nome}");
-    }*/
-
-    Future<int> countTotalMusicos() async {
-      try {
-        QuerySnapshot<Map<String, dynamic>> querySnapshot =
-            await FirebaseFirestore.instance.collection('Cultos').get();
-
-        int totalMusicos = 0;
-        querySnapshot.docs.forEach((doc) {
-          if (doc.data().containsKey('musicos')) {
-            List<dynamic>? musicos = doc['musicos'];
-            totalMusicos += musicos?.length ?? 0;
-          }
-        });
-
-        return totalMusicos;
-      } catch (e) {
-        print('Erro ao contar o número total de músicos: $e');
-        return 0;
-      }
-    }
-
     return Scaffold(
-        backgroundColor: const Color(0xff171717),
-        body: Container(
+      backgroundColor: const Color(0xff171717),
+      body: SingleChildScrollView(
+        child: Container(
           margin: EdgeInsets.only(top: 100),
           padding: EdgeInsets.all(40),
           child: Column(
@@ -166,7 +131,7 @@ class _MusicianPageState extends State<MusicianPage> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return Center(child: CircularProgressIndicator());
                   }
                   if (!snapshot.hasData) {
                     return Text('Nome do músico não encontrado');
@@ -200,191 +165,101 @@ class _MusicianPageState extends State<MusicianPage> {
                 ),
               ),
               Container(
-                  height: 200,
-                  child: FutureBuilder<QuerySnapshot>(
-                    future:
-                        FirebaseFirestore.instance.collection('Cultos').get(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
+                height: 200,
+                child: FutureBuilder<QuerySnapshot>(
+                  future: FirebaseFirestore.instance.collection('Cultos').get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
 
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Erro: ${snapshot.error}'));
-                      }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Erro: ${snapshot.error}'));
+                    }
 
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        print("Nenhum Culto Encontrado");
-                        return Center(
-                          child: Text(
-                            'Nenhum culto encontrado',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }
-
-                      final cultos = snapshot.data!.docs;
-
-                      return StreamBuilder<DocumentSnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('musicos')
-                            .doc(widget.id)
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
-                          }
-
-                          if (snapshot.hasError) {
-                            return Center(
-                                child: Text('Erro: ${snapshot.error}'));
-                          }
-
-                          if (!snapshot.hasData || !snapshot.data!.exists) {
-                            return Center(
-                                child: Text('Nome do músico não encontrado'));
-                          }
-
-                          var musicianData =
-                              snapshot.data!.data() as Map<String, dynamic>?;
-
-                          if (musicianData == null ||
-                              !musicianData.containsKey('name')) {
-                            return Center(
-                                child: Text('Nome do músico não encontrado'));
-                          }
-
-                          String musicianName = musicianData['name'];
-
-                          return ListView.builder(
-                            itemCount: cultos.length,
-                            itemBuilder: (context, index) {
-                              final culto =
-                                  cultos[index].data() as Map<String, dynamic>;
-                              final musicos = culto['musicos'] != null
-                                  ? culto['musicos'] as List<dynamic>
-                                  : [];
-
-                              if (musicos.any(
-                                  (musico) => musico['name'] == musicianName)) {
-                                print(musicianName +
-                                    " no Culto:  " +
-                                    culto['nome']);
-                                return ListTile(
-                                  title: Text(
-                                    culto['nome'],
-                                    style: TextStyle(
-                                        color: const Color.fromARGB(
-                                            255, 205, 182, 182)),
-                                  ),
-                                );
-                              } else {
-                                print("Sem Escala");
-                                return SizedBox
-                                    .shrink(); // Retornar um widget vazio se o músico não estiver no culto
-                              }
-                            },
-                          );
-                        },
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      print("Nenhum Culto Encontrado");
+                      return Center(
+                        child: Text(
+                          'Nenhum culto encontrado',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       );
-                    },
-                  )),
+                    }
 
-              /* SizedBox(
-                height: cultosProvider.cultos.length * 60.0,
-                child: Container(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.zero,
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            itemCount: cultosWithMarcos.length,
-                            itemBuilder: (context, index) {
-                              final culto = cultosProvider.cultos[index];
+                    final cultos = snapshot.data!.docs;
+
+                    return StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('musicos')
+                          .doc(widget.id)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Erro: ${snapshot.error}'));
+                        }
+
+                        if (!snapshot.hasData || !snapshot.data!.exists) {
+                          return Center(
+                              child: Text('Nome do músico não encontrado'));
+                        }
+
+                        var musicianData =
+                            snapshot.data!.data() as Map<String, dynamic>?;
+
+                        if (musicianData == null ||
+                            !musicianData.containsKey('name')) {
+                          return Center(
+                              child: Text('Nome do músico não encontrado'));
+                        }
+
+                        String musicianName = musicianData['name'];
+
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: cultos.length,
+                          itemBuilder: (context, index) {
+                            final culto =
+                                cultos[index].data() as Map<String, dynamic>;
+                            final musicos = culto['musicos'] != null
+                                ? culto['musicos'] as List<dynamic>
+                                : [];
+
+                            if (musicos.any(
+                                (musico) => musico['name'] == musicianName)) {
+                              print(musicianName +
+                                  " no Culto:  " +
+                                  culto['nome']);
                               return ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: GestureDetector(
-                                  onTap: () {
-                                    //Navigator.pushNamed(
-                                    //    context, '/adminCultoForm');
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                        color: Color(0xff010101),
-                                        borderRadius: BorderRadius.circular(0)),
-                                    width: MediaQuery.of(context).size.width,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 30.0, vertical: 12),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                cultosWithMarcos[index].nome,
-                                                style: TextStyle(
-                                                    color: Colors.white),
-                                              ),
-                                              Text(
-                                                "19:30 - 21:00",
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w300,
-                                                    fontSize: 10),
-                                              ),
-                                            ],
-                                          ),
-                                          Column(
-                                            children: [Text("14/abr")],
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                title: Text(
+                                  culto['nome'],
+                                  style: TextStyle(
+                                      color: const Color.fromARGB(
+                                          255, 205, 182, 182)),
                                 ),
                               );
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),*/
-              /*Expanded(
-                child: Container(
-                  child: ListView.builder(
-                      itemCount: cultosWithMarcos.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(cultosWithMarcos[index].nome),
+                            } else {
+                              print("Sem Escala");
+                              return SizedBox
+                                  .shrink(); // Retornar um widget vazio se o músico não estiver no culto
+                            }
+                          },
                         );
-                      }),
+                      },
+                    );
+                  },
                 ),
               ),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Go back!"),
-                ),
-              ),*/
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   @override
