@@ -103,7 +103,7 @@ class adminCultoForm extends StatelessWidget {
                   style: TextStyle(color: Colors.white),
                 ),*/
                 Container(
-                  margin: EdgeInsets.only(top: 20, bottom: 0),
+                  margin: EdgeInsets.only(top: 20, bottom: 25),
                   child: GestureDetector(
                       onTap: () => Navigator.pushReplacement(
                             context,
@@ -118,11 +118,14 @@ class adminCultoForm extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    /*
                     Container(
                       child: Text(
                         "${cultosProvider.cultos}",
                       ),
-                    ),
+                    ),*/
+
+                    /*
                     Container(
                       margin: EdgeInsets.only(bottom: 20),
                       child: Text(
@@ -132,7 +135,7 @@ class adminCultoForm extends StatelessWidget {
                             fontSize: 24,
                             fontWeight: FontWeight.bold),
                       ),
-                    ),
+                    ),*/
                     Container(
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
