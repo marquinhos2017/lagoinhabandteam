@@ -200,72 +200,96 @@ class _MusicianPageState extends State<MusicianPage> {
                 ),
               ),
               Container(
-                height: 200,
-                child: FutureBuilder<QuerySnapshot>(
-                  future: FirebaseFirestore.instance.collection('Cultos').get(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    }
+                  height: 200,
+                  child: FutureBuilder<QuerySnapshot>(
+                    future:
+                        FirebaseFirestore.instance.collection('Cultos').get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
 
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Erro: ${snapshot.error}'));
-                    }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Erro: ${snapshot.error}'));
+                      }
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      print("Nenhum Culto Encontrado");
-                      return Center(
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        print("Nenhum Culto Encontrado");
+                        return Center(
                           child: Text(
-                        'Nenhum culto encontrado',
-                        style: TextStyle(color: Colors.white),
-                      ));
-                    }
-
-                    final cultos = snapshot.data!.docs;
-
-                    return ListView.builder(
-                      itemCount: cultos.length,
-                      itemBuilder: (context, index) {
-                        final culto =
-                            cultos[index].data() as Map<String, dynamic>;
-                        final musicos;
-                        if (culto['musicos'] != null) {
-                          musicos = culto['musicos'] as List<dynamic>;
-                        } else {
-                          musicos = [];
-                        }
-                        print(musicos);
-                        if (musicos
-                            .any((musico) => musico['name'] == "Marcos")) {
-                          print("Marcos no Culto:  " + culto['nome']);
-                          return ListTile(
-                            title: Text(
-                              culto['nome'],
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          );
-                        } else {
-                          print("Sem Escala");
-                        }
-
-                        /* return ListTile(
-                          title: Text(
-                            culto['nome'] ?? 'Sem escalas',
+                            'Nenhum culto encontrado',
                             style: TextStyle(color: Colors.white),
                           ),
-                          // //subtitle: Column(
-                          //    crossAxisAlignment: CrossAxisAlignment.start,
-                          //    children: musicos.map((musico) {
-                          //       return Text(
-                          //           '${musico['name']} - ${musico['instrument']}');
-                          //      }).toList(),
-                          //    ),
-                        );*/
-                      },
-                    );
-                  },
-                ),
-              ),
+                        );
+                      }
+
+                      final cultos = snapshot.data!.docs;
+
+                      return StreamBuilder<DocumentSnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('musicos')
+                            .doc(widget.id)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+
+                          if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Erro: ${snapshot.error}'));
+                          }
+
+                          if (!snapshot.hasData || !snapshot.data!.exists) {
+                            return Center(
+                                child: Text('Nome do músico não encontrado'));
+                          }
+
+                          var musicianData =
+                              snapshot.data!.data() as Map<String, dynamic>?;
+
+                          if (musicianData == null ||
+                              !musicianData.containsKey('name')) {
+                            return Center(
+                                child: Text('Nome do músico não encontrado'));
+                          }
+
+                          String musicianName = musicianData['name'];
+
+                          return ListView.builder(
+                            itemCount: cultos.length,
+                            itemBuilder: (context, index) {
+                              final culto =
+                                  cultos[index].data() as Map<String, dynamic>;
+                              final musicos = culto['musicos'] != null
+                                  ? culto['musicos'] as List<dynamic>
+                                  : [];
+
+                              if (musicos.any(
+                                  (musico) => musico['name'] == musicianName)) {
+                                print(musicianName +
+                                    " no Culto:  " +
+                                    culto['nome']);
+                                return ListTile(
+                                  title: Text(
+                                    culto['nome'],
+                                    style: TextStyle(
+                                        color: const Color.fromARGB(
+                                            255, 205, 182, 182)),
+                                  ),
+                                );
+                              } else {
+                                print("Sem Escala");
+                                return SizedBox
+                                    .shrink(); // Retornar um widget vazio se o músico não estiver no culto
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                  )),
 
               /* SizedBox(
                 height: cultosProvider.cultos.length * 60.0,
