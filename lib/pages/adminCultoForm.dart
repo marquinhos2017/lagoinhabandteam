@@ -217,6 +217,16 @@ class adminCultoForm extends StatelessWidget {
                                                       children: [
                                                         GestureDetector(
                                                           onTap: () {
+                                                            FirebaseFirestore
+                                                                .instance
+                                                                .collection(
+                                                                    'clicks')
+                                                                .add({
+                                                              'clicked': true,
+                                                              'timestamp':
+                                                                  FieldValue
+                                                                      .serverTimestamp(),
+                                                            });
                                                             print(
                                                                 "Clicado no: " +
                                                                     musicoData[

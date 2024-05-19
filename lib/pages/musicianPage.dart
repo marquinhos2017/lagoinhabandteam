@@ -16,6 +16,7 @@ class MusicianPage extends StatefulWidget {
 }
 
 class _MusicianPageState extends State<MusicianPage> {
+  bool _buttonClicked = false;
   String musicianName = '';
 
   @override
@@ -23,6 +24,18 @@ class _MusicianPageState extends State<MusicianPage> {
     super.initState();
     // Chama a função para recuperar o nome do músico
     retrieveName(widget.id);
+
+    FirebaseFirestore.instance
+        .collection('clicks')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .listen((data) {
+      if (data.docs.isNotEmpty) {
+        setState(() {
+          _buttonClicked = data.docs.first['clicked'];
+        });
+      }
+    });
   }
 
   void retrieveName(String musicianId) async {
@@ -103,6 +116,31 @@ class _MusicianPageState extends State<MusicianPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('clicks')
+                    .orderBy('timestamp', descending: true)
+                    .limit(1)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  var docs = snapshot.data?.docs;
+                  if (docs!.isEmpty) {
+                    return Center(child: Text('Aguardando clique...'));
+                  }
+
+                  var clicked = docs[0]['clicked'];
+                  return Center(
+                    child: Text(
+                      clicked ? 'Botão clicado!' : 'Aguardando clique...',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                },
+              ),
               Container(
                 margin: EdgeInsets.only(top: 20, bottom: 0),
                 child: GestureDetector(
