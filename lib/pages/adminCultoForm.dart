@@ -88,7 +88,7 @@ class adminCultoForm extends StatelessWidget {
       backgroundColor: Color(0xff010101),
       body: SingleChildScrollView(
         child: Container(
-          margin: EdgeInsets.only(top: 60),
+          margin: EdgeInsets.only(top: 20),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -206,68 +206,30 @@ class adminCultoForm extends StatelessWidget {
                                                   as List<dynamic>;
 
                                               return ListView.builder(
-                                                itemCount: musicos.length,
-                                                itemBuilder: (context, index) {
-                                                  var musicoData = musicos[
-                                                          index]
-                                                      as Map<String, dynamic>;
-                                                  return ListTile(
-                                                    title: Text(
-                                                      musicoData['name'] ?? '',
-                                                      style: TextStyle(
-                                                          color: Colors.white),
-                                                    ),
-                                                    subtitle: Text(musicoData[
-                                                            'instrument'] ??
-                                                        ''),
-                                                    // Adicione mais campos conforme necessário
-                                                  );
-                                                },
-                                              );
-                                            } else {
-                                              return Center(
-                                                child: Text(
-                                                    'Não há músicos neste culto de Batismo'),
-                                              );
-                                            }
-                                          },
-                                        ),
-
-                                        /* child: ListView.builder(
-                                          padding: EdgeInsets.zero,
-                                          itemCount:
-                                              cultoEspecifico.musicos.length,
-                                          itemBuilder: (context, index) {
-                                            final musico =
-                                                cultoEspecifico.musicos;
-                                            return ListTile(
-                                              contentPadding: EdgeInsets.zero,
-                                              title: GestureDetector(
-                                                onTap: () {
-                                                  //Navigator.pushNamed(
-                                                  //    context, '/adminCultoForm');
-                                                },
-                                                child: Container(
                                                   padding: EdgeInsets.zero,
-                                                  height: 150,
-                                                  child: ListView.builder(
-                                                    padding: EdgeInsets.zero,
-                                                    itemCount: cultoEspecifico
-                                                        .musicos.length,
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      final musico =
-                                                          cultoEspecifico
-                                                              .musicos[index];
-                                                      return Column(
-                                                        children: [
-                                                          Row(
+                                                  itemCount: musicos.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    var musicoData = musicos[
+                                                            index]
+                                                        as Map<String, dynamic>;
+                                                    return Column(
+                                                      children: [
+                                                        GestureDetector(
+                                                          onTap: () {
+                                                            print(
+                                                                "Clicado no: " +
+                                                                    musicoData[
+                                                                        'name']);
+                                                          },
+                                                          child: Row(
                                                             mainAxisAlignment:
                                                                 MainAxisAlignment
                                                                     .spaceBetween,
                                                             children: [
                                                               Text(
-                                                                musico.name,
+                                                                musicoData[
+                                                                    'name'],
                                                                 style: TextStyle(
                                                                     color: Colors
                                                                         .white,
@@ -284,8 +246,8 @@ class adminCultoForm extends StatelessWidget {
                                                                         right:
                                                                             20),
                                                                     child: Text(
-                                                                      musico
-                                                                          .instrument,
+                                                                      musicoData[
+                                                                          'instrument'],
                                                                       style: TextStyle(
                                                                           color: Color(
                                                                               0xff558FFF),
@@ -303,15 +265,18 @@ class adminCultoForm extends StatelessWidget {
                                                               )
                                                             ],
                                                           ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                            );
+                                                        ),
+                                                      ],
+                                                    );
+                                                  });
+                                            } else {
+                                              return Center(
+                                                child: Text(
+                                                    'Não há músicos neste culto de Batismo'),
+                                              );
+                                            }
                                           },
-                                        ),*/
+                                        ),
                                       ),
                                     ),
                                   ],

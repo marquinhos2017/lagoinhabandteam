@@ -27,7 +27,7 @@ class _userMainPageState extends State<userMainPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 150),
+              margin: EdgeInsets.only(top: 20),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30.0,
