@@ -261,10 +261,4 @@ class _MusicianPageState extends State<MusicianPage> {
       ),
     );
   }
-
-  @override
-  void dispose() {
-    // Certifique-se de cancelar qualquer assinatura ou callback ao desmontar o widget
-    super.dispose();
-  }
 }

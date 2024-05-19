@@ -78,6 +78,12 @@ class CultosProvider extends ChangeNotifier {
           'musicos': FieldValue.arrayUnion([novoMusico])
         });
         print('Músico adicionado com sucesso!');
+
+        FirebaseFirestore.instance.collection('clicks').add({
+          'clicked': true,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+        print("Clicado no: " + novoMusico['name']!);
       } else {
         // Se o documento não existe, criar o documento com o array de músicos
         await cultoCollection.doc().set({
