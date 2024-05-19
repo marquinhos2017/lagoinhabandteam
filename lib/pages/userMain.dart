@@ -27,7 +27,7 @@ class _userMainPageState extends State<userMainPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 20),
+              margin: EdgeInsets.only(top: 80),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30.0,
@@ -36,23 +36,26 @@ class _userMainPageState extends State<userMainPage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      margin: EdgeInsets.only(top: 20, bottom: 0),
-                      child: GestureDetector(
-                          onTap: () => Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => login()),
-                              ),
-                          child: Icon(
-                            Icons.login,
-                            color: Colors.white,
-                          )),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        margin: EdgeInsets.only(top: 20, bottom: 0),
+                        child: GestureDetector(
+                            onTap: () => Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => login()),
+                                ),
+                            child: Icon(
+                              Icons.login,
+                              color: Colors.white,
+                            )),
+                      ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(top: 2),
+                      margin: EdgeInsets.only(top: 48),
                       child: const Text(
-                        "Boa noite Ju, seja bem vinda",
+                        "Bem Vindo",
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
