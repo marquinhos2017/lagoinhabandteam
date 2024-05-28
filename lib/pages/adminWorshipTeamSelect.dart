@@ -215,47 +215,50 @@ class MusicianSelect extends StatelessWidget {
                                           ),
                                         ),
                                         child: Container(
-                                          margin: EdgeInsets.only(top: 20),
+                                          margin: EdgeInsets.zero,
                                           child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
                                             children: [
                                               Container(
                                                 width: 30,
                                                 height: 30,
+                                                margin:
+                                                    EdgeInsets.only(right: 20),
                                                 decoration: BoxDecoration(
                                                     color: Colors.white,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             25)),
                                               ),
-                                              Container(
-                                                margin:
-                                                    EdgeInsets.only(left: 24),
-                                                child: Text(
-                                                  musicos['name'],
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 10),
-                                                ),
-                                              ),
-                                              Container(
-                                                width: 70,
-                                                margin:
-                                                    EdgeInsets.only(left: 24),
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Center(
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Container(
                                                     child: Text(
-                                                      musicos['instrument'],
+                                                      musicos['name'],
                                                       style: TextStyle(
-                                                          color:
-                                                              Color(0xff558FFF),
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                           fontSize: 10),
                                                     ),
                                                   ),
-                                                ),
+                                                  Container(
+                                                    child: Center(
+                                                      child: Text(
+                                                        musicos['instrument'],
+                                                        style: TextStyle(
+                                                            color: Color(
+                                                                0xff558FFF),
+                                                            fontSize: 10),
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
                                               )
                                             ],
                                           ),

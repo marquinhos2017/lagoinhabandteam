@@ -31,8 +31,14 @@ class _LoginStateState extends State<login> {
     print(exists);
     print(index);
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("Login"),
+        title: Text(
+          "Lagoinha Worship",
+          style: TextStyle(color: Colors.white),
+        ),
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.black,
       ),
       body: Column(
         children: [
@@ -115,9 +121,25 @@ class _LoginStateState extends State<login> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                     child: TextFormField(
+                      style: TextStyle(color: Colors.white),
                       controller: emailController,
                       decoration: const InputDecoration(
-                          border: OutlineInputBorder(), labelText: "Email"),
+                          border: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.white), // Borda branca
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors
+                                    .white), // Borda branca quando o campo está habilitado
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors
+                                    .white), // Borda branca quando o campo está focado
+                          ),
+                          labelText: "Email",
+                          labelStyle: TextStyle(color: Colors.white)),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your email';
@@ -130,10 +152,26 @@ class _LoginStateState extends State<login> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                     child: TextFormField(
+                      style: TextStyle(color: Colors.white),
                       controller: passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                          border: OutlineInputBorder(), labelText: "Password"),
+                          border: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.white), // Borda branca
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors
+                                    .white), // Borda branca quando o campo está habilitado
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors
+                                    .white), // Borda branca quando o campo está focado
+                          ),
+                          labelText: "Password",
+                          labelStyle: TextStyle(color: Colors.white)),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';

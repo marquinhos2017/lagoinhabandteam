@@ -138,7 +138,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      title: 'Flutter Demo',
+      title: 'Lagoinha Music',
       home: const login(),
       routes: {
         // '/intro_page': (context) => const userMainPage(),

@@ -370,8 +370,15 @@ class _userMainPageState extends State<userMainPage> {
 
                     await _addCulto(servicename);
 
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => adminCultoForm(
+                            cultoatual: Culto(nome: servicename)),
+                      ),
+                    );
+
                     // Fecha o diálogo
-                    Navigator.pop(context);
 
                     // Navega para a página de formulário de administração de culto
                     //   Navigator.pushNamed(context, '/adminCultoForm');
