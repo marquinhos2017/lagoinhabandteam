@@ -13,7 +13,6 @@ class MusicianPage extends StatefulWidget {
 
 class _MusicianPageState extends State<MusicianPage> {
   bool _buttonClicked = false;
-  String musicianName = '';
 
   @override
   void initState() {
@@ -70,6 +69,26 @@ class _MusicianPageState extends State<MusicianPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Lagoinha Worship",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          GestureDetector(
+            onTap: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => login()),
+            ),
+            child: Icon(
+              Icons.login,
+              color: Colors.white,
+            ),
+          ),
+        ],
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.black,
+      ),
       backgroundColor: const Color(0xff171717),
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchData(widget.id),
@@ -95,38 +114,34 @@ class _MusicianPageState extends State<MusicianPage> {
           final cultos =
               snapshot.data!['cultos'] as List<QueryDocumentSnapshot>;
 
+          // Filtra os cultos para verificar se o músico está escalado
+          final cultosEscalados = cultos.where((culto) {
+            final cultoData = culto.data() as Map<String, dynamic>;
+            final musicos = cultoData['musicos'] != null
+                ? cultoData['musicos'] as List<dynamic>
+                : [];
+            return musicos.any((musico) => musico['name'] == musicianName);
+          }).toList();
+
+          // Verifica se o músico está escalado em algum culto
+          if (cultosEscalados.isEmpty) {
+            return Center(
+              child: Text(
+                'Você não está escalado para nenhum culto.',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
           return SingleChildScrollView(
             child: Container(
-              margin: EdgeInsets.only(top: 100),
+              margin: EdgeInsets.only(top: 0),
               padding: EdgeInsets.all(40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: 24),
-                      child: GestureDetector(
-                          onTap: () => Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => login()),
-                              ),
-                          child: Icon(
-                            Icons.login,
-                            color: Colors.white,
-                          )),
-                    ),
-                  ),
-                  Text(
-                    'Ola, $musicianName',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold),
-                  ),
                   Container(
-                    margin: EdgeInsets.only(bottom: 40),
+                    margin: EdgeInsets.only(bottom: 12),
                     child: Text(
                       "Cultos Escalados",
                       style: TextStyle(
@@ -140,91 +155,47 @@ class _MusicianPageState extends State<MusicianPage> {
                     child: ListView.builder(
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
-                      itemCount: cultos.length,
+                      itemCount: cultosEscalados.length,
                       itemBuilder: (context, index) {
-                        final culto =
-                            cultos[index].data() as Map<String, dynamic>;
-                        final musicos = culto['musicos'] != null
-                            ? culto['musicos'] as List<dynamic>
-                            : [];
-
-                        if (musicos
-                            .any((musico) => musico['name'] == musicianName)) {
-                          print(musicianName + " no Culto:  " + culto['nome']);
-                          return Container(
-                            margin: EdgeInsets.only(bottom: 10),
-                            decoration: BoxDecoration(
-                                color: Color(0xff010101),
-                                borderRadius: BorderRadius.circular(0)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 30.0, vertical: 12),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        culto['nome'],
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14),
-                                      ),
-                                      Text(
-                                        "19:30 - 21:00",
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w300,
-                                            fontSize: 10),
-                                      ),
-                                    ],
-                                  ),
+                        final culto = cultosEscalados[index].data()
+                            as Map<String, dynamic>;
+                        return Container(
+                          margin: EdgeInsets.only(bottom: 10),
+                          decoration: BoxDecoration(
+                              color: Color(0xff010101),
+                              borderRadius: BorderRadius.circular(0)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 30.0, vertical: 12),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      culto['nome'],
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14),
+                                    ),
+                                    Text(
+                                      "19:30 - 21:00",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 10),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          print("Sem Escala");
-                          return SizedBox
-                              .shrink(); // Retornar um widget vazio se o músico não estiver no culto
-                        }
+                              ),
+                            ],
+                          ),
+                        );
                       },
-                    ),
-                  ),
-                  StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection('clicks')
-                        .orderBy('timestamp', descending: true)
-                        .limit(1)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-
-                      var docs = snapshot.data?.docs;
-                      if (docs!.isEmpty) {
-                        return Center(child: Text('Aguardando clique...'));
-                      }
-
-                      var clicked = docs[0]['clicked'];
-                      return Center(
-                        child: Text(
-                          clicked ? 'Botão clicado!' : 'Aguardando clique...',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      );
-                    },
-                  ),
-                  Center(
-                    child: Text(
-                      'Aguardando notificações...',
-                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],

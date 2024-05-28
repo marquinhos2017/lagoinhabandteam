@@ -21,13 +21,32 @@ class _userMainPageState extends State<userMainPage> {
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
     String servicename = '';
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Lagoinha Worship",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          GestureDetector(
+              onTap: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => login()),
+                  ),
+              child: Icon(
+                Icons.login,
+                color: Colors.white,
+              )),
+        ],
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.black,
+      ),
       backgroundColor: const Color(0xff171717),
       body: Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 120),
+              margin: EdgeInsets.only(top: 16),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30.0,
@@ -36,6 +55,7 @@ class _userMainPageState extends State<userMainPage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    /*
                     Align(
                       alignment: Alignment.centerRight,
                       child: Container(
@@ -61,7 +81,7 @@ class _userMainPageState extends State<userMainPage> {
                             fontSize: 20,
                             fontWeight: FontWeight.bold),
                       ),
-                    ),
+                    ),*/
                     Container(
                       margin: EdgeInsets.only(top: 30, bottom: 20),
                       child: Text(
@@ -168,8 +188,8 @@ class _userMainPageState extends State<userMainPage> {
                                             _deleteCulto(culto.id);
                                           },
                                           child: Icon(
-                                            Icons.delete,
-                                            color: Colors.white,
+                                            Icons.delete_outline,
+                                            color: Colors.red,
                                           ),
                                         ),
                                       ),

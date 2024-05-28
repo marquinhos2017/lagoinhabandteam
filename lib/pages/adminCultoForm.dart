@@ -85,12 +85,30 @@ class adminCultoForm extends StatelessWidget {
 
     //print(cultosProvider.cultos.toString());
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Lagoinha Worship",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          GestureDetector(
+              onTap: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => login()),
+                  ),
+              child: Icon(
+                Icons.login,
+                color: Colors.white,
+              )),
+        ],
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.black,
+      ),
       backgroundColor: Color(0xff010101),
       body: SingleChildScrollView(
         child: Container(
-          margin: EdgeInsets.only(top: 20),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
