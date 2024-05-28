@@ -86,6 +86,18 @@ class adminCultoForm extends StatelessWidget {
     //print(cultosProvider.cultos.toString());
     return Scaffold(
       appBar: AppBar(
+        leading: Container(
+          child: GestureDetector(
+              onTap: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => userMainPage()),
+                  ),
+              child: Icon(
+                Icons.arrow_back_ios,
+                color: Colors.white,
+              )),
+        ),
+        centerTitle: true,
         title: Text(
           "Lagoinha Worship",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -119,7 +131,7 @@ class adminCultoForm extends StatelessWidget {
                 Text(
                   "Musicos: " + nomes,
                   style: TextStyle(color: Colors.white),
-                ),*/
+                ),
                 Container(
                   margin: EdgeInsets.only(top: 20, bottom: 25),
                   child: GestureDetector(
@@ -132,7 +144,7 @@ class adminCultoForm extends StatelessWidget {
                         Icons.arrow_back_ios,
                         color: Colors.white,
                       )),
-                ),
+                ),*/
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -176,7 +188,7 @@ class adminCultoForm extends StatelessWidget {
                               ),
                             ),
                             SizedBox(
-                              height: 200,
+                              height: 120,
                               child: Container(
                                 padding: EdgeInsets.zero,
                                 child: Column(
