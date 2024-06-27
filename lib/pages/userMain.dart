@@ -23,7 +23,7 @@ class _userMainPageState extends State<userMainPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Lagoinha Worship",
+          "LWF",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -308,107 +308,103 @@ class _userMainPageState extends State<userMainPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showDialog<String>(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            backgroundColor: Color(0xff171717),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(bottom: 20),
-                  child: const Text(
-                    'Qual o nome do culto ?',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      TextFormField(
-                        decoration: const InputDecoration(
-                          hintStyle: TextStyle(color: Colors.white),
-                          labelStyle: TextStyle(color: Colors.white),
-                          labelText: "Service Name",
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white)),
-                          border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white)),
-                        ),
-                        style: TextStyle(color: Colors.white), // Cor do texto
-                        validator: (String? value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter some text';
-                          }
-                          return null;
-                        },
-                        onSaved: (value) {
-                          servicename = value!;
-                        },
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: Color(0xff171717),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 32,
+                    ),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          TextFormField(
+                            decoration: const InputDecoration(
+                              hintStyle: TextStyle(color: Colors.white),
+                              labelStyle: TextStyle(color: Colors.white),
+                              labelText: "Service Name",
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white)),
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white)),
+                            ),
+                            style:
+                                TextStyle(color: Colors.white), // Cor do texto
+                            validator: (String? value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter some text';
+                              }
+                              return null;
+                            },
+                            onSaved: (value) {
+                              servicename = value!;
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.pop(context, 'Cancel'),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  // Verifica se o formulário é válido
-                  if (_formKey.currentState!.validate()) {
-                    // Salva o valor do input
-                    _formKey.currentState!.save();
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      // Verifica se o formulário é válido
+                      if (_formKey.currentState!.validate()) {
+                        // Salva o valor do input
+                        _formKey.currentState!.save();
 
-                    Future<void> _addCulto(String name) async {
-                      // Dados do novo culto
-                      Map<String, dynamic> cultoData = {
-                        'nome': name,
-                        'musicos': [],
-                      };
+                        Future<void> _addCulto(String name) async {
+                          // Dados do novo culto
+                          Map<String, dynamic> cultoData = {
+                            'nome': name,
+                            'musicos': [],
+                          };
 
-                      // Adicionar o documento na coleção 'cultos'
-                      await FirebaseFirestore.instance
-                          .collection('Cultos')
-                          .add(cultoData);
-                    }
+                          // Adicionar o documento na coleção 'cultos'
+                          await FirebaseFirestore.instance
+                              .collection('Cultos')
+                              .add(cultoData);
+                        }
 
-                    // Cria um novo culto com o nome inserido
-                    /*Culto newCulto = Culto(
+                        // Cria um novo culto com o nome inserido
+                        /*Culto newCulto = Culto(
                       nome: servicename,
                     );
 
                     // Adiciona o novo culto ao array
                     cultosProvider.adicionarCulto(newCulto);*/
 
-                    await _addCulto(servicename);
+                        await _addCulto(servicename);
+                        Navigator.of(context).pop(); // Fecha o popup
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => adminCultoForm(
-                            cultoatual: Culto(nome: servicename)),
-                      ),
-                    );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => adminCultoForm(
+                                cultoatual: Culto(nome: servicename)),
+                          ),
+                        );
 
-                    // Fecha o diálogo
+                        // Fecha o diálogo
 
-                    // Navega para a página de formulário de administração de culto
-                    //   Navigator.pushNamed(context, '/adminCultoForm');
-                  }
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        ),
+                        // Navega para a página de formulário de administração de culto
+                        //   Navigator.pushNamed(context, '/adminCultoForm');
+                      }
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            }),
         foregroundColor: Colors.black,
         backgroundColor: Colors.white,
         shape: CircleBorder(),

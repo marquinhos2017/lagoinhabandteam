@@ -34,7 +34,7 @@ class _LoginStateState extends State<login> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
-          "Lagoinha Worship",
+          "LMF",
           style: TextStyle(color: Colors.white),
         ),
         foregroundColor: Colors.black,
@@ -115,8 +115,18 @@ class _LoginStateState extends State<login> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    margin: EdgeInsets.only(bottom: 24),
+                    child: Text(
+                      "Sign In",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
@@ -138,7 +148,7 @@ class _LoginStateState extends State<login> {
                                 color: Colors
                                     .white), // Borda branca quando o campo está focado
                           ),
-                          labelText: "Email",
+                          labelText: "Username",
                           labelStyle: TextStyle(color: Colors.white)),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -183,8 +193,38 @@ class _LoginStateState extends State<login> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 16.0),
-                    child: Center(
+                    child: Container(
+                      height: 48,
+                      width: 400,
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 4),
+                              blurRadius: 5.0)
+                        ],
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          stops: [0.0, 1.0],
+                          colors: [
+                            Color(0xff41AA5C),
+                            Color(0xff558FFF),
+                          ],
+                        ),
+                        color: Colors.deepPurple.shade300,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       child: ElevatedButton(
+                        style: ButtonStyle(
+                          foregroundColor:
+                              WidgetStateProperty.all(Colors.white),
+                          backgroundColor:
+                              WidgetStateProperty.all(Colors.transparent),
+                          // elevation: MaterialStateProperty.all(3),
+                          shadowColor:
+                              WidgetStateProperty.all(Colors.transparent),
+                        ),
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             // Verifica se o e-mail está presente no banco de dados
@@ -245,7 +285,7 @@ class _LoginStateState extends State<login> {
                             );
                           }
                         },
-                        child: const Text('Submit'),
+                        child: const Text('Sign In'),
                       ),
                     ),
                   ),

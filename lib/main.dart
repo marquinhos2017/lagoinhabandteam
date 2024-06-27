@@ -5,6 +5,7 @@ import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musician.dart';
 
 import 'package:lagoinha_music/pages/adminAddtoPlaylist.dart';
+import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
 
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
@@ -113,6 +114,7 @@ class CultosProvider extends ChangeNotifier {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
   runApp(
     MultiProvider(
       providers: [

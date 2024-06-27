@@ -11,16 +11,65 @@ import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_date_pickers/flutter_date_pickers.dart' as dp;
+import 'package:intl/intl.dart';
 
-class adminCultoForm extends StatelessWidget {
+class adminCultoForm extends StatefulWidget {
   late Culto cultoatual;
 
   adminCultoForm({required this.cultoatual});
 
   @override
+  State<adminCultoForm> createState() => _adminCultoFormState();
+}
+
+class _adminCultoFormState extends State<adminCultoForm> {
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+
+  // Método para mostrar o seletor de data
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  // Método para mostrar o seletor de hora
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  // Método para formatar a data no formato 'dd/MM'
+  String _formatDate(DateTime date) {
+    final DateFormat formatter = DateFormat('dd/MM');
+    return formatter.format(date);
+  }
+
+  // Método para formatar a hora no formato 'HH:mm'
+  String _formatTime(TimeOfDay time) {
+    return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  @override
   Widget build(BuildContext context) {
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
-    print("Nome do culto: " + cultoatual.nome);
+    print("Nome do culto: " + widget.cultoatual.nome);
 
     Future<String?> findDocumentId(
         String collectionPath, String fieldName, String value) async {
@@ -88,10 +137,7 @@ class adminCultoForm extends StatelessWidget {
       appBar: AppBar(
         leading: Container(
           child: GestureDetector(
-              onTap: () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => userMainPage()),
-                  ),
+              onTap: () => Navigator.pop(context),
               child: Icon(
                 Icons.arrow_back_ios,
                 color: Colors.white,
@@ -201,7 +247,8 @@ class adminCultoForm extends StatelessWidget {
                                           stream: FirebaseFirestore.instance
                                               .collection('Cultos')
                                               .where('nome',
-                                                  isEqualTo: cultoatual.nome)
+                                                  isEqualTo:
+                                                      widget.cultoatual.nome)
                                               .snapshots(),
                                           builder: (context, snapshot) {
                                             if (snapshot.connectionState ==
@@ -277,7 +324,7 @@ class adminCultoForm extends StatelessWidget {
                                                                     color: Colors
                                                                         .white,
                                                                     fontSize:
-                                                                        10,
+                                                                        12,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .bold),
@@ -295,7 +342,7 @@ class adminCultoForm extends StatelessWidget {
                                                                           color: Color(
                                                                               0xff558FFF),
                                                                           fontSize:
-                                                                              8),
+                                                                              12),
                                                                     ),
                                                                   ),
                                                                   Icon(
@@ -333,7 +380,7 @@ class adminCultoForm extends StatelessWidget {
                                   MaterialPageRoute(
                                     builder: (context) => MusicianSelect(
                                         cultoatual: Culto(
-                                            nome: cultoatual
+                                            nome: widget.cultoatual
                                                 .nome)), //cultoEspecifico.nome//)),
                                   ),
                                 ),
@@ -395,21 +442,24 @@ class adminCultoForm extends StatelessWidget {
                                         child: Text(
                                           "Name",
                                           style: TextStyle(
-                                              color: Colors.white, fontSize: 8),
+                                              color: Colors.white54,
+                                              fontSize: 12),
                                         ),
                                       ),
                                       Expanded(
                                         child: Text(
                                           "Singer",
                                           style: TextStyle(
-                                              color: Colors.white, fontSize: 8),
+                                              color: Colors.white54,
+                                              fontSize: 12),
                                         ),
                                       ),
                                       Expanded(
                                         child: Text(
                                           "Tone",
                                           style: TextStyle(
-                                              color: Colors.white, fontSize: 8),
+                                              color: Colors.white54,
+                                              fontSize: 12),
                                         ),
                                       ),
                                     ],
@@ -423,19 +473,19 @@ class adminCultoForm extends StatelessWidget {
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          "Tu es",
+                                          "Te Exaltamos",
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: 8,
+                                              fontSize: 12,
                                               fontWeight: FontWeight.bold),
                                         ),
                                       ),
                                       Expanded(
                                         child: Text(
-                                          "FHOP",
+                                          "Bethel",
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: 8,
+                                              fontSize: 12,
                                               fontWeight: FontWeight.bold),
                                         ),
                                       ),
@@ -444,7 +494,7 @@ class adminCultoForm extends StatelessWidget {
                                           "C",
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: 8,
+                                              fontSize: 12,
                                               fontWeight: FontWeight.bold),
                                         ),
                                       ),
@@ -462,7 +512,7 @@ class adminCultoForm extends StatelessWidget {
                                           "Pra Sempre",
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: 8,
+                                              fontSize: 12,
                                               fontWeight: FontWeight.bold),
                                         ),
                                       ),
@@ -471,7 +521,7 @@ class adminCultoForm extends StatelessWidget {
                                           "Kari Jobe",
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: 8,
+                                              fontSize: 12,
                                               fontWeight: FontWeight.bold),
                                         ),
                                       ),
@@ -480,7 +530,7 @@ class adminCultoForm extends StatelessWidget {
                                           "F",
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: 8,
+                                              fontSize: 12,
                                               fontWeight: FontWeight.bold),
                                         ),
                                       ),
@@ -526,6 +576,50 @@ class adminCultoForm extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  width: 100,
+                                  child: InkWell(
+                                    onTap: () {
+                                      _selectDate(context);
+                                    },
+                                    child: InputDecorator(
+                                      decoration:
+                                          InputDecoration(labelText: "Date"),
+                                      child: Text(
+                                        _formatDate(_selectedDate),
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color:
+                                                Colors.white), // Cor do texto
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: 100,
+                                  child: InkWell(
+                                    onTap: () {
+                                      _selectTime(context);
+                                    },
+                                    child: InputDecorator(
+                                      decoration:
+                                          InputDecoration(labelText: "Time"),
+                                      child: Text(
+                                        _formatTime(_selectedTime),
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color:
+                                                Colors.white), // Cor do texto
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            /*
                             Row(
                               children: [
                                 Container(
@@ -602,7 +696,7 @@ class adminCultoForm extends StatelessWidget {
                                   ),
                                 ),
                               ],
-                            ),
+                            ),*/
                           ],
                         ),
                       ),

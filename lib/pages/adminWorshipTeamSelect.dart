@@ -9,7 +9,7 @@ import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 
 class MusicianSelect extends StatelessWidget {
-  late Culto cultoatual;
+  final Culto cultoatual;
 
   MusicianSelect({required this.cultoatual});
 
@@ -198,16 +198,10 @@ class MusicianSelect extends StatelessWidget {
                                                           musicos['name'],
                                                           musicos[
                                                               'instrument']);
+                                                  Navigator.of(context)
+                                                      .pop(); // Fecha o popup
 
-                                                  Navigator.of(context).pushAndRemoveUntil(
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              adminCultoForm(
-                                                                  cultoatual: Culto(
-                                                                      nome: cultoatual
-                                                                          .nome))),
-                                                      (Route<dynamic> route) =>
-                                                          false);
+                                                  Navigator.pop(context);
                                                 },
                                                 child: const Text('OK'),
                                               ),
