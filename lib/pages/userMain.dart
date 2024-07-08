@@ -21,6 +21,7 @@ class _userMainPageState extends State<userMainPage> {
   @override
   Widget build(BuildContext context) {
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
+    final TextEditingController dataController = TextEditingController();
     String servicename = '';
     return Scaffold(
       appBar: AppBar(
@@ -144,8 +145,9 @@ class _userMainPageState extends State<userMainPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) =>
-                                            Disponibilidade()),
+                                        builder: (context) => adminCultoForm(
+                                            cultoatual:
+                                                Culto(nome: cultoNome))),
                                   );
 
                                   //Navigator.push(
@@ -364,6 +366,34 @@ class _userMainPageState extends State<userMainPage> {
                               servicename = value!;
                             },
                           ),
+                          TextField(
+                            controller: dataController,
+                            decoration: const InputDecoration(
+                              hintStyle: TextStyle(color: Colors.white),
+                              labelStyle: TextStyle(color: Colors.white),
+                              labelText: "DATA",
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white)),
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white)),
+                            ),
+                            style:
+                                TextStyle(color: Colors.white), // Cor do texto
+                            onTap: () async {
+                              //FocusScope.of(context).requestFocus(new FocusNode());
+                              DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate:
+                                    DateTime(DateTime.now().year, 8, 1),
+                                firstDate: DateTime(DateTime.now().year, 8, 1),
+                                lastDate: DateTime(DateTime.now().year, 8, 31),
+                              );
+                              if (picked != null) {
+                                dataController.text =
+                                    "${picked.toLocal()}".split(' ')[0];
+                              }
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -386,6 +416,7 @@ class _userMainPageState extends State<userMainPage> {
                           Map<String, dynamic> cultoData = {
                             'nome': name,
                             'musicos': [],
+                            'date': dataController.text
                           };
 
                           // Adicionar o documento na coleção 'cultos'

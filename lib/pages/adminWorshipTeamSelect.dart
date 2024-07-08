@@ -141,9 +141,11 @@ class MusicianSelect extends StatelessWidget {
                             padding: EdgeInsets.zero,
                             itemBuilder: (context, index) {
                               var data = snapshot.data!.docs[index];
+
                               var musicos = data.data() as Map<String, dynamic>;
 
                               var cultoId = data.id;
+                              print("Musicos: + " + cultoId);
 
                               return ListTile(
                                 contentPadding: EdgeInsets.zero,
