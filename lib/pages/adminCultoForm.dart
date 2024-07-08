@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,24 @@ class _adminCultoFormState extends State<adminCultoForm> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      builder: (BuildContext context, Widget? child) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // Aplica o desfoque
+          child: Theme(
+            data: ThemeData.light().copyWith(
+              // Personaliza o tema do DatePicker
+              colorScheme: ColorScheme.light(
+                primary: Colors.blue, // Cor principal
+                onPrimary: Colors.white, // Cor do texto principal
+                surface: Colors.black, // Cor de fundo
+                onSurface: Colors.white, // Cor do texto no fundo
+              ),
+              dialogBackgroundColor: Colors.transparent, // Fundo transparente
+            ),
+            child: child!,
+          ),
+        );
+      },
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -47,6 +66,24 @@ class _adminCultoFormState extends State<adminCultoForm> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
+      builder: (BuildContext context, Widget? child) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // Aplica o desfoque
+          child: Theme(
+            data: ThemeData.light().copyWith(
+              // Personaliza o tema do DatePicker
+              colorScheme: ColorScheme.light(
+                primary: Colors.blue, // Cor principal
+                onPrimary: Colors.white, // Cor do texto principal
+                surface: Colors.black, // Cor de fundo
+                onSurface: Colors.white, // Cor do texto no fundo
+              ),
+              dialogBackgroundColor: Colors.transparent, // Fundo transparente
+            ),
+            child: child!,
+          ),
+        );
+      },
     );
     if (picked != null && picked != _selectedTime) {
       setState(() {

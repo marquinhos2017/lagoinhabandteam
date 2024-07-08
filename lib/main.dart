@@ -133,14 +133,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        pageTransitionsTheme: PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
+        // Define cores e estilo global para o time picker
+        timePickerTheme: TimePickerThemeData(
+          backgroundColor: const Color.fromARGB(255, 0, 0, 0), // Cor de fundo
+          dialHandColor: Colors.blue, // Cor do ponteiro
+          hourMinuteTextColor: Colors.black, // Cor do texto da hora e minutos
+          dayPeriodTextColor: Colors.black, // Cor do texto do período (AM/PM)
+          dayPeriodColor: Colors.blue, // Cor do fundo do período (AM/PM)
         ),
       ),
-      title: 'Lagoinha Music',
+      title: 'LWF',
       home: const login(),
       routes: {
         // '/intro_page': (context) => const userMainPage(),

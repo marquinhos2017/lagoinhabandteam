@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
+import 'package:lagoinha_music/pages/disponibilidade.dart';
+import 'package:lagoinha_music/pages/forms_disponibilidade.dart';
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:provider/provider.dart';
 
@@ -23,7 +25,7 @@ class _userMainPageState extends State<userMainPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "LWF",
+          "Lagoinha Worship Faro",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -45,6 +47,15 @@ class _userMainPageState extends State<userMainPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => forms_disponiblidade()),
+                  );
+                },
+                child: Text("Formularios Disponibilidades")),
             Container(
               margin: EdgeInsets.only(top: 16),
               child: Padding(
@@ -133,10 +144,18 @@ class _userMainPageState extends State<userMainPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => adminCultoForm(
-                                          cultoatual: Culto(nome: cultoNome)),
-                                    ),
+                                        builder: (context) =>
+                                            Disponibilidade()),
                                   );
+
+                                  //Navigator.push(
+                                  // context,
+                                  //MaterialPageRoute(
+                                  //builder: (context) => adminCultoForm(
+                                  //  cultoatual: Culto(nome: cultoNome)),
+                                  //),
+                                  //);
+
                                   //Navigator.pushNamed(
                                   //    context, '/adminCultoForm');
 
