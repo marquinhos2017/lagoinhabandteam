@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
+import 'package:lagoinha_music/pages/adminCultoForm2.dart';
 import 'package:lagoinha_music/pages/disponibilidade.dart';
 import 'package:lagoinha_music/pages/forms_disponibilidade.dart';
 import 'package:lagoinha_music/pages/login.dart';
@@ -133,10 +134,12 @@ class _userMainPageState extends State<userMainPage> {
                             padding: EdgeInsets.zero,
                             itemBuilder: (context, index) {
                               var culto = snapshot.data!.docs[index];
+                              String DocRef = culto.id;
                               var cultoData =
                                   culto.data() as Map<String, dynamic>;
                               String cultoNome =
                                   cultoData['nome'] ?? 'Nome não disponível';
+                              // print(culto);
 
                               return GestureDetector(
                                 onTap: () {
@@ -145,9 +148,9 @@ class _userMainPageState extends State<userMainPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => adminCultoForm(
-                                            cultoatual:
-                                                Culto(nome: cultoNome))),
+                                        builder: (context) => adminCultoForm2(
+                                              document_id: DocRef,
+                                            )),
                                   );
 
                                   //Navigator.push(
@@ -358,7 +361,7 @@ class _userMainPageState extends State<userMainPage> {
                                 TextStyle(color: Colors.white), // Cor do texto
                             validator: (String? value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter some text';
+                                return 'Insira o nome do culto';
                               }
                               return null;
                             },
@@ -371,7 +374,7 @@ class _userMainPageState extends State<userMainPage> {
                             decoration: const InputDecoration(
                               hintStyle: TextStyle(color: Colors.white),
                               labelStyle: TextStyle(color: Colors.white),
-                              labelText: "DATA",
+                              labelText: "Data",
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(color: Colors.white)),
                               border: OutlineInputBorder(
@@ -411,7 +414,7 @@ class _userMainPageState extends State<userMainPage> {
                         // Salva o valor do input
                         _formKey.currentState!.save();
 
-                        Future<void> _addCulto(String name) async {
+                        Future<String> _addCulto(String name) async {
                           // Dados do novo culto
                           Map<String, dynamic> cultoData = {
                             'nome': name,
@@ -420,9 +423,12 @@ class _userMainPageState extends State<userMainPage> {
                           };
 
                           // Adicionar o documento na coleção 'cultos'
-                          await FirebaseFirestore.instance
+                          DocumentReference docId = await FirebaseFirestore
+                              .instance
                               .collection('Cultos')
                               .add(cultoData);
+
+                          return docId.id;
                         }
 
                         // Cria um novo culto com o nome inserido
@@ -433,15 +439,15 @@ class _userMainPageState extends State<userMainPage> {
                     // Adiciona o novo culto ao array
                     cultosProvider.adicionarCulto(newCulto);*/
 
-                        await _addCulto(servicename);
+                        String doc = (await _addCulto(servicename));
                         Navigator.of(context).pop(); // Fecha o popup
 
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => adminCultoForm(
-                                cultoatual: Culto(nome: servicename)),
-                          ),
+                              builder: (context) => adminCultoForm2(
+                                    document_id: doc,
+                                  )),
                         );
 
                         // Fecha o diálogo
