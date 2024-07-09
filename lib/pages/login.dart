@@ -251,8 +251,9 @@ class _LoginStateState extends State<login> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) =>
-                                            MusicianPage(id: musicianDoc.id)),
+                                        builder: (context) => MusicianPage(
+                                            id: musicianData['user_id']
+                                                .toString())),
                                   );
                                 } else {
                                   Navigator.push(
