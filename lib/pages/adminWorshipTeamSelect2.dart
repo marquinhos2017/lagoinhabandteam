@@ -298,13 +298,28 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                       backgroundColor:
                                                           Color(0xff171717),
                                                       title: Text(
-                                                        "Quer convidar " +
-                                                            musicos['name'],
+                                                        "Ele esta como indisponivel ",
                                                         style: TextStyle(
                                                             color:
                                                                 Colors.white),
                                                       ),
                                                       actions: <Widget>[
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            adicionarMusico(
+                                                                widget
+                                                                    .document_id,
+                                                                musicoId);
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(); // Fecha o popup
+
+                                                            Navigator.pop(
+                                                                context);
+                                                          },
+                                                          child: const Text(
+                                                              'Adicionar mesmo assim'),
+                                                        ),
                                                         TextButton(
                                                           onPressed: () =>
                                                               Navigator.pop(
