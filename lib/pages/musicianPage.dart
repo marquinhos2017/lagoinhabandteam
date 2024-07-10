@@ -199,7 +199,7 @@ class _MusicianPageState extends State<MusicianPage> {
   @override
   Widget build(BuildContext context) {
     print("User_id: " + widget.id);
-    String mesIdEspecifico = "cM1l7fn08mpEvDfGemgb";
+    String mesIdEspecifico = "fBMQDaQ4ENxrWges7wBl";
 
     return Scaffold(
       appBar: AppBar(
@@ -294,198 +294,216 @@ class _MusicianPageState extends State<MusicianPage> {
                 ),
               ],
             ),
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 32),
-              color: Color(0xff171717),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Visibility(
+              visible: !verFormulario,
+              child: Column(
                 children: [
-                  Text(
-                    "Closest Service",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 32),
+                    color: Color(0xff171717),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Closest Service",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Color(0xff0A7AFF),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Text(
+                            "View all",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Color(0xff0A7AFF),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Text(
-                      "View all",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            Container(
-              height: 200,
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('Cultos')
-                    .where('musicos', arrayContains: {
-                  'user_id': int.parse(widget.id)
-                }).snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
+                    height: 200,
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('Cultos')
+                          .where('musicos', arrayContains: {
+                        'user_id': int.parse(widget.id)
+                      }).snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
 
-                  List<DocumentSnapshot> docs = snapshot.data!.docs;
+                        List<DocumentSnapshot> docs = snapshot.data!.docs;
 
-                  return Container(
-                    child: ListView.builder(
-                      itemCount: docs.length,
-                      itemBuilder: (context, index) {
-                        Map<String, dynamic> data =
-                            docs[index].data() as Map<String, dynamic>;
-                        print(data);
                         return Container(
-                          margin: EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
-                              color: Color(0xff010101),
-                              borderRadius: BorderRadius.circular(24)),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 30.0, vertical: 12),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          child: ListView.builder(
+                            itemCount: docs.length,
+                            itemBuilder: (context, index) {
+                              Map<String, dynamic> data =
+                                  docs[index].data() as Map<String, dynamic>;
+                              print(data);
+                              return Container(
+                                margin: EdgeInsets.only(bottom: 10),
+                                decoration: BoxDecoration(
+                                    color: Color(0xff010101),
+                                    borderRadius: BorderRadius.circular(24)),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_month,
-                                          color: Colors.white,
-                                        ),
-                                        Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              data['date'],
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14),
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  data['nome'],
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w300,
-                                                      fontSize: 10),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 30.0, vertical: 12),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calendar_month,
+                                                color: Colors.white,
+                                              ),
+                                              Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    data['date'],
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 14),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        data['nome'],
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.w300,
+                                                            fontSize: 10),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                          Container(
+                                            margin: EdgeInsets.only(top: 12),
+                                            height: 30,
+                                            width: 280,
+                                            child: ListView(
+                                              scrollDirection: Axis.horizontal,
+                                              // This next line does the trick.
+
+                                              children: <Widget>[
+                                                Container(
+                                                  child: Container(
+                                                    margin: EdgeInsets.only(
+                                                        right: 8),
+                                                    decoration: BoxDecoration(
+                                                      color: Color(0xff0075FF),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              24),
+                                                    ),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 24.0,
+                                                          vertical: 6),
+                                                      child: Text(
+                                                        "Me Ama",
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  margin:
+                                                      EdgeInsets.only(right: 8),
+                                                  decoration: BoxDecoration(
+                                                    color: Color(0xff0075FF),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            24),
+                                                  ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 24.0,
+                                                        vertical: 6),
+                                                    child: Text(
+                                                      "Quero mais",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  margin:
+                                                      EdgeInsets.only(right: 8),
+                                                  decoration: BoxDecoration(
+                                                    color: Color(0xff0075FF),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            24),
+                                                  ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 24.0,
+                                                        vertical: 6),
+                                                    child: Text(
+                                                      "Ousado Amor",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12),
+                                                    ),
+                                                  ),
                                                 ),
                                               ],
                                             ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      margin: EdgeInsets.only(top: 12),
-                                      height: 30,
-                                      width: 280,
-                                      child: ListView(
-                                        scrollDirection: Axis.horizontal,
-                                        // This next line does the trick.
-
-                                        children: <Widget>[
-                                          Container(
-                                            child: Container(
-                                              margin: EdgeInsets.only(right: 8),
-                                              decoration: BoxDecoration(
-                                                color: Color(0xff0075FF),
-                                                borderRadius:
-                                                    BorderRadius.circular(24),
-                                              ),
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 24.0,
-                                                        vertical: 6),
-                                                child: Text(
-                                                  "Me Ama",
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 12),
-                                                ),
-                                              ),
-                                            ),
                                           ),
-                                          Container(
-                                            margin: EdgeInsets.only(right: 8),
-                                            decoration: BoxDecoration(
-                                              color: Color(0xff0075FF),
-                                              borderRadius:
-                                                  BorderRadius.circular(24),
-                                            ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 24.0,
-                                                      vertical: 6),
-                                              child: Text(
-                                                "Quero mais",
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12),
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(right: 8),
-                                            decoration: BoxDecoration(
-                                              color: Color(0xff0075FF),
-                                              borderRadius:
-                                                  BorderRadius.circular(24),
-                                            ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 24.0,
-                                                      vertical: 6),
-                                              child: Text(
-                                                "Ousado Amor",
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12),
-                                              ),
-                                            ),
+                                          SizedBox(
+                                            height: 28,
                                           ),
                                         ],
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: 28,
-                                    ),
                                   ],
                                 ),
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         );
                       },
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
             Text(

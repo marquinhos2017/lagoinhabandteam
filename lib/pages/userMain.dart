@@ -139,6 +139,9 @@ class _userMainPageState extends State<userMainPage> {
                                   culto.data() as Map<String, dynamic>;
                               String cultoNome =
                                   cultoData['nome'] ?? 'Nome não disponível';
+
+                              String cultoDate =
+                                  cultoData['date'] ?? 'Nome não disponível';
                               // print(culto);
 
                               return GestureDetector(
@@ -195,7 +198,7 @@ class _userMainPageState extends State<userMainPage> {
                                                   fontSize: 14),
                                             ),
                                             Text(
-                                              "19:30 - 21:00",
+                                              cultoDate,
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.w300,
@@ -369,33 +372,39 @@ class _userMainPageState extends State<userMainPage> {
                               servicename = value!;
                             },
                           ),
-                          TextField(
-                            controller: dataController,
-                            decoration: const InputDecoration(
-                              hintStyle: TextStyle(color: Colors.white),
-                              labelStyle: TextStyle(color: Colors.white),
-                              labelText: "Data",
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white)),
-                              border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white)),
+                          Container(
+                            margin: EdgeInsets.only(top: 24),
+                            child: TextField(
+                              controller: dataController,
+                              decoration: const InputDecoration(
+                                hintStyle: TextStyle(color: Colors.white),
+                                labelStyle: TextStyle(color: Colors.white),
+                                labelText: "Data",
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.white)),
+                                border: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.white)),
+                              ),
+                              style: TextStyle(
+                                  color: Colors.white), // Cor do texto
+                              onTap: () async {
+                                //FocusScope.of(context).requestFocus(new FocusNode());
+                                DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate:
+                                      DateTime(DateTime.now().year, 8, 1),
+                                  firstDate: DateTime(
+                                      2000), // Define a data inicial para 1 de janeiro de 2000
+                                  lastDate: DateTime(2100),
+                                );
+                                if (picked != null) {
+                                  dataController.text =
+                                      "${picked.toLocal()}".split(' ')[0];
+                                }
+                              },
                             ),
-                            style:
-                                TextStyle(color: Colors.white), // Cor do texto
-                            onTap: () async {
-                              //FocusScope.of(context).requestFocus(new FocusNode());
-                              DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate:
-                                    DateTime(DateTime.now().year, 8, 1),
-                                firstDate: DateTime(DateTime.now().year, 8, 1),
-                                lastDate: DateTime(DateTime.now().year, 8, 31),
-                              );
-                              if (picked != null) {
-                                dataController.text =
-                                    "${picked.toLocal()}".split(' ')[0];
-                              }
-                            },
                           ),
                         ],
                       ),

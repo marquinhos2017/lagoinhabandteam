@@ -10,11 +10,45 @@ class forms_disponiblidade extends StatefulWidget {
 }
 
 class _forms_disponiblidadeState extends State<forms_disponiblidade> {
+  String mesAtual = ((DateTime.now().month) % 12 + 1).toString();
+  String anoAtual = DateTime.now().year.toString();
+
+  String getMonthName(int monthNumber) {
+    switch (monthNumber) {
+      case 1:
+        return 'Janeiro';
+      case 2:
+        return 'Fevereiro';
+      case 3:
+        return 'Março';
+      case 4:
+        return 'Abril';
+      case 5:
+        return 'Maio';
+      case 6:
+        return 'Junho';
+      case 7:
+        return 'Julho';
+      case 8:
+        return 'Agosto';
+      case 9:
+        return 'Setembro';
+      case 10:
+        return 'Outubro';
+      case 11:
+        return 'Novembro';
+      case 12:
+        return 'Dezembro';
+      default:
+        return 'Número inválido';
+    }
+  }
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _addDocument() async {
     // Obtém o mês atual
-    String mesAtual = DateTime.now().month.toString();
+    String mesAtual = ((DateTime.now().month) % 12 + 1).toString();
     String anoAtual = DateTime.now().year.toString();
 
     // Adiciona um novo documento com o campo 'Mes' e um ID gerado automaticamente
@@ -35,67 +69,131 @@ class _forms_disponiblidadeState extends State<forms_disponiblidade> {
     //  'horario': '19:00',
     //   'mes_id': docId,
     // });
+
+    Navigator.of(context).pop(); // Fecha o popup
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xff010101),
       appBar: AppBar(
-        title: Text('Adicionar Documento'),
+        backgroundColor: Colors.white,
+        title: Text(
+          'LWF',
+          style: TextStyle(color: Colors.black),
+        ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  _firestore.collection('Forms_Disponibilidades').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
+      body: Padding(
+        padding: const EdgeInsets.all(45.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.only(bottom: 18),
+              child: Text(
+                "Forms",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream:
+                    _firestore.collection('Forms_Disponibilidades').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Erro ao carregar os dados'));
-                }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erro ao carregar os dados'));
+                  }
 
-                final docs = snapshot.data?.docs ?? [];
+                  final docs = snapshot.data?.docs ?? [];
 
-                return ListView.builder(
-                  itemCount: docs.length,
-                  itemBuilder: (context, index) {
-                    var doc = docs[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Form_Culto_Disponibilidade(
-                              id_form: doc.id,
+                  return ListView.builder(
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      var doc = docs[index];
+                      String monthName = getMonthName(int.parse(doc['Mes']));
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Form_Culto_Disponibilidade(
+                                id_form: doc.id,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: 18),
+                          decoration: BoxDecoration(
+                              color: Color(0xff171717),
+                              borderRadius: BorderRadius.circular(25)),
+                          child:
+                              // title: Text('ID: ${doc.id}'),
+                              Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 45.0, vertical: 13),
+                            child: Text(
+                              '$monthName/${doc['Ano']}',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10),
                             ),
                           ),
-                        );
-                      },
-                      child: ListTile(
-                        // title: Text('ID: ${doc.id}'),
-                        subtitle: Column(
-                          children: [
-                            Text('Mês:  ${doc['Mes']}, Ano ${doc['Ano']}'),
-                          ],
                         ),
-                      ),
-                    );
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            int monthNumber = int.parse(mesAtual);
+            String monthName = getMonthName(monthNumber);
+            int year = int.parse(anoAtual);
+
+            return AlertDialog(
+              title: Text('Deseja adicionar formulario para o proximo mes'),
+              content: Text(
+                'Mês: $monthName, Ano: $year',
+                style: TextStyle(color: Colors.black),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Fechar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
                   },
-                );
-              },
-            ),
-          ),
-          Center(
-            child: ElevatedButton(
-              onPressed: _addDocument,
-              child: Text('CRIAR NOVO FORMULARIO'),
-            ),
-          ),
-        ],
+                ),
+                TextButton(
+                  child: Text('Criar Formulario'),
+                  onPressed: () {
+                    _addDocument();
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.white,
+        shape: CircleBorder(),
+        child: const Icon(Icons.add),
       ),
     );
   }

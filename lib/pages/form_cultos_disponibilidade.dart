@@ -52,6 +52,27 @@ class _Form_Culto_DisponibilidadeState
           ),
           ElevatedButton(
               onPressed: () {
+                _addCulto(mesIdEspecifico, "Culto Fé", "20:30", "2024-08-04");
+                _addCulto(
+                    mesIdEspecifico, "Culto da familia", "19:30", "2024-08-07");
+                _addCulto(
+                    mesIdEspecifico, "Culto da familia", "10:30", "2024-08-07");
+
+                _addCulto(mesIdEspecifico, "Culto Fé", "20:30", "2024-08-11");
+                _addCulto(
+                    mesIdEspecifico, "Culto da familia", "19:30", "2024-08-14");
+                _addCulto(
+                    mesIdEspecifico, "Culto da familia", "10:30", "2024-08-14");
+
+                _addCulto(mesIdEspecifico, "Culto Fé", "20:30", "2024-08-18");
+                _addCulto(
+                    mesIdEspecifico, "Culto da familia", "19:30", "2024-08-21");
+                _addCulto(
+                    mesIdEspecifico, "Culto da familia", "10:30", "2024-08-21");
+              },
+              child: Text("Gerar todos os cultos do mes")),
+          ElevatedButton(
+              onPressed: () {
                 _showAddCultoModal(widget.id_form);
               },
               child: Text("Add Culto")),
