@@ -13,6 +13,102 @@ class _forms_disponiblidadeState extends State<forms_disponiblidade> {
   String mesAtual = ((DateTime.now().month) % 12 + 1).toString();
   String anoAtual = DateTime.now().year.toString();
 
+  DateTime selectedDate = DateTime.now();
+
+  Future<void> _selectMonthYear(BuildContext context) async {
+    int selectedYear = selectedDate.year;
+    int selectedMonth = selectedDate.month;
+
+    final result = await showDialog<Map<String, int>>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Selecione Mês e Ano'),
+              content: Container(
+                height: 150,
+                child: Column(
+                  children: <Widget>[
+                    // Dropdown for year
+                    Row(
+                      children: <Widget>[
+                        Text('Ano:'),
+                        SizedBox(width: 10),
+                        DropdownButton<int>(
+                          value: selectedYear,
+                          items: List.generate(101, (index) {
+                            int year = 2000 + index;
+                            return DropdownMenuItem(
+                              value: year,
+                              child: Text(year.toString()),
+                            );
+                          }),
+                          onChanged: (int? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                selectedYear = newValue;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    // Dropdown for month
+                    Row(
+                      children: <Widget>[
+                        Text('Mês:'),
+                        SizedBox(width: 10),
+                        DropdownButton<int>(
+                          value: selectedMonth,
+                          items: List.generate(12, (index) {
+                            int month = index + 1;
+                            return DropdownMenuItem(
+                              value: month,
+                              child: Text(month.toString()),
+                            );
+                          }),
+                          onChanged: (int? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                selectedMonth = newValue;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('CANCELAR'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    _addDocument_personalizado(
+                        selectedYear.toString(), selectedMonth.toString());
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        selectedDate = DateTime(result['year']!, result['month']!);
+      });
+    }
+  }
+
   String getMonthName(int monthNumber) {
     switch (monthNumber) {
       case 1:
@@ -60,6 +156,31 @@ class _forms_disponiblidadeState extends State<forms_disponiblidade> {
 
     print("Documento adicionado com o mês atual: $mesAtual");
     print("Documento adicionado com o mês atual: $anoAtual");
+
+    String docId = docRef.id;
+
+    // Adiciona um documento na coleção 'Form_Mes_Cultos' referenciando o documento 'Forms_Disponibilidades'
+    // await _firestore.collection('Form_Mes_Cultos').add({
+    //   'culto': 'Culto de Exemplo',
+    //  'horario': '19:00',
+    //   'mes_id': docId,
+    // });
+
+    Navigator.of(context).pop(); // Fecha o popup
+  }
+
+  Future<void> _addDocument_personalizado(String year, String month) async {
+    // Obtém o mês atual
+
+    // Adiciona um novo documento com o campo 'Mes' e um ID gerado automaticamente
+    DocumentReference docRef =
+        await _firestore.collection('Forms_Disponibilidades').add({
+      'Mes': month,
+      'Ano': year,
+    });
+
+    print("Documento adicionado com o mês atual: $month");
+    print("Documento adicionado com o mês atual: $year");
 
     String docId = docRef.id;
 
@@ -155,6 +276,10 @@ class _forms_disponiblidadeState extends State<forms_disponiblidade> {
                   );
                 },
               ),
+            ),
+            ElevatedButton(
+              onPressed: () => _selectMonthYear(context),
+              child: Text('Selecione Mês e Ano'),
             ),
           ],
         ),

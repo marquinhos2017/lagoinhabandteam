@@ -7,6 +7,7 @@ import 'package:lagoinha_music/models/musico.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart'; // Importe o pacote intl
 
 class MusicianSelect2 extends StatefulWidget {
   final String document_id;
@@ -73,7 +74,10 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
             .get();
 
         if (formMesCultosDoc.exists) {
-          var dataCulto = formMesCultosDoc['data'];
+          var dataCulto = DateFormat('dd-MM-yyyy')
+              .format(formMesCultosDoc['data'].toDate());
+          print("Data do culto: " + dataCulto);
+          print(date);
 
           // Comparar a data do culto com a data desejada
           if (dataCulto == date) {
@@ -95,7 +99,10 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
           await _firestore.collection('Cultos').doc(documentId).get();
 
       if (documentSnapshot.exists) {
-        return documentSnapshot['date'];
+        print(
+            DateFormat('dd-MM-yyyy').format(documentSnapshot['date'].toDate()));
+        return DateFormat('dd-MM-yyyy')
+            .format(documentSnapshot['date'].toDate());
       } else {
         print('Documento não encontrado.');
         return null;

@@ -8,6 +8,8 @@ import 'package:lagoinha_music/pages/disponibilidade.dart';
 import 'package:lagoinha_music/pages/forms_disponibilidade.dart';
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class userMainPage extends StatefulWidget {
   const userMainPage({super.key});
@@ -21,14 +23,23 @@ class _userMainPageState extends State<userMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    var scaffoldKey = GlobalKey<ScaffoldState>();
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
     final TextEditingController dataController = TextEditingController();
     String servicename = '';
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title: Text(
           "Lagoinha Worship Faro",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: Icon(
+            Icons.accessible,
+            color: Colors.white,
+          ),
+          onPressed: () => scaffoldKey.currentState?.openDrawer(),
         ),
         actions: [
           GestureDetector(
@@ -44,20 +55,45 @@ class _userMainPageState extends State<userMainPage> {
         foregroundColor: Colors.black,
         backgroundColor: Colors.black,
       ),
+      drawer: Drawer(
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text('Drawer Header'),
+            ),
+            ListTile(
+              title: const Text('Formularios Mensais'),
+              onTap: () {
+                Navigator.pop(context);
+                // Update the state of the app.
+                // ...
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => forms_disponiblidade()),
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Item 2'),
+              onTap: () {
+                // Update the state of the app.
+                // ...
+              },
+            ),
+          ],
+        ),
+      ),
       backgroundColor: const Color(0xff171717),
       body: Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => forms_disponiblidade()),
-                  );
-                },
-                child: Text("Formularios Disponibilidades")),
             Container(
               margin: EdgeInsets.only(top: 16),
               child: Padding(
@@ -140,8 +176,8 @@ class _userMainPageState extends State<userMainPage> {
                               String cultoNome =
                                   cultoData['nome'] ?? 'Nome não disponível';
 
-                              String cultoDate =
-                                  cultoData['date'] ?? 'Nome não disponível';
+                              String cultoDate = cultoData['date'].toString() ??
+                                  'Nome não disponível';
                               // print(culto);
 
                               return GestureDetector(
@@ -424,11 +460,22 @@ class _userMainPageState extends State<userMainPage> {
                         _formKey.currentState!.save();
 
                         Future<String> _addCulto(String name) async {
+                          // Converter a String para DateTime
+                          DateTime data = DateTime.parse(dataController.text);
+
+                          // Ajustar para UTC+1 (00:00:00 UTC+1)
+                          data = DateTime.utc(
+                                  data.year, data.month, data.day, 0, 0)
+                              .add(Duration(hours: 1));
+
+                          // Converter para Timestamp do Firestore
+                          Timestamp timestamp = Timestamp.fromDate(data);
+
                           // Dados do novo culto
                           Map<String, dynamic> cultoData = {
                             'nome': name,
                             'musicos': [],
-                            'date': dataController.text
+                            'date': timestamp
                           };
 
                           // Adicionar o documento na coleção 'cultos'

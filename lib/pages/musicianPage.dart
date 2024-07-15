@@ -19,6 +19,7 @@ class MusicianPage extends StatefulWidget {
 }
 
 class _MusicianPageState extends State<MusicianPage> {
+  String mesIdEspecifico = "";
   bool _buttonClicked = false;
   Map<int, BoolStringPair> checkedItems = {};
 
@@ -136,6 +137,8 @@ class _MusicianPageState extends State<MusicianPage> {
         // Se encontrou um documento com o user_id especificado
         setState(() {
           verFormulario = querySnapshot.docs.first['ver_formulario'] ?? false;
+          mesIdEspecifico = querySnapshot.docs.first['doc_formulario'];
+          print("Formulario Ativo " + mesIdEspecifico);
         });
       } else {
         // Se não encontrou nenhum documento com o user_id especificado
@@ -199,7 +202,6 @@ class _MusicianPageState extends State<MusicianPage> {
   @override
   Widget build(BuildContext context) {
     print("User_id: " + widget.id);
-    String mesIdEspecifico = "fBMQDaQ4ENxrWges7wBl";
 
     return Scaffold(
       appBar: AppBar(
@@ -506,16 +508,17 @@ class _MusicianPageState extends State<MusicianPage> {
                 ],
               ),
             ),
-            Text(
-              widget.id,
-              style: TextStyle(color: Colors.white),
-            ),
-            Container(
-              child: Text(
-                '$verFormulario',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
+            //  Text(
+            //widget.id, // ID do Usuario
+            // style: TextStyle(color: Colors.white),
+            //  ),
+
+            //Container( Mostra o valor do ver Formulario
+            //child: Text(
+            // '$verFormulario',
+            // style: TextStyle(color: Colors.white),
+            //),
+            //),
             if (verFormulario)
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
@@ -543,11 +546,15 @@ class _MusicianPageState extends State<MusicianPage> {
                       itemCount: cultos.length,
                       itemBuilder: (context, index) {
                         var culto = cultos[index];
+                        print(culto['data']);
 
                         print("Mostrando" + culto.id);
 
                         return CheckboxListTile(
-                          title: Text('Culto: ${culto['culto']}'),
+                          title: Text(
+                            'Culto: ${culto['culto']}',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           subtitle: Text(
                               'Horário: ${culto['horario']}, Data: ${culto['data']}'),
                           value: checkedItems[index]?.booleanValue ?? false,
