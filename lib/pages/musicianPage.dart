@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/pages/login.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class BoolStringPair {
   bool booleanValue;
@@ -355,6 +357,14 @@ class _MusicianPageState extends State<MusicianPage> {
                               Map<String, dynamic> data =
                                   docs[index].data() as Map<String, dynamic>;
                               print(data);
+                              DateTime? dataDocumento;
+                              try {
+                                dataDocumento = data?['date']?.toDate();
+                              } catch (e) {
+                                print('Erro ao converter data: $e');
+                                dataDocumento = null;
+                              }
+
                               return Container(
                                 margin: EdgeInsets.only(bottom: 10),
                                 decoration: BoxDecoration(
@@ -387,7 +397,8 @@ class _MusicianPageState extends State<MusicianPage> {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    data['date'],
+                                                    DateFormat('dd/MM/yyyy')
+                                                        .format(dataDocumento!),
                                                     style: TextStyle(
                                                         color: Colors.white,
                                                         fontWeight:
@@ -525,6 +536,9 @@ class _MusicianPageState extends State<MusicianPage> {
                   stream: _firestore
                       .collection('Form_Mes_Cultos')
                       .where('mes_id', isEqualTo: mesIdEspecifico)
+                      .orderBy(
+                        'data',
+                      )
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
@@ -546,7 +560,18 @@ class _MusicianPageState extends State<MusicianPage> {
                       itemCount: cultos.length,
                       itemBuilder: (context, index) {
                         var culto = cultos[index];
+
                         print(culto['data']);
+
+                        String nomeDocumento =
+                            culto?['culto'] ?? 'Nome do Culto Indisponível';
+                        DateTime? dataDocumento;
+                        try {
+                          dataDocumento = culto?['data']?.toDate();
+                        } catch (e) {
+                          print('Erro ao converter data: $e');
+                          dataDocumento = null;
+                        }
 
                         print("Mostrando" + culto.id);
 
@@ -555,8 +580,17 @@ class _MusicianPageState extends State<MusicianPage> {
                             'Culto: ${culto['culto']}',
                             style: TextStyle(color: Colors.white),
                           ),
-                          subtitle: Text(
-                              'Horário: ${culto['horario']}, Data: ${culto['data']}'),
+                          subtitle: dataDocumento != null
+                              ? Text(
+                                  DateFormat('dd/MM/yyyy')
+                                          .format(dataDocumento!) +
+                                      " -  ${culto['horario']}",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 10),
+                                )
+                              : Text('Data Indisponível'),
                           value: checkedItems[index]?.booleanValue ?? false,
                           onChanged: (bool? value) {
                             onCheckboxChanged(index, value ?? false, culto.id);

@@ -21,13 +21,17 @@ class MusicianSelect2 extends StatefulWidget {
 class _MusicianSelect2State extends State<MusicianSelect2> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? date;
+  String? horario;
 
   @override
   void initState() {
     super.initState();
     obterDataDocumento(widget.document_id).then((value) {
       setState(() {
-        date = value;
+        if (value != null) {
+          date = value['data'];
+          horario = value['horario'];
+        }
       });
     });
   }
@@ -53,7 +57,8 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
     }
   }
 
-  Future<bool> verificaDisponibilidade(String date, String musicoId) async {
+  Future<bool> verificaDisponibilidade(
+      String date, String horario, String musicoId) async {
     print(musicoId);
     try {
       // Consultar a coleção Form_Voluntario_Culto
@@ -76,33 +81,39 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
         if (formMesCultosDoc.exists) {
           var dataCulto = DateFormat('dd-MM-yyyy')
               .format(formMesCultosDoc['data'].toDate());
-          print("Data do culto: " + dataCulto);
-          print(date);
+          var horarioCulto = formMesCultosDoc['horario'];
 
-          // Comparar a data do culto com a data desejada
-          if (dataCulto == date) {
-            return true; // Se encontrou um documento disponível para a data desejada
+          print("Data do culto: " + dataCulto);
+          print("Horário do culto: " + horarioCulto);
+          print("Data desejada: " + date);
+          print("Horário desejado: " + horario);
+
+          // Comparar a data do culto com a data e horário desejados
+          if (dataCulto == date && horarioCulto == horario) {
+            return true; // Se encontrou um documento disponível para a data e horário desejado
           }
         }
       }
 
-      return false; // Se nenhum documento foi encontrado para a data desejada
+      return false; // Se nenhum documento foi encontrado para a data e horário desejado
     } catch (e) {
       print('Erro ao verificar disponibilidade: $e');
       return false;
     }
   }
 
-  Future<String?> obterDataDocumento(String documentId) async {
+  Future<Map<String, String>?> obterDataDocumento(String documentId) async {
     try {
       DocumentSnapshot documentSnapshot =
           await _firestore.collection('Cultos').doc(documentId).get();
 
       if (documentSnapshot.exists) {
-        print(
-            DateFormat('dd-MM-yyyy').format(documentSnapshot['date'].toDate()));
-        return DateFormat('dd-MM-yyyy')
-            .format(documentSnapshot['date'].toDate());
+        var data =
+            DateFormat('dd-MM-yyyy').format(documentSnapshot['date'].toDate());
+        var horario = documentSnapshot[
+            'horario']; // Assumindo que 'horario' é o campo de horário
+        print("Data: $data, Horário: $horario");
+        return {'data': data, 'horario': horario};
       } else {
         print('Documento não encontrado.');
         return null;
@@ -236,7 +247,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
 
                                 return FutureBuilder<bool>(
                                   future: verificaDisponibilidade(
-                                      date!, musicoId.toString()),
+                                      date!, horario!, musicoId.toString()),
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.waiting) {

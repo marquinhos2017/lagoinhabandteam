@@ -199,10 +199,13 @@ class _forms_disponiblidadeState extends State<forms_disponiblidade> {
     return Scaffold(
       backgroundColor: Color(0xff010101),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black,
         title: Text(
-          'LWF',
-          style: TextStyle(color: Colors.black),
+          'Forms Mensais',
+          style: TextStyle(color: Colors.white),
+        ),
+        iconTheme: IconThemeData(
+          color: Colors.white, // Define a cor desejada para o ícone de voltar
         ),
       ),
       body: Padding(

@@ -36,6 +36,7 @@ class _Form_Culto_DisponibilidadeState
 
         // Atualize o campo doc_formulario para cada documento
         await doc.reference.update({'doc_formulario': novoDocFormulario});
+        await doc.reference.update({'ver_formulario': true});
       }
 
       print("Todos os documentos foram atualizados com sucesso.");
@@ -115,6 +116,7 @@ class _Form_Culto_DisponibilidadeState
                   .orderBy(
                     'data',
                   )
+                  .orderBy('horario')
                   .snapshots(),
               builder: (context,
                   AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
@@ -156,7 +158,9 @@ class _Form_Culto_DisponibilidadeState
                       title: Text(nomeDocumento),
                       subtitle: dataDocumento != null
                           ? Text(
-                              DateFormat('dd/MM/yyyy').format(dataDocumento!))
+                              DateFormat('dd/MM/yyyy').format(dataDocumento!) +
+                                  " às " +
+                                  data?['horario'])
                           : Text('Data Indisponível'),
                     );
                   },

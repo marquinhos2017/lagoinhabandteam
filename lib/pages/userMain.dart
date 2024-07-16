@@ -36,7 +36,7 @@ class _userMainPageState extends State<userMainPage> {
         ),
         leading: IconButton(
           icon: Icon(
-            Icons.accessible,
+            Icons.menu,
             color: Colors.white,
           ),
           onPressed: () => scaffoldKey.currentState?.openDrawer(),
@@ -56,18 +56,22 @@ class _userMainPageState extends State<userMainPage> {
         backgroundColor: Colors.black,
       ),
       drawer: Drawer(
+        backgroundColor: Colors.black,
         child: ListView(
           // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.black,
               ),
               child: Text('Drawer Header'),
             ),
             ListTile(
-              title: const Text('Formularios Mensais'),
+              title: const Text(
+                'Formularios Mensais',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 // Update the state of the app.
@@ -77,13 +81,6 @@ class _userMainPageState extends State<userMainPage> {
                   MaterialPageRoute(
                       builder: (context) => forms_disponiblidade()),
                 );
-              },
-            ),
-            ListTile(
-              title: const Text('Item 2'),
-              onTap: () {
-                // Update the state of the app.
-                // ...
               },
             ),
           ],
@@ -178,6 +175,15 @@ class _userMainPageState extends State<userMainPage> {
 
                               String cultoDate = cultoData['date'].toString() ??
                                   'Nome não disponível';
+
+                              DateTime? dataDocumento;
+                              try {
+                                dataDocumento = cultoData['date']?.toDate();
+                                print(dataDocumento);
+                              } catch (e) {
+                                print('Erro ao converter data: $e');
+                                dataDocumento = null;
+                              }
                               // print(culto);
 
                               return GestureDetector(
@@ -233,13 +239,17 @@ class _userMainPageState extends State<userMainPage> {
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 14),
                                             ),
-                                            Text(
-                                              cultoDate,
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w300,
-                                                  fontSize: 10),
-                                            ),
+                                            dataDocumento != null
+                                                ? Text(
+                                                    DateFormat('dd/MM/yyyy')
+                                                        .format(dataDocumento!),
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.w300,
+                                                        fontSize: 10),
+                                                  )
+                                                : Text('Data Indisponível'),
                                           ],
                                         ),
                                       ),
@@ -373,49 +383,27 @@ class _userMainPageState extends State<userMainPage> {
         onPressed: () => showDialog<String>(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
-                backgroundColor: Color(0xff171717),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 32,
-                    ),
-                    Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              hintStyle: TextStyle(color: Colors.white),
-                              labelStyle: TextStyle(color: Colors.white),
-                              labelText: "Service Name",
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white)),
-                              border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white)),
-                            ),
-                            style:
-                                TextStyle(color: Colors.white), // Cor do texto
-                            validator: (String? value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Insira o nome do culto';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              servicename = value!;
-                            },
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(top: 24),
-                            child: TextField(
-                              controller: dataController,
+              String horario = "";
+              print(horario);
+              return StatefulBuilder(builder: (context, setState) {
+                return AlertDialog(
+                  backgroundColor: Color(0xff171717),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        height: 32,
+                      ),
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            TextFormField(
                               decoration: const InputDecoration(
                                 hintStyle: TextStyle(color: Colors.white),
                                 labelStyle: TextStyle(color: Colors.white),
-                                labelText: "Data",
+                                labelText: "Service Name",
                                 enabledBorder: OutlineInputBorder(
                                     borderSide:
                                         BorderSide(color: Colors.white)),
@@ -425,97 +413,204 @@ class _userMainPageState extends State<userMainPage> {
                               ),
                               style: TextStyle(
                                   color: Colors.white), // Cor do texto
-                              onTap: () async {
-                                //FocusScope.of(context).requestFocus(new FocusNode());
-                                DateTime? picked = await showDatePicker(
-                                  context: context,
-                                  initialDate:
-                                      DateTime(DateTime.now().year, 8, 1),
-                                  firstDate: DateTime(
-                                      2000), // Define a data inicial para 1 de janeiro de 2000
-                                  lastDate: DateTime(2100),
-                                );
-                                if (picked != null) {
-                                  dataController.text =
-                                      "${picked.toLocal()}".split(' ')[0];
+                              validator: (String? value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Insira o nome do culto';
                                 }
+                                return null;
+                              },
+                              onSaved: (value) {
+                                servicename = value!;
                               },
                             ),
-                          ),
-                        ],
+                            Container(
+                              margin: EdgeInsets.only(top: 24),
+                              child: TextField(
+                                controller: dataController,
+                                decoration: const InputDecoration(
+                                  hintStyle: TextStyle(color: Colors.white),
+                                  labelStyle: TextStyle(color: Colors.white),
+                                  labelText: "Data",
+                                  enabledBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.white)),
+                                  border: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.white)),
+                                ),
+                                style: TextStyle(
+                                    color: Colors.white), // Cor do texto
+                                onTap: () async {
+                                  //FocusScope.of(context).requestFocus(new FocusNode());
+                                  DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    initialDate:
+                                        DateTime(DateTime.now().year, 8, 1),
+                                    firstDate: DateTime(
+                                        2000), // Define a data inicial para 1 de janeiro de 2000
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) {
+                                    dataController.text =
+                                        "${picked.toLocal()}".split(' ')[0];
+                                  }
+                                },
+                              ),
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      horario = "10:30";
+                                    });
+                                    print(horario);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: horario == "10:30"
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                      border: Border.all(color: Colors.white),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        "10:30",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      horario = "19:30";
+                                    });
+                                    print(horario);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: horario == "19:30"
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                      border: Border.all(color: Colors.white),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        "19:30",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      horario = "20:30";
+                                    });
+                                    print(horario);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: horario == "20:30"
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                      border: Border.all(color: Colors.white),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        "20:30",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, 'Cancel'),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        // Verifica se o formulário é válido
+                        if (_formKey.currentState!.validate()) {
+                          // Salva o valor do input
+                          _formKey.currentState!.save();
+
+                          Future<String> _addCulto(String name) async {
+                            // Converter a String para DateTime
+                            DateTime data = DateTime.parse(dataController.text);
+
+                            // Ajustar para UTC+1 (00:00:00 UTC+1)
+                            data = DateTime.utc(
+                                    data.year, data.month, data.day, 0, 0)
+                                .add(Duration(hours: 1));
+
+                            // Converter para Timestamp do Firestore
+                            Timestamp timestamp = Timestamp.fromDate(data);
+
+                            // Dados do novo culto
+                            Map<String, dynamic> cultoData = {
+                              'nome': name,
+                              'musicos': [],
+                              'date': timestamp,
+                              'horario': horario
+                            };
+
+                            // Adicionar o documento na coleção 'cultos'
+                            DocumentReference docId = await FirebaseFirestore
+                                .instance
+                                .collection('Cultos')
+                                .add(cultoData);
+
+                            return docId.id;
+                          }
+
+                          // Cria um novo culto com o nome inserido
+                          /*Culto newCulto = Culto(
+                        nome: servicename,
+                      );
+                
+                      // Adiciona o novo culto ao array
+                      cultosProvider.adicionarCulto(newCulto);*/
+
+                          String doc = (await _addCulto(servicename));
+                          Navigator.of(context).pop(); // Fecha o popup
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => adminCultoForm2(
+                                      document_id: doc,
+                                    )),
+                          );
+
+                          // Fecha o diálogo
+
+                          // Navega para a página de formulário de administração de culto
+                          //   Navigator.pushNamed(context, '/adminCultoForm');
+                        }
+                      },
+                      child: const Text('OK'),
                     ),
                   ],
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, 'Cancel'),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      // Verifica se o formulário é válido
-                      if (_formKey.currentState!.validate()) {
-                        // Salva o valor do input
-                        _formKey.currentState!.save();
-
-                        Future<String> _addCulto(String name) async {
-                          // Converter a String para DateTime
-                          DateTime data = DateTime.parse(dataController.text);
-
-                          // Ajustar para UTC+1 (00:00:00 UTC+1)
-                          data = DateTime.utc(
-                                  data.year, data.month, data.day, 0, 0)
-                              .add(Duration(hours: 1));
-
-                          // Converter para Timestamp do Firestore
-                          Timestamp timestamp = Timestamp.fromDate(data);
-
-                          // Dados do novo culto
-                          Map<String, dynamic> cultoData = {
-                            'nome': name,
-                            'musicos': [],
-                            'date': timestamp
-                          };
-
-                          // Adicionar o documento na coleção 'cultos'
-                          DocumentReference docId = await FirebaseFirestore
-                              .instance
-                              .collection('Cultos')
-                              .add(cultoData);
-
-                          return docId.id;
-                        }
-
-                        // Cria um novo culto com o nome inserido
-                        /*Culto newCulto = Culto(
-                      nome: servicename,
-                    );
-
-                    // Adiciona o novo culto ao array
-                    cultosProvider.adicionarCulto(newCulto);*/
-
-                        String doc = (await _addCulto(servicename));
-                        Navigator.of(context).pop(); // Fecha o popup
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => adminCultoForm2(
-                                    document_id: doc,
-                                  )),
-                        );
-
-                        // Fecha o diálogo
-
-                        // Navega para a página de formulário de administração de culto
-                        //   Navigator.pushNamed(context, '/adminCultoForm');
-                      }
-                    },
-                    child: const Text('OK'),
-                  ),
-                ],
-              );
+                );
+              });
             }),
         foregroundColor: Colors.black,
         backgroundColor: Colors.white,

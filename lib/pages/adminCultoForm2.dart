@@ -34,6 +34,16 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
 
+  // Função para remover "Nicoles" do array "musicos"
+  Future<void> removeMusician(int id) async {
+    DocumentReference docRef =
+        _firestore.collection('cultos').doc(widget.document_id);
+
+    await docRef.update({
+      'musicos': FieldValue.arrayRemove(['Nicoles']),
+    });
+  }
+
   // Método para mostrar o seletor de data
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -334,9 +344,47 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                                 fontSize: 12),
                                                           ),
                                                         ),
-                                                        Icon(
-                                                          Icons.keyboard,
-                                                          color: Colors.white,
+                                                        GestureDetector(
+                                                          onTap: () async {
+                                                            // Remover o músico localmente da lista musicos
+                                                            setState(() {
+                                                              musicos.removeAt(
+                                                                  index); // Remove o item da lista localmente
+                                                            });
+
+                                                            try {
+                                                              // Atualizar o Firestore para refletir a mudança
+                                                              DocumentReference
+                                                                  docRef =
+                                                                  _firestore
+                                                                      .collection(
+                                                                          'Cultos')
+                                                                      .doc(widget
+                                                                          .document_id);
+
+                                                              await docRef
+                                                                  .update({
+                                                                'musicos':
+                                                                    FieldValue
+                                                                        .arrayRemove([
+                                                                  {
+                                                                    'user_id':
+                                                                        musicoData[
+                                                                            'user_id'], // Use o campo identificador para remover
+                                                                    // Adicione outros campos necessários para identificar o item específico
+                                                                  }
+                                                                ])
+                                                              });
+                                                            } catch (e) {
+                                                              print(
+                                                                  'Erro ao remover músico: $e');
+                                                              // Lógica para lidar com o erro, se necessário
+                                                            }
+                                                          },
+                                                          child: Icon(
+                                                            Icons.delete,
+                                                            color: Colors.white,
+                                                          ),
                                                         )
                                                       ],
                                                     )
