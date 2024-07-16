@@ -357,6 +357,10 @@ class _MusicianPageState extends State<MusicianPage> {
                               Map<String, dynamic> data =
                                   docs[index].data() as Map<String, dynamic>;
                               print(data);
+                              final List<dynamic> playlist = data['playlist'];
+                              print("Printando: ");
+                              print(playlist);
+
                               DateTime? dataDocumento;
                               try {
                                 dataDocumento = data?['date']?.toDate();
@@ -422,83 +426,88 @@ class _MusicianPageState extends State<MusicianPage> {
                                             ],
                                           ),
                                           Container(
-                                            margin: EdgeInsets.only(top: 12),
                                             height: 30,
                                             width: 280,
-                                            child: ListView(
+                                            child: ListView.builder(
                                               scrollDirection: Axis.horizontal,
-                                              // This next line does the trick.
+                                              itemCount: playlist.length,
+                                              itemBuilder: (context, idx) {
+                                                final musicDocumentId =
+                                                    playlist[idx]
+                                                            ['music_document']
+                                                        as String;
 
-                                              children: <Widget>[
-                                                Container(
-                                                  child: Container(
-                                                    margin: EdgeInsets.only(
-                                                        right: 8),
-                                                    decoration: BoxDecoration(
-                                                      color: Color(0xff0075FF),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              24),
-                                                    ),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 24.0,
-                                                          vertical: 6),
-                                                      child: Text(
-                                                        "Me Ama",
-                                                        style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 12),
+                                                return FutureBuilder<
+                                                    DocumentSnapshot>(
+                                                  future: FirebaseFirestore
+                                                      .instance
+                                                      .collection(
+                                                          'music_database')
+                                                      .doc(musicDocumentId)
+                                                      .get(),
+                                                  builder:
+                                                      (context, musicSnapshot) {
+                                                    if (musicSnapshot
+                                                            .connectionState ==
+                                                        ConnectionState
+                                                            .waiting) {
+                                                      return Center(
+                                                          child:
+                                                              CircularProgressIndicator());
+                                                    }
+
+                                                    if (musicSnapshot
+                                                        .hasError) {
+                                                      return Text(
+                                                          'Erro ao carregar música');
+                                                    }
+
+                                                    if (!musicSnapshot
+                                                            .hasData ||
+                                                        !musicSnapshot
+                                                            .data!.exists) {
+                                                      return Text(
+                                                          'Música não encontrada');
+                                                    }
+
+                                                    final musicData =
+                                                        musicSnapshot.data!
+                                                                .data()
+                                                            as Map<String,
+                                                                dynamic>;
+                                                    final nomeMusica = musicData[
+                                                            'Music'] ??
+                                                        'Nome da Música Desconhecido';
+
+                                                    return Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 8),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            Color(0xff0075FF),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(24),
                                                       ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  margin:
-                                                      EdgeInsets.only(right: 8),
-                                                  decoration: BoxDecoration(
-                                                    color: Color(0xff0075FF),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            24),
-                                                  ),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 24.0,
-                                                        vertical: 6),
-                                                    child: Text(
-                                                      "Quero mais",
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 12),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  margin:
-                                                      EdgeInsets.only(right: 8),
-                                                  decoration: BoxDecoration(
-                                                    color: Color(0xff0075FF),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            24),
-                                                  ),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 24.0,
-                                                        vertical: 6),
-                                                    child: Text(
-                                                      "Ousado Amor",
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 12),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal:
+                                                                    24.0,
+                                                                vertical: 6),
+                                                        child: Text(
+                                                          nomeMusica,
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 12),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              },
                                             ),
                                           ),
                                           SizedBox(

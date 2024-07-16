@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
+import 'package:lagoinha_music/pages/MusicDataBase/main.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:lagoinha_music/pages/adminCultoForm2.dart';
 import 'package:lagoinha_music/pages/disponibilidade.dart';
@@ -80,6 +81,21 @@ class _userMainPageState extends State<userMainPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => forms_disponiblidade()),
+                );
+              },
+            ),
+            ListTile(
+              title: const Text(
+                'Muisc Database',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Update the state of the app.
+                // ...
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MainMusicDataBase()),
                 );
               },
             ),
@@ -573,6 +589,7 @@ class _userMainPageState extends State<userMainPage> {
                             Map<String, dynamic> cultoData = {
                               'nome': name,
                               'musicos': [],
+                              'playlist': [],
                               'date': timestamp,
                               'horario': horario
                             };

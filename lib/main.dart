@@ -148,7 +148,7 @@ class MyApp extends StatelessWidget {
         // '/intro_page': (context) => const userMainPage(),
         // '/adminCultoForm': (context) => adminCultoForm(culto: Culto(nome: n),),
         //'/MusicianSelect': (context) => MusicianSelect(),
-        '/AddtoPlaylist': (context) => AddtoPlaylist(),
+        //   '/AddtoPlaylist': (context) => AddtoPlaylist(),
       },
     );
   }
