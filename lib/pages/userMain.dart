@@ -143,6 +143,8 @@ class _userMainPageState extends State<userMainPage> {
                       child: StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('Cultos')
+                            .orderBy('date')
+                            .orderBy('horario')
                             .snapshots(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
@@ -242,7 +244,10 @@ class _userMainPageState extends State<userMainPage> {
                                             dataDocumento != null
                                                 ? Text(
                                                     DateFormat('dd/MM/yyyy')
-                                                        .format(dataDocumento!),
+                                                            .format(
+                                                                dataDocumento!) +
+                                                        " às " +
+                                                        cultoData['horario'],
                                                     style: TextStyle(
                                                         color: Colors.white,
                                                         fontWeight:
