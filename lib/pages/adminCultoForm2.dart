@@ -280,7 +280,7 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                 }
 
                                 return Container(
-                                  height: 300,
+                                  height: 200,
                                   child: ListView.builder(
                                     itemCount: musicos.length,
                                     itemBuilder: (context, index) {
@@ -838,7 +838,7 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                             )),
                                         Container(
                                           key: _scaffoldKey,
-                                          height: 300,
+                                          height: 100,
                                           child: FutureBuilder<
                                                   DocumentSnapshot>(
                                               future: FirebaseFirestore.instance
