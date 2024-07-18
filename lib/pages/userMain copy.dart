@@ -32,6 +32,7 @@ class _userMainPageState extends State<userMainPage> {
   void initState() {
     super.initState();
     _loadEvents();
+    _loadProximosCultos(); // Carregar os próximos cultos ao inicializar o estado
 
     //_stream = _getProximosCultos();
     print("Pagina Atualizada");
@@ -70,6 +71,40 @@ class _userMainPageState extends State<userMainPage> {
   }
 
   */
+
+  Future<void> _loadProximosCultos() async {
+    try {
+      // Consultar o Firestore para obter os cultos ordenados pela data e horário
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('Cultos')
+          .orderBy('date')
+          .orderBy('horario')
+          .get();
+
+      setState(() {
+        _proximosCultos = querySnapshot.docs;
+      });
+    } catch (e) {
+      print('Erro ao carregar próximos cultos: $e');
+      // Tratamento de erro
+    }
+  }
+
+  // Encontrar o próximo culto com base na data atual
+  DocumentSnapshot? _findProximoCulto() {
+    DateTime dataAtual = DateTime.now();
+
+    for (var culto in _proximosCultos) {
+      DateTime dataCulto = (culto['date'] as Timestamp).toDate();
+
+      // Comparar a data do culto com a data atual
+      if (dataCulto.isAfter(dataAtual)) {
+        return culto; // Retornar o primeiro culto que ocorre após a data atual
+      }
+    }
+
+    return null; // Retornar null se não houver culto futuro encontrado
+  }
 
   Future<void> _loadEvents() async {
     FirebaseFirestore.instance
@@ -118,6 +153,7 @@ class _userMainPageState extends State<userMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    DocumentSnapshot? proximoCulto = _findProximoCulto();
     var scaffoldKey = GlobalKey<ScaffoldState>();
     CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
     final TextEditingController dataController = TextEditingController();
@@ -286,6 +322,35 @@ class _userMainPageState extends State<userMainPage> {
                           height: 200,
                           child: _buildEventList(),
                         ),
+                      proximoCulto != null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Próximo Culto:",
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  "Data: ${DateFormat('dd/MM/yyyy').format((proximoCulto['date'] as Timestamp).toDate())}",
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.white),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "Horário: ${proximoCulto['horario']}",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                // Outras informações do culto, se necessário
+                              ],
+                            )
+                          : Text(
+                              "Nenhum culto futuro encontrado.",
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.white),
+                            ),
                     ],
                   ),
                 ),
