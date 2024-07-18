@@ -367,15 +367,7 @@ class _userMainPageState extends State<userMainPage> {
                                                 ),
                                                 SizedBox(width: 8),
                                                 Text(
-                                                  "Data: ${DateFormat('dd/MM/yyyy').format((proximoCulto['date'] as Timestamp).toDate())}",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  "Horário: ${proximoCulto['horario']}",
+                                                  "${DateFormat('dd/MM/yyyy').format((proximoCulto['date'] as Timestamp).toDate())}",
                                                   style: TextStyle(
                                                     color: Colors.white,
                                                     fontWeight: FontWeight.bold,
@@ -386,7 +378,7 @@ class _userMainPageState extends State<userMainPage> {
                                             ),
                                             SizedBox(height: 8),
                                             Text(
-                                              proximoCulto['nome'] ??
+                                              proximoCulto['horario'] ??
                                                   'Nome do Culto Indisponível',
                                               style: TextStyle(
                                                 color: Colors.white,
@@ -494,11 +486,11 @@ class _userMainPageState extends State<userMainPage> {
                                   ),
                                 ),
 
-                                Text(
+                                /*  Text(
                                   "Data: ${DateFormat('dd/MM/yyyy').format((proximoCulto['date'] as Timestamp).toDate())}",
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.white),
-                                ),
+                                ),*/
                                 SizedBox(height: 8),
                                 Text(
                                   "Horário: ${proximoCulto['horario']}",
@@ -661,6 +653,9 @@ class _userMainPageState extends State<userMainPage> {
                     } else {
                       print("Data sem evento");
                       print('Data selecionada: $formattedDate');
+                      print('Data formatada: ' +
+                          DateFormat('dd-MM-yyyy').format(currentDate));
+
                       print('Cultos: ${_events[formattedDate]}');
 
                       DateTime data = DateTime.parse(formattedDate);
@@ -728,9 +723,14 @@ class _userMainPageState extends State<userMainPage> {
                                             margin: EdgeInsets.only(top: 24),
                                           ),
                                           Text(
-                                            "Data: $formattedDate",
+                                            "" +
+                                                DateFormat('dd/MM/yyyy')
+                                                    .format(currentDate),
                                             style:
                                                 TextStyle(color: Colors.white),
+                                          ),
+                                          SizedBox(
+                                            height: 24,
                                           ),
                                           Row(
                                             crossAxisAlignment:
@@ -1137,7 +1137,10 @@ class _userMainPageState extends State<userMainPage> {
     if (events.isEmpty) {
       eventWidgets.add(
         Center(
-          child: Text('Nenhum culto encontrado para esta data'),
+          child: Text(
+            'Nenhum culto encontrado para esta data',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       );
     } else {

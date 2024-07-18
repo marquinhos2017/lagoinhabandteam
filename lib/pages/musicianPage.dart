@@ -289,7 +289,7 @@ class _MusicianPageState extends State<MusicianPage> {
                   margin: EdgeInsets.only(left: 16),
                   width: 166,
                   child: Text(
-                    "Bem vindo  Marcos",
+                    "Bem vindo ",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 36,
