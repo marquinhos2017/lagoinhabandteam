@@ -894,6 +894,11 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                           .get(),
                                                       builder: (context,
                                                           musicSnapshot) {
+                                                        if (!mounted) {
+                                                          // Verifica se o widget foi descartado antes de continuar
+                                                          return SizedBox
+                                                              .shrink(); // Retorno vazio se o widget não estiver montado
+                                                        }
                                                         if (musicSnapshot
                                                                 .connectionState ==
                                                             ConnectionState
