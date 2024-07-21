@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lagoinha_music/pages/ScheduleDetailsMusician.dart';
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -209,8 +210,8 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
       backgroundColor: Color.fromARGB(255, 225, 225, 225),
       appBar: AppBar(
         title: Text(
-          "Lagoinha Worship Faro",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          "My Schedule",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
           GestureDetector(
@@ -280,6 +281,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                               Map<String, dynamic> data =
                                   docs[index].data() as Map<String, dynamic>;
                               print(data);
+                              String idDocument = docs[index].id;
                               final List<dynamic> playlist = data['playlist'];
                               print("Printando: ");
                               print(playlist);
@@ -317,74 +319,87 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Container(
-                                            margin: EdgeInsets.only(top: 18),
-                                            child: Row(
-                                              children: [
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      DateFormat('MMM d')
-                                                          .format(
-                                                              dataDocumento!),
-                                                      style: TextStyle(
-                                                          color: Colors.black,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 14),
-                                                    ),
-                                                    Container(
-                                                      margin: EdgeInsets.only(
-                                                          top: 7, bottom: 14),
-                                                      child: Row(
-                                                        children: [
-                                                          Text(
-                                                            data['nome'],
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ScheduleDetailsMusician(
+                                                            id: idDocument)),
+                                              );
+                                              print(
+                                                  "ID do Culto: " + idDocument);
+                                            },
+                                            child: Container(
+                                              margin: EdgeInsets.only(top: 18),
+                                              child: Row(
+                                                children: [
+                                                  Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        DateFormat('MMM d')
+                                                            .format(
+                                                                dataDocumento!),
+                                                        style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 14),
+                                                      ),
+                                                      Container(
+                                                        margin: EdgeInsets.only(
+                                                            top: 7, bottom: 14),
+                                                        child: Row(
+                                                          children: [
+                                                            Text(
+                                                              data['nome'],
+                                                              style: TextStyle(
+                                                                  color: Color(
+                                                                      0xffB5B5B5),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w300,
+                                                                  fontSize: 14),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      Row(children: [
+                                                        Container(
+                                                          height: 30,
+                                                          width: 30,
+                                                          decoration: BoxDecoration(
+                                                              color: Color(
+                                                                  0xffD9D9D9),
+                                                              shape: BoxShape
+                                                                  .circle),
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(5.0),
+                                                          child: Text(
+                                                            "Banda",
                                                             style: TextStyle(
                                                                 color: Color(
                                                                     0xffB5B5B5),
+                                                                fontSize: 16,
                                                                 fontWeight:
                                                                     FontWeight
-                                                                        .w300,
-                                                                fontSize: 14),
+                                                                        .bold),
                                                           ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    Row(children: [
-                                                      Container(
-                                                        height: 30,
-                                                        width: 30,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                                color: Color(
-                                                                    0xffD9D9D9),
-                                                                shape: BoxShape
-                                                                    .circle),
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(5.0),
-                                                        child: Text(
-                                                          "Banda",
-                                                          style: TextStyle(
-                                                              color: Color(
-                                                                  0xffB5B5B5),
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
                                                         ),
-                                                      ),
-                                                    ])
-                                                  ],
-                                                ),
-                                              ],
+                                                      ])
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                           SizedBox(
