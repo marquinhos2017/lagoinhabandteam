@@ -326,7 +326,10 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                                 MaterialPageRoute(
                                                     builder: (context) =>
                                                         ScheduleDetailsMusician(
-                                                            id: idDocument)),
+                                                          documents: docs,
+                                                          id: idDocument,
+                                                          currentIndex: index,
+                                                        )),
                                               );
                                               print(
                                                   "ID do Culto: " + idDocument);

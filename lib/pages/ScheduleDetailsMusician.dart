@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
 class ScheduleDetailsMusician extends StatefulWidget {
   final String id;
-  const ScheduleDetailsMusician({required this.id});
+  final List<DocumentSnapshot> documents;
+  final int currentIndex;
+
+  const ScheduleDetailsMusician(
+      {required this.id, required this.documents, required this.currentIndex});
 
   @override
   State<ScheduleDetailsMusician> createState() =>
@@ -14,24 +17,54 @@ class ScheduleDetailsMusician extends StatefulWidget {
 
 class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  late int currentIndex;
+
+  void _navigateToDocument(int index, String idDoc) {
+    setState(() {
+      currentIndex = index;
+    });
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScheduleDetailsMusician(
+          id: idDoc,
+          documents: widget.documents,
+          currentIndex: index,
+        ),
+      ),
+    );
+  }
+
   List<Map<String, dynamic>> musicos = [];
   String selectedMenu = 'Musicas';
   List<Map<String, dynamic>> musicas = [];
+  Map<String, dynamic>? cultoData;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadInitialData();
+    print(widget.currentIndex);
+    currentIndex = widget.currentIndex;
+    print(currentIndex);
   }
 
   Future<void> _loadInitialData() async {
     try {
-      Map<String, dynamic> cultoData = await _getCultoData(widget.id);
+      Map<String, dynamic> fetchedCultoData = await _getCultoData(widget.id);
       setState(() {
-        musicas = List<Map<String, dynamic>>.from(cultoData['musicas']);
+        cultoData = fetchedCultoData;
+        musicas = List<Map<String, dynamic>>.from(cultoData?['musicas'] ?? []);
+        musicos = List<Map<String, dynamic>>.from(cultoData?['musicos'] ?? []);
+        isLoading = false;
       });
     } catch (e) {
       print('Erro ao carregar dados iniciais: $e');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -47,7 +80,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       Map<String, dynamic> cultoData =
           cultoSnapshot.data() as Map<String, dynamic>;
 
-      List<dynamic> playlist = cultoData['playlist'];
+      List<dynamic> playlist = cultoData['playlist'] ?? [];
       List<Map<String, dynamic>> loadedMusicas = [];
       List<Map<String, dynamic>> loadedMusicos = [];
 
@@ -67,7 +100,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
 
       cultoData['musicas'] = loadedMusicas;
 
-      List<dynamic> musicosIds = cultoData['musicos'];
+      List<dynamic> musicosIds = cultoData['musicos'] ?? [];
 
       for (var item in musicosIds) {
         int userId = item['user_id'];
@@ -79,7 +112,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
         if (userSnapshot.docs.isNotEmpty) {
           loadedMusicos
               .add(userSnapshot.docs.first.data() as Map<String, dynamic>);
-          musicos = loadedMusicos;
         } else {
           print('Usuário com ID $userId não encontrado');
         }
@@ -95,6 +127,10 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   }
 
   Widget _buildContent() {
+    if (cultoData == null) {
+      return Center(child: Text('Nenhum dado disponível'));
+    }
+
     switch (selectedMenu) {
       case 'Musicas':
         return ListView(
@@ -136,98 +172,115 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
 
   @override
   Widget build(BuildContext context) {
+    final List<DocumentSnapshot> documentsAll = widget.documents;
+    final id = documentsAll[currentIndex].id;
+    print(id);
+
+    print(documentsAll);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Detalhes do Culto"),
         backgroundColor: Color(0xff6B8E41),
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-          future: _getCultoData(widget.id),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError) {
-              return Center(child: Text('Erro: ${snapshot.error}'));
-            }
-
-            if (!snapshot.hasData) {
-              return Center(child: Text('Nenhum dado disponível'));
-            }
-
-            Map<String, dynamic> cultoData = snapshot.data!;
-            List<Map<String, dynamic>> fetchedMusicas =
-                List<Map<String, dynamic>>.from(cultoData['musicas']);
-
-            DateTime? dataDocumento;
-            try {
-              dataDocumento = cultoData?['date']?.toDate();
-            } catch (e) {
-              print('Erro ao converter data: $e');
-              dataDocumento = null;
-            }
-
-            return Column(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(color: Color(0xff6B8E41)),
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                if (cultoData != null) ...[
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(color: Color(0xff6B8E41)),
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 40),
+                        Text(
+                          "Lagoinha Faro",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          documentsAll![currentIndex]['nome'] ??
+                              'Nome desconhecido',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.arrow_left, color: Colors.white),
+                              onPressed: () {
+                                currentIndex > 0
+                                    ? _navigateToDocument(currentIndex - 1, id)
+                                    : () {
+                                        print(" Current Index: $currentIndex");
+                                        print("Tamanho da Lista: ");
+                                        print(widget.documents.length);
+                                      };
+                              },
+                            ),
+                            IconButton(
+                              icon:
+                                  Icon(Icons.arrow_right, color: Colors.white),
+                              onPressed: () {
+                                currentIndex < widget.documents.length - 1
+                                    ? _navigateToDocument(currentIndex + 1, id)
+                                    : () {
+                                        print(" Current Index: $currentIndex");
+                                        print("Tamanho da Lista: ");
+                                        print(widget.documents.length);
+                                      };
+                              },
+                            ),
+                            Text(
+                              documentsAll![currentIndex]['date'] != null
+                                  ? DateFormat('dd/MM/yyyy').format(
+                                      (documentsAll![currentIndex]['date']
+                                              as Timestamp)
+                                          .toDate())
+                                  : 'Data desconhecida',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          cultoData!['horarios'] ?? 'Horários desconhecidos',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      SizedBox(height: 40),
-                      Text(
-                        "Lagoinha Faro",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        cultoData['nome'],
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.arrow_left, color: Colors.white),
-                            onPressed: () {},
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.arrow_right, color: Colors.white),
-                            onPressed: () {},
-                          ),
-                          Text(
-                            DateFormat('dd/MM/yyyy').format(dataDocumento!),
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+                      _buildMenuButton('Musicas'),
+                      _buildMenuButton('Ordem'),
+                      _buildMenuButton('Ensaio'),
                     ],
                   ),
-                ),
-                SizedBox(height: 16.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildMenuButton('Musicas'),
-                    _buildMenuButton('Ordem'),
-                    _buildMenuButton('Ensaio'),
-                  ],
-                ),
-                Expanded(child: _buildContent()),
+                  Expanded(child: _buildContent()),
+                ] else if (isLoading) ...[
+                  Center(child: CircularProgressIndicator()),
+                ] else ...[
+                  Center(child: Text('Nenhum dado disponível')),
+                ],
               ],
-            );
-          }),
+            ),
     );
   }
 
@@ -237,10 +290,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       onTap: () {
         setState(() {
           selectedMenu = menu;
-          if (menu == 'Musicas') {
-            // Atualiza as músicas se 'Musicas' for selecionado
-            _loadInitialData();
-          }
         });
       },
       child: Column(
