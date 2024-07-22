@@ -32,23 +32,12 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
     });
   }
 
+  late int count;
+
   @override
   void initState() {
     super.initState();
     print("ID do usuario");
-
-    // Atualiza o estado do botão clicado em tempo real
-    FirebaseFirestore.instance
-        .collection('clicks')
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .listen((data) {
-      if (data.docs.isNotEmpty) {
-        setState(() {
-          _buttonClicked = data.docs.first['clicked'];
-        });
-      }
-    });
 
     // Adiciona um listener para 'ver_formulario' do músico
     _firestore.collection('musicos').doc(widget.id).snapshots().listen((doc) {
@@ -300,6 +289,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                   docs[index].data() as Map<String, dynamic>;
                               print(data);
                               String idDocument = docs[index].id;
+
                               final List<dynamic> playlist = data['playlist'];
                               print("Printando: ");
                               print(playlist);

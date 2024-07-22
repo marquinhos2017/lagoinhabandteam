@@ -27,6 +27,9 @@ class adminCultoForm2 extends StatefulWidget {
 }
 
 class _adminCultoForm2State extends State<adminCultoForm2> {
+  late bool isKeyboard;
+  late bool isDrum;
+  late bool isGuitar;
   @override
   void initState() {
     // TODO: implement initState
@@ -495,106 +498,108 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                     ),
                     // Botões para adicionar músicos (fora do ListView.builder)
 
-                    Center(
-                      child: GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MusicianSelect2(
-                              document_id: widget.document_id,
-                              instrument: "Keyboard",
+                    Row(
+                      children: [
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MusicianSelect2(
+                                  document_id: widget.document_id,
+                                  instrument: "Keyboard",
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        child: Container(
-                          width: 100,
-                          margin: EdgeInsets.only(top: 24, bottom: 0),
-                          decoration: BoxDecoration(
-                            color: Color(0xff4465D9),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Center(
-                              child: Text(
-                                "ADD Keyboard",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.bold),
+                            child: Container(
+                              width: 100,
+                              margin: EdgeInsets.only(top: 24, bottom: 0),
+                              decoration: BoxDecoration(
+                                color: Color(0xff4465D9),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Text(
+                                    "ADD Keyboard",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-
-                    Center(
-                      child: GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MusicianSelect2(
-                              document_id: widget.document_id,
-                              instrument: "Guitar",
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MusicianSelect2(
+                                  document_id: widget.document_id,
+                                  instrument: "Guitar",
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        child: Container(
-                          width: 100,
-                          margin: EdgeInsets.only(top: 24, bottom: 0),
-                          decoration: BoxDecoration(
-                            color: Color(0xff4465D9),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Center(
-                              child: Text(
-                                "ADD Guitar",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.bold),
+                            child: Container(
+                              width: 100,
+                              margin: EdgeInsets.only(top: 24, bottom: 0),
+                              decoration: BoxDecoration(
+                                color: Color(0xff4465D9),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Text(
+                                    "ADD Guitar",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-
-                    Center(
-                      child: GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MusicianSelect2(
-                              document_id: widget.document_id,
-                              instrument: "Drums",
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MusicianSelect2(
+                                  document_id: widget.document_id,
+                                  instrument: "Drums",
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        child: Container(
-                          width: 100,
-                          margin: EdgeInsets.only(top: 24, bottom: 0),
-                          decoration: BoxDecoration(
-                            color: Color(0xff4465D9),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Center(
-                              child: Text(
-                                "ADD Drums",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.bold),
+                            child: Container(
+                              width: 100,
+                              margin: EdgeInsets.only(top: 24, bottom: 0),
+                              decoration: BoxDecoration(
+                                color: Color(0xff4465D9),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Text(
+                                    "ADD Drums",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
 
                     /*Text(
