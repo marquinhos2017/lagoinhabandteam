@@ -27,6 +27,12 @@ class adminCultoForm2 extends StatefulWidget {
 }
 
 class _adminCultoForm2State extends State<adminCultoForm2> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   Future<DocumentSnapshot> getCultoData(String docId) async {
     return await _firestore.collection('Cultos').doc(docId).get();
@@ -75,6 +81,27 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
       setState(() {
         _selectedDate = picked;
       });
+    }
+  }
+
+  // Função para obter o instrumento a partir da tabela user_culto_instrument
+  Future<String> getInstrument(int userId, String idCulto) async {
+    try {
+      var snapshot = await _firestore
+          .collection('user_culto_instrument')
+          .where('idUser', isEqualTo: userId)
+          .where('idCulto', isEqualTo: idCulto)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        var data = snapshot.docs.first.data() as Map<String, dynamic>;
+        return data['Instrument'] ?? 'Instrumento não encontrado';
+      } else {
+        return 'Instrumento não encontrado';
+      }
+    } catch (e) {
+      print('Erro ao buscar instrumento: $e');
+      return 'Erro ao buscar instrumento';
     }
   }
 
@@ -271,141 +298,203 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
 
                                 var cultoData = snapshot.data!.data()
                                     as Map<String, dynamic>;
-                                var musicos = cultoData['musicos'];
+                                var musicos = List<Map<String, dynamic>>.from(
+                                    cultoData['musicos'] ?? []);
 
-                                if (musicos == null || musicos.isEmpty) {
-                                  return Center(
-                                      child: Text(
-                                          'Nenhum músico associado a este culto'));
-                                }
+                                // Verifica se cada tipo de instrumento já foi atribuído
+                                bool keyboardFound = musicos.any((musico) =>
+                                    musico['instrument'] == 'Keyboard');
+                                bool guitarFound = musicos.any((musico) =>
+                                    musico['instrument'] == 'Guitarrist');
+                                bool drumsFound = musicos.any((musico) =>
+                                    musico['instrument'] == 'Drums');
 
-                                return Container(
-                                  height: 200,
-                                  child: ListView.builder(
-                                    itemCount: musicos.length,
-                                    itemBuilder: (context, index) {
-                                      int userId = musicos[index]['user_id'];
+                                return Column(
+                                  children: [
+                                    Container(
+                                      height: 200,
+                                      child: ListView.builder(
+                                        itemCount: musicos.length,
+                                        itemBuilder: (context, index) {
+                                          var musico = musicos[index];
+                                          int userId = musico['user_id'];
+                                          String idCulto = widget.document_id;
 
-                                      return FutureBuilder<QuerySnapshot>(
-                                        future: _firestore
-                                            .collection('musicos')
-                                            .where('user_id', isEqualTo: userId)
-                                            .get(),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            return Center(
-                                                child:
-                                                    CircularProgressIndicator());
-                                          }
-                                          if (snapshot.hasError) {
-                                            return Center(
-                                                child: Text(
-                                                    'Erro: ${snapshot.error}'));
-                                          }
-                                          if (!snapshot.hasData ||
-                                              snapshot.data!.docs.isEmpty) {
-                                            return Center(
-                                                child: Text(
-                                                    'Músico não encontrado'));
-                                          }
+                                          return FutureBuilder<
+                                              Map<String, dynamic>>(
+                                            future: Future.wait([
+                                              _firestore
+                                                  .collection('musicos')
+                                                  .where('user_id',
+                                                      isEqualTo: userId)
+                                                  .get()
+                                                  .then((snapshot) {
+                                                if (snapshot.docs.isNotEmpty) {
+                                                  return snapshot.docs.first
+                                                          .data()
+                                                      as Map<String, dynamic>;
+                                                } else {
+                                                  return {};
+                                                }
+                                              }),
+                                              _firestore
+                                                  .collection(
+                                                      'user_culto_instrument')
+                                                  .where('idUser',
+                                                      isEqualTo: userId)
+                                                  .where('idCulto',
+                                                      isEqualTo: idCulto)
+                                                  .get()
+                                                  .then((snapshot) {
+                                                if (snapshot.docs.isNotEmpty) {
+                                                  return snapshot.docs.first
+                                                          .data()
+                                                      as Map<String, dynamic>;
+                                                } else {
+                                                  return {};
+                                                }
+                                              }),
+                                            ]).then((results) {
+                                              var musicoData = results[0];
+                                              var instrumentData = results[1];
+                                              print(instrumentData);
+                                              return {
+                                                'name': musicoData['name'] ??
+                                                    'Nome não encontrado',
+                                                'instrument': instrumentData[
+                                                        'Instrument'] ??
+                                                    'Instrumento não encontrado',
+                                              };
+                                            }),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return Center(
+                                                    child:
+                                                        CircularProgressIndicator());
+                                              }
+                                              if (snapshot.hasError) {
+                                                return Center(
+                                                    child: Text(
+                                                        'Erro: ${snapshot.error}',
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white)));
+                                              }
+                                              if (!snapshot.hasData) {
+                                                return Center(
+                                                    child: Text(
+                                                        'Dados não encontrados',
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white)));
+                                              }
 
-                                          var musicoData =
-                                              snapshot.data!.docs.first.data()
-                                                  as Map<String, dynamic>;
+                                              var data = snapshot.data!;
+                                              var name = data['name'];
+                                              var instrument =
+                                                  data['instrument'];
 
-                                          return Column(
-                                            children: [
-                                              GestureDetector(
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      musicoData['name'] ??
-                                                          'Nome não encontrado',
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                    Row(
+                                              return Column(
+                                                children: [
+                                                  GestureDetector(
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
                                                       children: [
-                                                        Container(
-                                                          margin:
-                                                              EdgeInsets.only(
-                                                                  right: 20),
-                                                          child: Text(
-                                                            musicoData[
-                                                                'instrument'],
-                                                            style: TextStyle(
-                                                                color: Color(
-                                                                    0xff558FFF),
-                                                                fontSize: 12),
-                                                          ),
+                                                        Text(
+                                                          name,
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
                                                         ),
-                                                        GestureDetector(
-                                                          onTap: () async {
-                                                            // Remover o músico localmente da lista musicos
-                                                            setState(() {
-                                                              musicos.removeAt(
-                                                                  index); // Remove o item da lista localmente
-                                                            });
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              margin: EdgeInsets
+                                                                  .only(
+                                                                      right:
+                                                                          20),
+                                                              child: Text(
+                                                                instrument,
+                                                                style: TextStyle(
+                                                                    color: Color(
+                                                                        0xff558FFF),
+                                                                    fontSize:
+                                                                        12),
+                                                              ),
+                                                            ),
+                                                            GestureDetector(
+                                                              onTap: () async {
+                                                                var itemToRemove =
+                                                                    {
+                                                                  'user_id':
+                                                                      userId,
+                                                                };
 
-                                                            try {
-                                                              // Atualizar o Firestore para refletir a mudança
-                                                              DocumentReference
-                                                                  docRef =
-                                                                  _firestore
-                                                                      .collection(
-                                                                          'Cultos')
-                                                                      .doc(widget
-                                                                          .document_id);
+                                                                setState(() {
+                                                                  musicos
+                                                                      .removeAt(
+                                                                          index);
+                                                                });
 
-                                                              await docRef
-                                                                  .update({
-                                                                'musicos':
-                                                                    FieldValue
-                                                                        .arrayRemove([
-                                                                  {
-                                                                    'user_id':
-                                                                        musicoData[
-                                                                            'user_id'], // Use o campo identificador para remover
-                                                                    // Adicione outros campos necessários para identificar o item específico
-                                                                  }
-                                                                ])
-                                                              });
-                                                            } catch (e) {
-                                                              print(
-                                                                  'Erro ao remover músico: $e');
-                                                              // Lógica para lidar com o erro, se necessário
-                                                            }
-                                                          },
-                                                          child: Icon(
-                                                            Icons.delete,
-                                                            color: Colors.white,
-                                                          ),
+                                                                try {
+                                                                  DocumentReference
+                                                                      docRef =
+                                                                      _firestore
+                                                                          .collection(
+                                                                              'Cultos')
+                                                                          .doc(widget
+                                                                              .document_id);
+
+                                                                  await docRef
+                                                                      .update({
+                                                                    'musicos':
+                                                                        FieldValue
+                                                                            .arrayRemove([
+                                                                      itemToRemove
+                                                                    ])
+                                                                  });
+                                                                } catch (e) {
+                                                                  print(
+                                                                      'Erro ao remover músico: $e');
+                                                                }
+                                                              },
+                                                              child: Icon(
+                                                                  Icons.delete,
+                                                                  color: Colors
+                                                                      .white),
+                                                            )
+                                                          ],
                                                         )
                                                       ],
-                                                    )
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
+                                                    ),
+                                                  ),
+                                                  Divider(),
+                                                ],
+                                              );
+                                            },
                                           );
                                         },
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    ),
+                                  ],
                                 );
                               },
                             ),
+
+// Botões para adicionar músicos (fora do ListView.builder)
                           ],
                         ),
                       ),
                     ),
+                    // Botões para adicionar músicos (fora do ListView.builder)
+
                     Center(
                       child: GestureDetector(
                         onTap: () => Navigator.push(
@@ -413,20 +502,90 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                           MaterialPageRoute(
                             builder: (context) => MusicianSelect2(
                               document_id: widget.document_id,
-                            ), //cultoEspecifico.nome//)),
+                              instrument: "Keyboard",
+                            ),
                           ),
                         ),
                         child: Container(
                           width: 100,
                           margin: EdgeInsets.only(top: 24, bottom: 0),
                           decoration: BoxDecoration(
-                              color: Color(0xff4465D9),
-                              borderRadius: BorderRadius.circular(4)),
+                            color: Color(0xff4465D9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Center(
                               child: Text(
-                                "ADD MUSICIAN",
+                                "ADD Keyboard",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Center(
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MusicianSelect2(
+                              document_id: widget.document_id,
+                              instrument: "Guitar",
+                            ),
+                          ),
+                        ),
+                        child: Container(
+                          width: 100,
+                          margin: EdgeInsets.only(top: 24, bottom: 0),
+                          decoration: BoxDecoration(
+                            color: Color(0xff4465D9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Center(
+                              child: Text(
+                                "ADD Guitar",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Center(
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MusicianSelect2(
+                              document_id: widget.document_id,
+                              instrument: "Drums",
+                            ),
+                          ),
+                        ),
+                        child: Container(
+                          width: 100,
+                          margin: EdgeInsets.only(top: 24, bottom: 0),
+                          decoration: BoxDecoration(
+                            color: Color(0xff4465D9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Center(
+                              child: Text(
+                                "ADD Drums",
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 8,

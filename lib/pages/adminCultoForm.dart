@@ -416,9 +416,10 @@ class _adminCultoFormState extends State<adminCultoForm> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => MusicianSelect(
-                                        cultoatual: Culto(
-                                            nome: widget.cultoatual
-                                                .nome)), //cultoEspecifico.nome//)),
+                                      cultoatual:
+                                          Culto(nome: widget.cultoatual.nome),
+                                      intrument: "Keybnoard",
+                                    ), //cultoEspecifico.nome//)),
                                   ),
                                 ),
                                 child: Container(

@@ -11,8 +11,9 @@ import 'package:intl/intl.dart'; // Importe o pacote intl
 
 class MusicianSelect2 extends StatefulWidget {
   final String document_id;
+  final String instrument;
 
-  MusicianSelect2({required this.document_id});
+  MusicianSelect2({required this.document_id, required this.instrument});
 
   @override
   State<MusicianSelect2> createState() => _MusicianSelect2State();
@@ -36,7 +37,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
     });
   }
 
-  void adicionarMusico(String cultoId, int userId) async {
+  void adicionarMusico(String cultoId, int userId, String instrument) async {
     try {
       DocumentReference cultoRef = _firestore.collection('Cultos').doc(cultoId);
       DocumentSnapshot cultoDoc = await cultoRef.get();
@@ -52,6 +53,25 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
       });
 
       print('Musico adicionado com sucesso');
+
+      // Obtém uma referência para a coleção 'user_culto_instrument'
+      CollectionReference userCultoInstrument =
+          FirebaseFirestore.instance.collection('/user_instrument_culto');
+
+      // Obtém todos os documentos da coleção
+      QuerySnapshot querySnapshot = await userCultoInstrument.get();
+
+      for (DocumentSnapshot doc in querySnapshot.docs) {
+        // Atualiza cada documento com os novos campos
+        await doc.reference.update({
+          'idCulto': cultoId, // Substitua por um valor adequado se disponível
+          'idUser': userId, // Substitua por um valor adequado se disponível
+          'Instrument':
+              instrument, // Substitua por um valor adequado se disponível
+        });
+      }
+
+      print('Campos adicionados com sucesso!');
     } catch (e) {
       print('Erro ao adicionar músico: $e');
     }
@@ -126,7 +146,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
 
   @override
   Widget build(BuildContext context) {
-    void adicionarMusico(String cultoId, int userId) async {
+    void adicionarMusico(String cultoId, int userId, String instrument) async {
       try {
         DocumentReference cultoRef =
             _firestore.collection('Cultos').doc(cultoId);
@@ -141,6 +161,19 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
             {'user_id': userId}
           ])
         });
+
+        // Obtém uma referência para a coleção 'user_culto_instrument'
+        CollectionReference userCultoInstrument =
+            FirebaseFirestore.instance.collection('user_culto_instrument');
+
+        // Adiciona um novo documento com os campos especificados
+        await userCultoInstrument.add({
+          'idCulto': cultoId,
+          'idUser': userId,
+          'Instrument': instrument,
+        });
+
+        print('Documento adicionado com sucesso!');
 
         print('Musico adicionado com sucesso');
       } catch (e) {
@@ -180,7 +213,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32.0),
               child: Text(
-                "Worship Team",
+                widget.instrument,
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -280,7 +313,9 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                           Color(0xff171717),
                                                       title: Text(
                                                         "Quer convidar " +
-                                                            musicos['name'],
+                                                            musicos['name'] +
+                                                            "Para ser o " +
+                                                            widget.instrument,
                                                         style: TextStyle(
                                                             color:
                                                                 Colors.white),
@@ -299,7 +334,9 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                             adicionarMusico(
                                                                 widget
                                                                     .document_id,
-                                                                musicoId);
+                                                                musicoId,
+                                                                widget
+                                                                    .instrument);
                                                             Navigator.of(
                                                                     context)
                                                                 .pop(); // Fecha o popup
@@ -316,7 +353,10 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                       backgroundColor:
                                                           Color(0xff171717),
                                                       title: Text(
-                                                        "Ele esta como indisponivel ",
+                                                        "Ele esta como indisponivel. Quer convidar  " +
+                                                            musicos['name'] +
+                                                            "para ser o " +
+                                                            widget.instrument,
                                                         style: TextStyle(
                                                             color:
                                                                 Colors.white),
@@ -327,7 +367,9 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                             adicionarMusico(
                                                                 widget
                                                                     .document_id,
-                                                                musicoId);
+                                                                musicoId,
+                                                                widget
+                                                                    .instrument);
                                                             Navigator.of(
                                                                     context)
                                                                 .pop(); // Fecha o popup

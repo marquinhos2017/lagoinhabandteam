@@ -10,8 +10,9 @@ import 'package:provider/provider.dart';
 
 class MusicianSelect extends StatelessWidget {
   final Culto cultoatual;
+  final String intrument;
 
-  MusicianSelect({required this.cultoatual});
+  MusicianSelect({required this.cultoatual, required this.intrument});
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +92,7 @@ class MusicianSelect extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Text(
-              "Worship Team",
+              intrument,
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
