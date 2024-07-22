@@ -7,8 +7,11 @@ class ScheduleDetailsMusician extends StatefulWidget {
   final List<DocumentSnapshot> documents;
   final int currentIndex;
 
-  const ScheduleDetailsMusician(
-      {required this.id, required this.documents, required this.currentIndex});
+  const ScheduleDetailsMusician({
+    required this.id,
+    required this.documents,
+    required this.currentIndex,
+  });
 
   @override
   State<ScheduleDetailsMusician> createState() =>
@@ -18,24 +21,15 @@ class ScheduleDetailsMusician extends StatefulWidget {
 class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  late int currentIndex;
-
-  void _navigateToDocument(int index, String idDoc) {
+  void _navigateToDocument(int index) {
     setState(() {
       currentIndex = index;
+      isLoading = true;
     });
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScheduleDetailsMusician(
-          id: idDoc,
-          documents: widget.documents,
-          currentIndex: index,
-        ),
-      ),
-    );
+    _loadInitialData(widget.documents[index].id);
   }
 
+  late int currentIndex;
   List<Map<String, dynamic>> musicos = [];
   String selectedMenu = 'Musicas';
   List<Map<String, dynamic>> musicas = [];
@@ -45,15 +39,14 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
-    print(widget.currentIndex);
     currentIndex = widget.currentIndex;
-    print(currentIndex);
+    _loadInitialData();
   }
 
-  Future<void> _loadInitialData() async {
+  Future<void> _loadInitialData([String? cultoId]) async {
     try {
-      Map<String, dynamic> fetchedCultoData = await _getCultoData(widget.id);
+      Map<String, dynamic> fetchedCultoData =
+          await _getCultoData(cultoId ?? widget.id);
       setState(() {
         cultoData = fetchedCultoData;
         musicas = List<Map<String, dynamic>>.from(cultoData?['musicas'] ?? []);
@@ -174,9 +167,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   Widget build(BuildContext context) {
     final List<DocumentSnapshot> documentsAll = widget.documents;
     final id = documentsAll[currentIndex].id;
-    print(id);
-
-    print(documentsAll);
 
     return Scaffold(
       appBar: AppBar(
@@ -205,7 +195,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                               fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          documentsAll![currentIndex]['nome'] ??
+                          documentsAll[currentIndex]['nome'] ??
                               'Nome desconhecido',
                           style: TextStyle(
                               color: Colors.white,
@@ -217,32 +207,29 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                             IconButton(
                               icon: Icon(Icons.arrow_left, color: Colors.white),
                               onPressed: () {
-                                currentIndex > 0
-                                    ? _navigateToDocument(currentIndex - 1, id)
-                                    : () {
-                                        print(" Current Index: $currentIndex");
-                                        print("Tamanho da Lista: ");
-                                        print(widget.documents.length);
-                                      };
+                                if (currentIndex > 0) {
+                                  _navigateToDocument(currentIndex - 1);
+                                } else {
+                                  print("Não há documento anterior.");
+                                }
                               },
                             ),
                             IconButton(
                               icon:
                                   Icon(Icons.arrow_right, color: Colors.white),
                               onPressed: () {
-                                currentIndex < widget.documents.length - 1
-                                    ? _navigateToDocument(currentIndex + 1, id)
-                                    : () {
-                                        print(" Current Index: $currentIndex");
-                                        print("Tamanho da Lista: ");
-                                        print(widget.documents.length);
-                                      };
+                                if (currentIndex <
+                                    widget.documents.length - 1) {
+                                  _navigateToDocument(currentIndex + 1);
+                                } else {
+                                  print("Não há documento seguinte.");
+                                }
                               },
                             ),
                             Text(
-                              documentsAll![currentIndex]['date'] != null
+                              documentsAll[currentIndex]['date'] != null
                                   ? DateFormat('dd/MM/yyyy').format(
-                                      (documentsAll![currentIndex]['date']
+                                      (documentsAll[currentIndex]['date']
                                               as Timestamp)
                                           .toDate())
                                   : 'Data desconhecida',
