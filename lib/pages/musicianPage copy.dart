@@ -35,6 +35,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
   @override
   void initState() {
     super.initState();
+    print("ID do usuario");
 
     // Atualiza o estado do botão clicado em tempo real
     FirebaseFirestore.instance
@@ -88,7 +89,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
   Future<Map<String, dynamic>> fetchData(String musicianId) async {
     try {
       // Espera pelo menos 2 segundos antes de retornar os dados
-      await Future.delayed(Duration(seconds: 2));
+      await Future.delayed(Duration(seconds: 1));
 
       // Busca os cultos
       QuerySnapshot cultosSnapshot =
@@ -243,7 +244,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                   Container(
                     margin: EdgeInsets.symmetric(vertical: 0),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
                           "CONFIRMED ",
@@ -252,15 +253,32 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                               fontSize: 14,
                               fontWeight: FontWeight.bold),
                         ),
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                              color: Color(0xff81AC4C),
+                              borderRadius: BorderRadius.circular(100)),
+                          child: Center(
+                            child: Text(
+                              "3",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   Container(
-                    height: 500,
+                    height: 600,
                     margin: EdgeInsets.only(top: 16),
                     child: StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('Cultos')
+                          .orderBy("date")
                           .where('musicos', arrayContains: {
                         'user_id': int.parse(widget.id)
                       }).snapshots(),
@@ -275,7 +293,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
 
                         return Container(
                           child: ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
+                            //physics: NeverScrollableScrollPhysics(),
                             itemCount: docs.length,
                             itemBuilder: (context, index) {
                               Map<String, dynamic> data =
@@ -294,124 +312,136 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                 dataDocumento = null;
                               }
 
-                              return Container(
-                                margin: EdgeInsets.only(bottom: 15),
-                                decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Colors.black, // Cor da borda
-                                        width: 1.0, // Largura da borda
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            ScheduleDetailsMusician(
+                                              documents: docs,
+                                              id: idDocument,
+                                              currentIndex: index,
+                                            )),
+                                  );
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.only(bottom: 15),
+                                  decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: Colors.black, // Cor da borda
+                                          width: 0.25, // Largura da borda
+                                        ),
                                       ),
-                                    ),
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12)),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 18.0, vertical: 0),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        ScheduleDetailsMusician(
-                                                          documents: docs,
-                                                          id: idDocument,
-                                                          currentIndex: index,
-                                                        )),
-                                              );
-                                              print(
-                                                  "ID do Culto: " + idDocument);
-                                            },
-                                            child: Container(
-                                              margin: EdgeInsets.only(top: 18),
-                                              child: Row(
-                                                children: [
-                                                  Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        DateFormat('MMM d')
-                                                            .format(
-                                                                dataDocumento!),
-                                                        style: TextStyle(
-                                                            color: Colors.black,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 14),
-                                                      ),
-                                                      Container(
-                                                        margin: EdgeInsets.only(
-                                                            top: 7, bottom: 14),
-                                                        child: Row(
-                                                          children: [
-                                                            Text(
-                                                              data['nome'],
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(5)),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 18.0, vertical: 0),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            GestureDetector(
+                                              onTap: () {
+                                                print("ID do Culto: " +
+                                                    idDocument);
+                                              },
+                                              child: Container(
+                                                margin:
+                                                    EdgeInsets.only(top: 18),
+                                                child: Row(
+                                                  children: [
+                                                    Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          DateFormat('MMM d')
+                                                              .format(
+                                                                  dataDocumento!),
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 14),
+                                                        ),
+                                                        Container(
+                                                          margin:
+                                                              EdgeInsets.only(
+                                                                  top: 7,
+                                                                  bottom: 14),
+                                                          child: Row(
+                                                            children: [
+                                                              Text(
+                                                                data['nome'],
+                                                                style: TextStyle(
+                                                                    color: Color(
+                                                                        0xffB5B5B5),
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        14),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        Row(children: [
+                                                          Container(
+                                                            height: 30,
+                                                            width: 30,
+                                                            decoration: BoxDecoration(
+                                                                color: Color(
+                                                                    0xffD9D9D9),
+                                                                shape: BoxShape
+                                                                    .circle),
+                                                          ),
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(5.0),
+                                                            child: Text(
+                                                              "Banda",
                                                               style: TextStyle(
                                                                   color: Color(
                                                                       0xffB5B5B5),
+                                                                  fontSize: 16,
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .w300,
-                                                                  fontSize: 14),
+                                                                          .bold),
                                                             ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      Row(children: [
-                                                        Container(
-                                                          height: 30,
-                                                          width: 30,
-                                                          decoration: BoxDecoration(
-                                                              color: Color(
-                                                                  0xffD9D9D9),
-                                                              shape: BoxShape
-                                                                  .circle),
-                                                        ),
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(5.0),
-                                                          child: Text(
-                                                            "Banda",
-                                                            style: TextStyle(
-                                                                color: Color(
-                                                                    0xffB5B5B5),
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
                                                           ),
-                                                        ),
-                                                      ])
-                                                    ],
-                                                  ),
-                                                ],
+                                                        ])
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          SizedBox(
-                                            height: 28,
-                                          ),
-                                        ],
+                                            SizedBox(
+                                              height: 28,
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
                             },
@@ -506,127 +536,128 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                 ),
               )
             else
-              Center(
-                child: Text('Você não tem permissão para ver os cultos.'),
-              ),
-            FutureBuilder<Map<String, dynamic>>(
-              future: fetchData(widget.id),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
+              /*Center(
+                child: Text('Ver Formulario desativado'),
+              ),*/
+              FutureBuilder<Map<String, dynamic>>(
+                future: fetchData(widget.id),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Erro: ${snapshot.error}'));
-                }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erro: ${snapshot.error}'));
+                  }
 
-                if (!snapshot.hasData) {
-                  return Center(
-                    child: Text(
-                      'Nenhum dado encontrado',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  );
-                }
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: Text(
+                        'Nenhum dado encontrado',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
 
-                final musicianName = snapshot.data!['musicianName'];
-                final cultos =
-                    snapshot.data!['cultos'] as List<QueryDocumentSnapshot>;
+                  final musicianName = snapshot.data!['musicianName'];
+                  final cultos =
+                      snapshot.data!['cultos'] as List<QueryDocumentSnapshot>;
 
-                // Filtra os cultos para verificar se o músico está escalado
-                final cultosEscalados = cultos.where((culto) {
-                  final cultoData = culto.data() as Map<String, dynamic>;
-                  final musicos = cultoData['musicos'] != null
-                      ? cultoData['musicos'] as List<dynamic>
-                      : [];
-                  return musicos
-                      .any((musico) => musico['name'] == musicianName);
-                }).toList();
+                  // Filtra os cultos para verificar se o músico está escalado
+                  final cultosEscalados = cultos.where((culto) {
+                    final cultoData = culto.data() as Map<String, dynamic>;
+                    final musicos = cultoData['musicos'] != null
+                        ? cultoData['musicos'] as List<dynamic>
+                        : [];
+                    return musicos
+                        .any((musico) => musico['name'] == musicianName);
+                  }).toList();
 
-                // Verifica se o músico está escalado em algum culto
-                if (cultosEscalados.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'Você não está escalado para nenhum culto.',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  );
-                }
+                  // Verifica se o músico está escalado em algum culto
+                  if (cultosEscalados.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'Você não está escalado para nenhum culto.',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
 
-                return SingleChildScrollView(
-                  child: Container(
-                    margin: EdgeInsets.only(top: 0),
-                    padding: EdgeInsets.all(40),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          margin: EdgeInsets.only(bottom: 12),
-                          child: Text(
-                            "Cultos Escalados",
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold),
+                  return SingleChildScrollView(
+                    child: Container(
+                      margin: EdgeInsets.only(top: 0),
+                      padding: EdgeInsets.all(40),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              "Cultos Escalados",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        ),
-                        Container(
-                          height: 200,
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemCount: cultosEscalados.length,
-                            itemBuilder: (context, index) {
-                              final culto = cultosEscalados[index].data()
-                                  as Map<String, dynamic>;
-                              return Container(
-                                margin: EdgeInsets.only(bottom: 10),
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(0)),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 30.0, vertical: 12),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            culto['nome'],
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14),
-                                          ),
-                                          Text(
-                                            "19:30 - 21:00",
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w300,
-                                                fontSize: 10),
-                                          ),
-                                        ],
+                          Container(
+                            height: 200,
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              itemCount: cultosEscalados.length,
+                              itemBuilder: (context, index) {
+                                final culto = cultosEscalados[index].data()
+                                    as Map<String, dynamic>;
+                                return Container(
+                                  margin: EdgeInsets.only(bottom: 10),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(0)),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 30.0, vertical: 12),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              culto['nome'],
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14),
+                                            ),
+                                            Text(
+                                              "19:30 - 21:00",
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w300,
+                                                  fontSize: 10),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
           ],
         ),
       ),

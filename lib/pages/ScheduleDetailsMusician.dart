@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -170,8 +172,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Detalhes do Culto"),
-        backgroundColor: Color(0xff6B8E41),
+        title: Text("Service Details"),
+        backgroundColor: Colors.white,
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -186,7 +188,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 40),
+                        SizedBox(height: 70),
                         Text(
                           "Lagoinha Faro",
                           style: TextStyle(
@@ -205,6 +207,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                         Row(
                           children: [
                             IconButton(
+                              style: IconButton.styleFrom(
+                                  backgroundColor: Color(0xff81AC4C)),
                               icon: Icon(Icons.arrow_left, color: Colors.white),
                               onPressed: () {
                                 if (currentIndex > 0) {
@@ -215,6 +219,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                               },
                             ),
                             IconButton(
+                              style: IconButton.styleFrom(
+                                  backgroundColor: Color(0xff81AC4C)),
                               icon:
                                   Icon(Icons.arrow_right, color: Colors.white),
                               onPressed: () {
@@ -225,6 +231,9 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                   print("Não há documento seguinte.");
                                 }
                               },
+                            ),
+                            SizedBox(
+                              width: 20,
                             ),
                             Text(
                               documentsAll[currentIndex]['date'] != null
@@ -239,14 +248,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                   fontWeight: FontWeight.bold),
                             ),
                           ],
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          cultoData!['horarios'] ?? 'Horários desconhecidos',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.normal),
                         ),
                       ],
                     ),
@@ -284,9 +285,9 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
           Text(
             menu,
             style: TextStyle(
-              color: isSelected ? Colors.blue : Colors.black,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
+                color: isSelected ? Colors.black : Colors.black,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 20),
           ),
           if (isSelected)
             Container(
