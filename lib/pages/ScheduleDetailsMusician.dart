@@ -249,16 +249,16 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
               ],
             ),
           ),
-          SizedBox(height: 16.0),
           Container(
-            width: 270,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildMenuButton('Musicas'),
-                _buildMenuButton('Ordem'),
-                _buildMenuButton('Ensaio'),
-              ],
+            color: Color(0xffEEEEEE),
+            child: Container(
+              child: Row(
+                children: [
+                  _buildMenuButton('Musicas'),
+                  _buildMenuButton('Ordem'),
+                  _buildMenuButton('Ensaio'),
+                ],
+              ),
             ),
           ),
           Expanded(child: _buildContent()),
@@ -277,22 +277,25 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
         });
       },
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Column(
           children: [
-            Text(
-              menu,
-              style: TextStyle(
-                  color: isSelected ? Colors.black : Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20),
+            Container(
+              margin: EdgeInsets.only(top: 10),
+              child: Text(
+                menu,
+                style: TextStyle(
+                    color: isSelected ? Colors.black : Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20),
+              ),
             ),
             if (isSelected)
               Container(
                 margin: EdgeInsets.only(top: 4),
                 height: 2,
                 width: 60,
-                color: Colors.blue,
+                color: Color(0xff81AC4C),
               ),
             if (!isSelected)
               Container(

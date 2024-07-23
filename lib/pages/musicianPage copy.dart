@@ -27,6 +27,27 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
   bool _buttonClicked = false;
   Map<int, BoolStringPair> checkedItems = {};
 
+  Future<String> loadInstrumentForDocument(
+      String userId, String cultoId) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('user_culto_instrument')
+          .where('idUser', isEqualTo: int.parse(widget.id))
+          .where('idCulto', isEqualTo: cultoId)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first['Instrument'] ??
+            'Instrumento Desconhecido';
+      } else {
+        return 'Instrumento Desconhecido';
+      }
+    } catch (e) {
+      print('Erro ao carregar instrumento: $e');
+      return 'Instrumento Desconhecido';
+    }
+  }
+
   void onCheckboxChanged(int index, bool value, String docId) {
     setState(() {
       checkedItems[index] = BoolStringPair(value, docId);
@@ -381,102 +402,133 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                   dataDocumento = null;
                                 }
 
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            ScheduleDetailsMusician(
-                                          documents: docs,
-                                          id: idDocument,
-                                          currentIndex: index,
-                                          musics: allMusicDataList,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(bottom: 15),
-                                      decoration: BoxDecoration(
-                                          border: Border(
-                                            bottom: BorderSide(
-                                              color:
-                                                  Colors.black, // Cor da borda
-                                              width: 0.25, // Largura da borda
+                                return FutureBuilder<String>(
+                                    future: loadInstrumentForDocument(
+                                        widget.id, idDocument),
+                                    builder: (context, instrumentSnapshot) {
+                                      String instrumentText =
+                                          'Instrumento Desconhecido';
+                                      if (instrumentSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Center(
+                                            child: CircularProgressIndicator());
+                                      }
+
+                                      if (instrumentSnapshot.hasData) {
+                                        instrumentText =
+                                            instrumentSnapshot.data!;
+                                      } else if (instrumentSnapshot.hasError) {
+                                        print(
+                                            'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
+                                      }
+
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ScheduleDetailsMusician(
+                                                documents: docs,
+                                                id: idDocument,
+                                                currentIndex: index,
+                                                musics: allMusicDataList,
+                                              ),
                                             ),
-                                          ),
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(5)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  DateFormat('MMM d')
-                                                      .format(dataDocumento!),
-                                                  style: TextStyle(
-                                                      color: Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 14),
-                                                ),
-                                                Text("-" + data['horario'],
-                                                    style: TextStyle(
-                                                        color:
-                                                            Color(0xff81AC4C),
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 14))
-                                              ],
-                                            ),
-                                            Container(
-                                              margin: EdgeInsets.only(
-                                                  top: 7, bottom: 14),
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    data['nome'],
-                                                    style: TextStyle(
-                                                        color:
-                                                            Color(0xffB5B5B5),
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 14),
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Container(
+                                            margin: EdgeInsets.only(bottom: 15),
+                                            decoration: BoxDecoration(
+                                                border: Border(
+                                                  bottom: BorderSide(
+                                                    color: Colors
+                                                        .black, // Cor da borda
+                                                    width:
+                                                        0.25, // Largura da borda
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Row(children: [
-                                              Container(
-                                                height: 30,
-                                                width: 30,
-                                                decoration: BoxDecoration(
-                                                    color: Color(0xffD9D9D9),
-                                                    shape: BoxShape.circle),
-                                              ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(5.0),
-                                                child: Text(
-                                                  "Banda",
-                                                  style: TextStyle(
-                                                      color: Color(0xffB5B5B5),
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold),
                                                 ),
-                                              ),
-                                            ]),
-                                            /*Text(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(5)),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        DateFormat('MMM d')
+                                                            .format(
+                                                                dataDocumento!),
+                                                        style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 14),
+                                                      ),
+                                                      Text(
+                                                          "-" + data['horario'],
+                                                          style: TextStyle(
+                                                              color: Color(
+                                                                  0xff81AC4C),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 14))
+                                                    ],
+                                                  ),
+                                                  Container(
+                                                    margin: EdgeInsets.only(
+                                                        top: 7, bottom: 14),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          data['nome'],
+                                                          style: TextStyle(
+                                                              color: Color(
+                                                                  0xffB5B5B5),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 14),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 8),
+                                                  Row(children: [
+                                                    Container(
+                                                      height: 30,
+                                                      width: 30,
+                                                      decoration: BoxDecoration(
+                                                          color:
+                                                              Color(0xffD9D9D9),
+                                                          shape:
+                                                              BoxShape.circle),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              5.0),
+                                                      child: Text(
+                                                        instrumentText,
+                                                        style: TextStyle(
+                                                            color: Color(
+                                                                0xffB5B5B5),
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                    ),
+                                                  ]),
+                                                  /*Text(
                                               'Músicas:',
                                               style: TextStyle(
                                                   color: Colors.white,
@@ -542,12 +594,13 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                                         color: Colors.white,
                                                         fontSize: 12),
                                                   ),*/
-                                          ],
+                                                ],
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                );
+                                      );
+                                    });
                               },
                             );
                           },
