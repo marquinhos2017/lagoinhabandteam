@@ -279,50 +279,103 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                     ),
                   ),
                   Container(
-                      height: 600,
-                      margin: EdgeInsets.only(top: 16),
-                      child: FutureBuilder<QuerySnapshot>(
-                        future: FirebaseFirestore.instance
-                            .collection('Cultos')
-                            .orderBy("date")
-                            .where('musicos', arrayContains: {
-                          'user_id': int.parse(widget.id)
-                        }).get(), // Obtendo todos os documentos uma vez
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                    height: 600,
+                    margin: EdgeInsets.only(top: 16),
+                    child: FutureBuilder<QuerySnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection('Cultos')
+                          .orderBy("date")
+                          .where('musicos', arrayContains: {
+                        'user_id': int.parse(widget.id)
+                      }).get(), // Obtendo todos os documentos uma vez
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Erro: ${snapshot.error}'));
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Center(
+                              child: Text('Nenhum culto encontrado.'));
+                        }
+
+                        List<DocumentSnapshot> docs = snapshot.data!.docs;
+
+                        // Lista para armazenar todas as músicas de todos os cultos
+                        List<List<Map<String, dynamic>>> allMusicDataList =
+                            List.generate(docs.length, (_) => []);
+
+                        // Função para carregar as músicas de um culto específico
+                        Future<void> loadMusicsForDocument(int docIndex) async {
+                          final doc = docs[docIndex];
+                          final data = doc.data() as Map<String, dynamic>;
+                          final playlist = data['playlist'] as List<dynamic>?;
+
+                          if (playlist != null) {
+                            List<Future<DocumentSnapshot>> musicFutures =
+                                playlist.map((song) {
+                              String musicDocumentId =
+                                  song['music_document'] as String;
+                              return FirebaseFirestore.instance
+                                  .collection('music_database')
+                                  .doc(musicDocumentId)
+                                  .get();
+                            }).toList();
+
+                            List<DocumentSnapshot> musicSnapshots =
+                                await Future.wait(musicFutures);
+                            List<Map<String, dynamic>> musicDataList =
+                                musicSnapshots.map((musicSnapshot) {
+                              if (musicSnapshot.exists) {
+                                return musicSnapshot.data()
+                                    as Map<String, dynamic>;
+                              } else {
+                                return {
+                                  'Music': 'Música Desconhecida',
+                                  'Author': 'Autor Desconhecido',
+                                };
+                              }
+                            }).toList();
+
+                            allMusicDataList[docIndex] = musicDataList;
                           }
+                        }
 
-                          if (snapshot.hasError) {
-                            return Center(
-                                child: Text('Erro: ${snapshot.error}'));
+                        // Carregar as músicas para todos os documentos
+                        Future<void> loadAllMusics() async {
+                          for (int i = 0; i < docs.length; i++) {
+                            await loadMusicsForDocument(i);
                           }
+                        }
 
-                          if (!snapshot.hasData ||
-                              snapshot.data!.docs.isEmpty) {
-                            return Center(
-                                child: Text('Nenhum culto encontrado.'));
-                          }
+                        return FutureBuilder<void>(
+                          future: loadAllMusics(),
+                          builder: (context, musicSnapshot) {
+                            if (musicSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
 
-                          List<DocumentSnapshot> docs = snapshot.data!.docs;
+                            if (musicSnapshot.hasError) {
+                              return Center(
+                                  child: Text('Erro ao carregar músicas'));
+                            }
 
-                          return Container(
-                            child: ListView.builder(
+                            return ListView.builder(
                               itemCount: docs.length,
                               itemBuilder: (context, index) {
                                 Map<String, dynamic> data =
                                     docs[index].data() as Map<String, dynamic>;
-                                print(data);
                                 String idDocument = docs[index].id;
-
-                                final List<dynamic> playlist = data['playlist'];
-                                print("Printando: ");
-                                print(playlist);
 
                                 DateTime? dataDocumento;
                                 try {
-                                  dataDocumento = data['date']?.toDate();
+                                  dataDocumento =
+                                      (data['date'] as Timestamp?)?.toDate();
                                 } catch (e) {
                                   print('Erro ao converter data: $e');
                                   dataDocumento = null;
@@ -333,139 +386,175 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) =>
-                                              ScheduleDetailsMusician(
-                                                documents: docs,
-                                                id: idDocument,
-                                                currentIndex: index,
-                                              )),
+                                        builder: (context) =>
+                                            ScheduleDetailsMusician(
+                                          documents: docs,
+                                          id: idDocument,
+                                          currentIndex: index,
+                                          musics: allMusicDataList,
+                                        ),
+                                      ),
                                     );
                                   },
-                                  child: Container(
-                                    margin: EdgeInsets.only(bottom: 15),
-                                    decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            color: Colors.black, // Cor da borda
-                                            width: 0.25, // Largura da borda
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      margin: EdgeInsets.only(bottom: 15),
+                                      decoration: BoxDecoration(
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              color:
+                                                  Colors.black, // Cor da borda
+                                              width: 0.25, // Largura da borda
+                                            ),
                                           ),
-                                        ),
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(5)),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 18.0, vertical: 0),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              GestureDetector(
-                                                onTap: () {
-                                                  print("ID do Culto: " +
-                                                      idDocument);
-                                                },
-                                                child: Container(
-                                                  margin:
-                                                      EdgeInsets.only(top: 18),
-                                                  child: Row(
-                                                    children: [
-                                                      Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            DateFormat('MMM d')
-                                                                .format(
-                                                                    dataDocumento!),
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .black,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 14),
-                                                          ),
-                                                          Container(
-                                                            margin:
-                                                                EdgeInsets.only(
-                                                                    top: 7,
-                                                                    bottom: 14),
-                                                            child: Row(
-                                                              children: [
-                                                                Text(
-                                                                  data['nome'],
-                                                                  style: TextStyle(
-                                                                      color: Color(
-                                                                          0xffB5B5B5),
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      fontSize:
-                                                                          14),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          Row(children: [
-                                                            Container(
-                                                              height: 30,
-                                                              width: 30,
-                                                              decoration: BoxDecoration(
-                                                                  color: Color(
-                                                                      0xffD9D9D9),
-                                                                  shape: BoxShape
-                                                                      .circle),
-                                                            ),
-                                                            Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(5.0),
-                                                              child: Text(
-                                                                "Banda",
-                                                                style: TextStyle(
-                                                                    color: Color(
-                                                                        0xffB5B5B5),
-                                                                    fontSize:
-                                                                        16,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold),
-                                                              ),
-                                                            ),
-                                                          ])
-                                                        ],
-                                                      ),
-                                                    ],
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(5)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  DateFormat('MMM d')
+                                                      .format(dataDocumento!),
+                                                  style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 14),
+                                                ),
+                                                Text("-" + data['horario'],
+                                                    style: TextStyle(
+                                                        color:
+                                                            Color(0xff81AC4C),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 14))
+                                              ],
+                                            ),
+                                            Container(
+                                              margin: EdgeInsets.only(
+                                                  top: 7, bottom: 14),
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    data['nome'],
+                                                    style: TextStyle(
+                                                        color:
+                                                            Color(0xffB5B5B5),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 14),
                                                   ),
+                                                ],
+                                              ),
+                                            ),
+                                            SizedBox(height: 8),
+                                            Row(children: [
+                                              Container(
+                                                height: 30,
+                                                width: 30,
+                                                decoration: BoxDecoration(
+                                                    color: Color(0xffD9D9D9),
+                                                    shape: BoxShape.circle),
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(5.0),
+                                                child: Text(
+                                                  "Banda",
+                                                  style: TextStyle(
+                                                      color: Color(0xffB5B5B5),
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold),
                                                 ),
                                               ),
-                                              SizedBox(
-                                                height: 28,
-                                              ),
-                                            ],
-                                          ),
+                                            ]),
+                                            /*Text(
+                                              'Músicas:',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            allMusicDataList[index].isNotEmpty
+                                                ? ListView.builder(
+                                                    shrinkWrap: true,
+                                                    physics:
+                                                        NeverScrollableScrollPhysics(),
+                                                    itemCount:
+                                                        allMusicDataList[index]
+                                                            .length,
+                                                    itemBuilder:
+                                                        (context, playlistIndex) {
+                                                      final song =
+                                                          allMusicDataList[index]
+                                                              [playlistIndex];
+                                                      final musica =
+                                                          song['Music'] ??
+                                                              'Música Desconhecida';
+                                                      final autor =
+                                                          song['Author'] ??
+                                                              'Autor Desconhecido';
+                                                                            
+                                                      return Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(
+                                                              '$musica',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      Colors.white,
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                          Expanded(
+                                                            child: Text(
+                                                              '$autor',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      Colors.white,
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  )
+                                                : Text(
+                                                    'Nenhuma música encontrada',
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12),
+                                                  ),*/
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 );
                               },
-                            ),
-                          );
-                        },
-                      )),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  )
                 ],
               ),
             ),
@@ -528,7 +617,10 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                         return CheckboxListTile(
                           title: Text(
                             'Culto: ${culto['culto']}',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16),
                           ),
                           subtitle: dataDocumento != null
                               ? Text(
@@ -540,7 +632,13 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                       fontWeight: FontWeight.w300,
                                       fontSize: 10),
                                 )
-                              : Text('Data Indisponível'),
+                              : Text(
+                                  'Data Indisponível',
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 10),
+                                ),
                           value: checkedItems[index]?.booleanValue ?? false,
                           onChanged: (bool? value) {
                             onCheckboxChanged(index, value ?? false, culto.id);

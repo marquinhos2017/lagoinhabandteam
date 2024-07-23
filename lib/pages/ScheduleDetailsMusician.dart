@@ -8,11 +8,13 @@ class ScheduleDetailsMusician extends StatefulWidget {
   final String id;
   final List<DocumentSnapshot> documents;
   final int currentIndex;
+  final List<List<Map<String, dynamic>>> musics;
 
   const ScheduleDetailsMusician({
     required this.id,
     required this.documents,
     required this.currentIndex,
+    required this.musics,
   });
 
   @override
@@ -28,13 +30,12 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       currentIndex = index;
       isLoading = true;
     });
-    _loadInitialData(widget.documents[index].id);
+    //  _loadInitialData(widget.documents[index].id);
   }
 
   late int currentIndex;
   List<Map<String, dynamic>> musicos = [];
   String selectedMenu = 'Musicas';
-  List<Map<String, dynamic>> musicas = [];
   Map<String, dynamic>? cultoData;
   bool isLoading = true;
 
@@ -42,7 +43,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   void initState() {
     super.initState();
     currentIndex = widget.currentIndex;
-    _loadInitialData();
+
+    //_loadInitialData();
   }
 
   Future<void> _loadInitialData([String? cultoId]) async {
@@ -51,7 +53,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
           await _getCultoData(cultoId ?? widget.id);
       setState(() {
         cultoData = fetchedCultoData;
-        musicas = List<Map<String, dynamic>>.from(cultoData?['musicas'] ?? []);
         musicos = List<Map<String, dynamic>>.from(cultoData?['musicos'] ?? []);
         isLoading = false;
       });
@@ -122,14 +123,14 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   }
 
   Widget _buildContent() {
-    if (cultoData == null) {
-      return Center(child: Text('Nenhum dado disponível'));
-    }
-
     switch (selectedMenu) {
       case 'Musicas':
+
+        // Acessa as músicas do culto atual utilizando o currentIndex
+        List<Map<String, dynamic>> musicasAtuais = widget.musics[currentIndex];
+
         return ListView(
-          children: musicas
+          children: musicasAtuais
               .map((musica) => ListTile(
                     title: Text(musica['Music'] ?? 'Título desconhecido'),
                     subtitle: Text(musica['Author'] ?? 'Autor desconhecido'),
@@ -168,6 +169,9 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   @override
   Widget build(BuildContext context) {
     final List<DocumentSnapshot> documentsAll = widget.documents;
+    final List<List<Map<String, dynamic>>> musicsAll = widget.musics;
+    print(documentsAll[currentIndex]['nome']);
+    print(musicsAll[currentIndex]);
     final id = documentsAll[currentIndex].id;
 
     return Scaffold(
@@ -175,128 +179,130 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
         title: Text("Service Details"),
         backgroundColor: Colors.white,
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(color: Color(0xff6B8E41)),
+            padding: EdgeInsets.all(16.0),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (cultoData != null) ...[
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(color: Color(0xff6B8E41)),
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 70),
-                        Text(
-                          "Lagoinha Faro",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          documentsAll[currentIndex]['nome'] ??
-                              'Nome desconhecido',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              style: IconButton.styleFrom(
-                                  backgroundColor: Color(0xff81AC4C)),
-                              icon: Icon(Icons.arrow_left, color: Colors.white),
-                              onPressed: () {
-                                if (currentIndex > 0) {
-                                  _navigateToDocument(currentIndex - 1);
-                                } else {
-                                  print("Não há documento anterior.");
-                                }
-                              },
-                            ),
-                            IconButton(
-                              style: IconButton.styleFrom(
-                                  backgroundColor: Color(0xff81AC4C)),
-                              icon:
-                                  Icon(Icons.arrow_right, color: Colors.white),
-                              onPressed: () {
-                                if (currentIndex <
-                                    widget.documents.length - 1) {
-                                  _navigateToDocument(currentIndex + 1);
-                                } else {
-                                  print("Não há documento seguinte.");
-                                }
-                              },
-                            ),
-                            SizedBox(
-                              width: 20,
-                            ),
-                            Text(
-                              documentsAll[currentIndex]['date'] != null
-                                  ? DateFormat('dd/MM/yyyy').format(
-                                      (documentsAll[currentIndex]['date']
-                                              as Timestamp)
-                                          .toDate())
-                                  : 'Data desconhecida',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ],
+                SizedBox(height: 70),
+                Text(
+                  "Lagoinha Faro",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  documentsAll[currentIndex]['nome'] ?? 'Nome desconhecido',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      style: IconButton.styleFrom(
+                          backgroundColor: Color(0xff81AC4C)),
+                      icon: Icon(Icons.arrow_left, color: Colors.white),
+                      onPressed: () {
+                        if (currentIndex > 0) {
+                          _navigateToDocument(currentIndex - 1);
+                        } else {
+                          print("Não há documento anterior.");
+                        }
+                      },
                     ),
-                  ),
-                  SizedBox(height: 16.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildMenuButton('Musicas'),
-                      _buildMenuButton('Ordem'),
-                      _buildMenuButton('Ensaio'),
-                    ],
-                  ),
-                  Expanded(child: _buildContent()),
-                ] else if (isLoading) ...[
-                  Center(child: CircularProgressIndicator()),
-                ] else ...[
-                  Center(child: Text('Nenhum dado disponível')),
-                ],
+                    IconButton(
+                      style: IconButton.styleFrom(
+                          backgroundColor: Color(0xff81AC4C)),
+                      icon: Icon(Icons.arrow_right, color: Colors.white),
+                      onPressed: () {
+                        if (currentIndex < widget.documents.length - 1) {
+                          _navigateToDocument(currentIndex + 1);
+                        } else {
+                          print("Não há documento seguinte.");
+                        }
+                      },
+                    ),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Text(
+                      documentsAll[currentIndex]['date'] != null
+                          ? DateFormat('dd/MM/yyyy').format(
+                              (documentsAll[currentIndex]['date'] as Timestamp)
+                                  .toDate())
+                          : 'Data desconhecida',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ],
             ),
+          ),
+          SizedBox(height: 16.0),
+          Container(
+            width: 270,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildMenuButton('Musicas'),
+                _buildMenuButton('Ordem'),
+                _buildMenuButton('Ensaio'),
+              ],
+            ),
+          ),
+          Expanded(child: _buildContent()),
+        ],
+      ),
     );
   }
 
   Widget _buildMenuButton(String menu) {
     bool isSelected = selectedMenu == menu;
+
     return GestureDetector(
       onTap: () {
         setState(() {
           selectedMenu = menu;
         });
       },
-      child: Column(
-        children: [
-          Text(
-            menu,
-            style: TextStyle(
-                color: isSelected ? Colors.black : Colors.black,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 20),
-          ),
-          if (isSelected)
-            Container(
-              margin: EdgeInsets.only(top: 4),
-              height: 2,
-              width: 60,
-              color: Colors.blue,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Text(
+              menu,
+              style: TextStyle(
+                  color: isSelected ? Colors.black : Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20),
             ),
-        ],
+            if (isSelected)
+              Container(
+                margin: EdgeInsets.only(top: 4),
+                height: 2,
+                width: 60,
+                color: Colors.blue,
+              ),
+            if (!isSelected)
+              Container(
+                margin: EdgeInsets.only(top: 4),
+                height: 2,
+                width: 60,
+                color: Colors.transparent,
+              ),
+          ],
+        ),
       ),
     );
   }

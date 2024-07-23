@@ -203,7 +203,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
               child: Container(
                 margin: EdgeInsets.only(top: 60, bottom: 40),
                 child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => Navigator.pop(context, true),
                     child: Icon(
                       Icons.arrow_back_ios,
                       color: Colors.white,
