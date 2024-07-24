@@ -129,22 +129,48 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
         // Acessa as músicas do culto atual utilizando o currentIndex
         List<Map<String, dynamic>> musicasAtuais = widget.musics[currentIndex];
 
-        return ListView(
-          children: musicasAtuais
-              .map((musica) => ListTile(
-                    title: Text(musica['Music'] ?? 'Título desconhecido'),
-                    subtitle: Text(musica['Author'] ?? 'Autor desconhecido'),
-                  ))
-              .toList(),
+        return Container(
+          color: Colors.black,
+          child: ListView(
+            children: musicasAtuais
+                .map((musica) => Container(
+                      margin: EdgeInsets.all(12),
+                      color: Color(0xff171717),
+                      child: ListTile(
+                        title: Text(
+                          musica['Music'] ?? 'Título desconhecido',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          musica['Author'] ?? 'Autor desconhecido',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
         );
-      case 'Ordem':
-        return ListView(
-          children: musicos
-              .map((musico) => ListTile(
-                    title: Text(musico['name'] ?? 'Nome desconhecido'),
-                    subtitle: Text('ID: ${musico['user_id']}'),
-                  ))
-              .toList(),
+      case 'Teams':
+        return Container(
+          color: Colors.black,
+          child: ListView(
+            children: musicos
+                .map((musico) => Container(
+                      margin: EdgeInsets.all(12),
+                      color: Colors.black,
+                      child: ListTile(
+                        title: Text(
+                          musico['name'] ?? 'Nome desconhecido',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          'ID: ${musico['user_id']}',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
         );
       case 'Ensaio':
         return Column(
@@ -172,19 +198,24 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     final List<List<Map<String, dynamic>>> musicsAll = widget.musics;
     print(documentsAll[currentIndex]['nome']);
     print(musicsAll[currentIndex]);
+    print(documentsAll[currentIndex]['musicos']);
     final id = documentsAll[currentIndex].id;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Service Details"),
-        backgroundColor: Colors.white,
+        foregroundColor: Colors.white,
+        title: Text(
+          "Service Details",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.black,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: double.infinity,
-            decoration: BoxDecoration(color: Color(0xff6B8E41)),
+            decoration: BoxDecoration(color: Color(0xff171717)),
             padding: EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,7 +239,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                   children: [
                     IconButton(
                       style: IconButton.styleFrom(
-                          backgroundColor: Color(0xff81AC4C)),
+                        backgroundColor: Color(0xff4465D9),
+                      ),
                       icon: Icon(Icons.arrow_left, color: Colors.white),
                       onPressed: () {
                         if (currentIndex > 0) {
@@ -220,7 +252,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                     ),
                     IconButton(
                       style: IconButton.styleFrom(
-                          backgroundColor: Color(0xff81AC4C)),
+                          backgroundColor: Color(0xff4465D9)),
                       icon: Icon(Icons.arrow_right, color: Colors.white),
                       onPressed: () {
                         if (currentIndex < widget.documents.length - 1) {
@@ -250,13 +282,12 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
             ),
           ),
           Container(
-            color: Color(0xffEEEEEE),
+            color: Colors.black,
             child: Container(
               child: Row(
                 children: [
                   _buildMenuButton('Musicas'),
-                  _buildMenuButton('Ordem'),
-                  _buildMenuButton('Ensaio'),
+                  _buildMenuButton('Teams'),
                 ],
               ),
             ),
@@ -285,7 +316,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
               child: Text(
                 menu,
                 style: TextStyle(
-                    color: isSelected ? Colors.black : Colors.black,
+                    color: isSelected ? Colors.white : Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 20),
               ),
@@ -295,7 +326,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                 margin: EdgeInsets.only(top: 4),
                 height: 2,
                 width: 60,
-                color: Color(0xff81AC4C),
+                color: Color(0xff4465D9),
               ),
             if (!isSelected)
               Container(

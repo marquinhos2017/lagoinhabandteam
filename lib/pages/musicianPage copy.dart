@@ -235,11 +235,11 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
     print("User_id: " + widget.id);
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 225, 225, 225),
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
           "My Schedule",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
           GestureDetector(
@@ -249,12 +249,12 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
             ),
             child: Icon(
               Icons.login,
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
         ],
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.black,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -276,7 +276,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                         Text(
                           "CONFIRMED ",
                           style: TextStyle(
-                              color: Colors.black,
+                              color: Colors.white,
                               fontSize: 14,
                               fontWeight: FontWeight.bold),
                         ),
@@ -284,7 +284,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                           width: 30,
                           height: 30,
                           decoration: BoxDecoration(
-                              color: Color(0xff81AC4C),
+                              color: Color(0xff4465D9),
                               borderRadius: BorderRadius.circular(100)),
                           child: Center(
                             child: Text(
@@ -450,12 +450,12 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                                         0.25, // Largura da borda
                                                   ),
                                                 ),
-                                                color: Colors.white,
+                                                color: Color(0xff171717),
                                                 borderRadius:
                                                     BorderRadius.circular(5)),
                                             child: Padding(
                                               padding:
-                                                  const EdgeInsets.all(8.0),
+                                                  const EdgeInsets.all(24.0),
                                               child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
@@ -467,7 +467,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                                             .format(
                                                                 dataDocumento!),
                                                         style: TextStyle(
-                                                            color: Colors.black,
+                                                            color: Colors.white,
                                                             fontWeight:
                                                                 FontWeight.bold,
                                                             fontSize: 14),
@@ -476,7 +476,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                                           "-" + data['horario'],
                                                           style: TextStyle(
                                                               color: Color(
-                                                                  0xff81AC4C),
+                                                                  0xff4465D9),
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
@@ -507,6 +507,10 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                                       height: 30,
                                                       width: 30,
                                                       decoration: BoxDecoration(
+                                                          border: Border.all(
+                                                            color: Color(
+                                                                0xff81AC4C),
+                                                          ),
                                                           color:
                                                               Color(0xffD9D9D9),
                                                           shape:
@@ -519,12 +523,11 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                                       child: Text(
                                                         instrumentText,
                                                         style: TextStyle(
-                                                            color: Color(
-                                                                0xffB5B5B5),
-                                                            fontSize: 16,
+                                                            color: Colors.white,
+                                                            fontSize: 12,
                                                             fontWeight:
                                                                 FontWeight
-                                                                    .bold),
+                                                                    .w300),
                                                       ),
                                                     ),
                                                   ]),
