@@ -460,15 +460,6 @@ class _adminCultoFormState extends State<adminCultoForm> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              child: Text(
-                                "Playlist",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Container(
                               child: Column(children: [
                                 Container(
                                   margin: EdgeInsets.only(top: 12),

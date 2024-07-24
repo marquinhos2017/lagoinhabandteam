@@ -39,7 +39,7 @@ dependencies:
   firebase_core: ^2.0.0
   cloud_firestore: ^4.14.0
   flutter_date_pickers: ^0.4.3
-  flutter_local_notifications: ^17.2.1+2
+
 
 dev_dependencies:
   flutter_test:

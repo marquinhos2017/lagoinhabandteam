@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lagoinha_music/pages/ScheduleDetailsMusician.dart';
+import 'package:lagoinha_music/pages/MusicianPage/ScheduleDetailsMusician.dart';
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
-import 'package:lagoinha_music/pages/musicianPage%20copy.dart';
-import 'package:lagoinha_music/pages/musicianPage.dart';
+import 'package:lagoinha_music/pages/MusicianPage/musicianPage%20copy.dart';
+
 import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 
