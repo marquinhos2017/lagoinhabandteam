@@ -5,6 +5,7 @@ import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musician.dart';
 import 'package:lagoinha_music/models/musico.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
+import 'package:lagoinha_music/pages/adminCultoForm2.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart'; // Importe o pacote intl
@@ -376,6 +377,29 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
 
                                                             Navigator.pop(
                                                                 context);
+
+                                                            Navigator
+                                                                .pushReplacement(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          adminCultoForm2(
+                                                                            document_id:
+                                                                                widget.document_id,
+                                                                          )),
+                                                            );
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                    'Musico adicionado!'),
+                                                                backgroundColor:
+                                                                    Color(
+                                                                        0xff4465D9), // Cor de aviso de remoção
+                                                              ),
+                                                            );
                                                           },
                                                           child: const Text(
                                                               'Adicionar mesmo assim'),

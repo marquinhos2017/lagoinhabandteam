@@ -136,15 +136,21 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                 .map((musica) => Container(
                       margin: EdgeInsets.all(12),
                       color: Color(0xff171717),
-                      child: ListTile(
-                        title: Text(
-                          musica['Music'] ?? 'Título desconhecido',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        subtitle: Text(
-                          musica['Author'] ?? 'Autor desconhecido',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                musica['Music'] ?? 'Título desconhecido',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              Text(
+                                musica['Author'] ?? 'Autor desconhecido',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ]),
                       ),
                     ))
                 .toList(),

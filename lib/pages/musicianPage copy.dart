@@ -509,7 +509,8 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                                       decoration: BoxDecoration(
                                                           border: Border.all(
                                                             color: Color(
-                                                                0xff81AC4C),
+                                                                0xff4465D9),
+                                                            width: 2,
                                                           ),
                                                           color:
                                                               Color(0xffD9D9D9),
@@ -674,7 +675,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                           title: Text(
                             'Culto: ${culto['culto']}',
                             style: TextStyle(
-                                color: Colors.black,
+                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16),
                           ),
@@ -684,14 +685,14 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                           .format(dataDocumento!) +
                                       " -  ${culto['horario']}",
                                   style: TextStyle(
-                                      color: Colors.black,
+                                      color: Colors.white,
                                       fontWeight: FontWeight.w300,
                                       fontSize: 10),
                                 )
                               : Text(
                                   'Data Indisponível',
                                   style: TextStyle(
-                                      color: Colors.black,
+                                      color: Colors.white,
                                       fontWeight: FontWeight.w300,
                                       fontSize: 10),
                                 ),
