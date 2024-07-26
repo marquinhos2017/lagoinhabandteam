@@ -304,99 +304,101 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                 var musicos = List<Map<String, dynamic>>.from(
                                     cultoData['musicos'] ?? []);
 
-                                // Verifica se cada tipo de instrumento já foi atribuído
-                                bool keyboardFound = musicos.any((musico) =>
-                                    musico['instrument'] == 'Keyboard');
-                                bool guitarFound = musicos.any((musico) =>
-                                    musico['instrument'] == 'Guitarrist');
-                                bool drumsFound = musicos.any((musico) =>
-                                    musico['instrument'] == 'Drums');
+                                // Inicializa os flags dos instrumentos
+                                bool keyboardFound = false;
+                                bool guitarFound = false;
+                                bool drumsFound = false;
 
-                                return Column(
-                                  children: [
-                                    Container(
-                                      height: 200,
-                                      child: ListView.builder(
-                                        itemCount: musicos.length,
-                                        itemBuilder: (context, index) {
-                                          var musico = musicos[index];
-                                          int userId = musico['user_id'];
-                                          String idCulto = widget.document_id;
+                                return FutureBuilder<
+                                    List<Map<String, dynamic>>>(
+                                  future:
+                                      Future.wait(musicos.map((musico) async {
+                                    int userId = musico['user_id'];
+                                    String idCulto = widget.document_id;
 
-                                          return FutureBuilder<
-                                              Map<String, dynamic>>(
-                                            future: Future.wait([
-                                              _firestore
-                                                  .collection('musicos')
-                                                  .where('user_id',
-                                                      isEqualTo: userId)
-                                                  .get()
-                                                  .then((snapshot) {
-                                                if (snapshot.docs.isNotEmpty) {
-                                                  return snapshot.docs.first
-                                                          .data()
-                                                      as Map<String, dynamic>;
-                                                } else {
-                                                  return {};
-                                                }
-                                              }),
-                                              _firestore
-                                                  .collection(
-                                                      'user_culto_instrument')
-                                                  .where('idUser',
-                                                      isEqualTo: userId)
-                                                  .where('idCulto',
-                                                      isEqualTo: idCulto)
-                                                  .get()
-                                                  .then((snapshot) {
-                                                if (snapshot.docs.isNotEmpty) {
-                                                  return snapshot.docs.first
-                                                          .data()
-                                                      as Map<String, dynamic>;
-                                                } else {
-                                                  return {};
-                                                }
-                                              }),
-                                            ]).then((results) {
-                                              var musicoData = results[0];
-                                              var instrumentData = results[1];
-                                              print(instrumentData);
-                                              return {
-                                                'name': musicoData['name'] ??
-                                                    'Nome não encontrado',
-                                                'instrument': instrumentData[
-                                                        'Instrument'] ??
-                                                    'Instrumento não encontrado',
-                                              };
-                                            }),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return Center(
-                                                    child:
-                                                        CircularProgressIndicator());
-                                              }
-                                              if (snapshot.hasError) {
-                                                return Center(
-                                                    child: Text(
-                                                        'Erro: ${snapshot.error}',
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white)));
-                                              }
-                                              if (!snapshot.hasData) {
-                                                return Center(
-                                                    child: Text(
-                                                        'Dados não encontrados',
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white)));
-                                              }
+                                    var results = await Future.wait([
+                                      _firestore
+                                          .collection('musicos')
+                                          .where('user_id', isEqualTo: userId)
+                                          .get()
+                                          .then((snapshot) {
+                                        if (snapshot.docs.isNotEmpty) {
+                                          return snapshot.docs.first.data()
+                                              as Map<String, dynamic>;
+                                        } else {
+                                          return {};
+                                        }
+                                      }),
+                                      _firestore
+                                          .collection('user_culto_instrument')
+                                          .where('idUser', isEqualTo: userId)
+                                          .where('idCulto', isEqualTo: idCulto)
+                                          .get()
+                                          .then((snapshot) {
+                                        if (snapshot.docs.isNotEmpty) {
+                                          return snapshot.docs.first.data()
+                                              as Map<String, dynamic>;
+                                        } else {
+                                          return {};
+                                        }
+                                      }),
+                                    ]);
 
-                                              var data = snapshot.data!;
-                                              var name = data['name'];
+                                    var musicoData = results[0];
+                                    var instrumentData = results[1];
+                                    return {
+                                      'name': musicoData['name'] ??
+                                          'Nome não encontrado',
+                                      'instrument':
+                                          instrumentData['Instrument'] ??
+                                              'Instrumento não encontrado',
+                                    };
+                                  }).toList()),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                          child: CircularProgressIndicator());
+                                    }
+                                    if (snapshot.hasError) {
+                                      return Center(
+                                          child: Text('Erro: ${snapshot.error}',
+                                              style: TextStyle(
+                                                  color: Colors.white)));
+                                    }
+                                    if (!snapshot.hasData) {
+                                      return Center(
+                                          child: Text('Dados não encontrados',
+                                              style: TextStyle(
+                                                  color: Colors.white)));
+                                    }
+
+                                    var musicoList = snapshot.data!;
+
+                                    // Atualiza os flags dos instrumentos
+                                    musicoList.forEach((musico) {
+                                      if (musico['instrument'] == 'Keyboard') {
+                                        keyboardFound = true;
+                                      } else if (musico['instrument'] ==
+                                          'Guitar') {
+                                        guitarFound = true;
+                                      } else if (musico['instrument'] ==
+                                          'Drums') {
+                                        drumsFound = true;
+                                      }
+                                    });
+
+                                    return Column(
+                                      children: [
+                                        Container(
+                                          height: 200,
+                                          child: ListView.builder(
+                                            itemCount: musicoList.length,
+                                            itemBuilder: (context, index) {
+                                              var musico = musicoList[index];
+                                              var name = musico['name'];
                                               var instrument =
-                                                  data['instrument'];
+                                                  musico['instrument'];
 
                                               return Column(
                                                 children: [
@@ -436,8 +438,10 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                               onTap: () async {
                                                                 var itemToRemove =
                                                                     {
-                                                                  'user_id':
-                                                                      userId,
+                                                                  'user_id': musicos[
+                                                                          index]
+                                                                      [
+                                                                      'user_id'],
                                                                 };
 
                                                                 setState(() {
@@ -472,9 +476,9 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                                   Icons.delete,
                                                                   color: Colors
                                                                       .white),
-                                                            )
+                                                            ),
                                                           ],
-                                                        )
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
@@ -482,125 +486,140 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                 ],
                                               );
                                             },
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
+                                          ),
+                                        ),
+                                        // Botões para adicionar músicos
+                                        if (!keyboardFound)
+                                          Center(
+                                            child: GestureDetector(
+                                              onTap: () => Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      MusicianSelect2(
+                                                    document_id:
+                                                        widget.document_id,
+                                                    instrument: "Keyboard",
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Container(
+                                                width: 100,
+                                                margin: EdgeInsets.only(
+                                                    top: 24, bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xff4465D9),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Center(
+                                                    child: Text(
+                                                      "ADD Keyboard",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 8,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        if (!guitarFound)
+                                          Center(
+                                            child: GestureDetector(
+                                              onTap: () => Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      MusicianSelect2(
+                                                    document_id:
+                                                        widget.document_id,
+                                                    instrument: "Guitar",
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Container(
+                                                width: 100,
+                                                margin: EdgeInsets.only(
+                                                    top: 24, bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xff4465D9),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Center(
+                                                    child: Text(
+                                                      "ADD Guitar",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 8,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        if (!drumsFound)
+                                          Center(
+                                            child: GestureDetector(
+                                              onTap: () => Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      MusicianSelect2(
+                                                    document_id:
+                                                        widget.document_id,
+                                                    instrument: "Drums",
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Container(
+                                                width: 100,
+                                                margin: EdgeInsets.only(
+                                                    top: 24, bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xff4465D9),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Center(
+                                                    child: Text(
+                                                      "ADD Drums",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 8,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
                                 );
                               },
                             ),
-
-// Botões para adicionar músicos (fora do ListView.builder)
                           ],
                         ),
                       ),
                     ),
                     // Botões para adicionar músicos (fora do ListView.builder)
-
-                    Row(
-                      children: [
-                        Center(
-                          child: GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MusicianSelect2(
-                                  document_id: widget.document_id,
-                                  instrument: "Keyboard",
-                                ),
-                              ),
-                            ),
-                            child: Container(
-                              width: 100,
-                              margin: EdgeInsets.only(top: 24, bottom: 0),
-                              decoration: BoxDecoration(
-                                color: Color(0xff4465D9),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text(
-                                    "ADD Keyboard",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 8,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Center(
-                          child: GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MusicianSelect2(
-                                  document_id: widget.document_id,
-                                  instrument: "Guitar",
-                                ),
-                              ),
-                            ),
-                            child: Container(
-                              width: 100,
-                              margin: EdgeInsets.only(top: 24, bottom: 0),
-                              decoration: BoxDecoration(
-                                color: Color(0xff4465D9),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text(
-                                    "ADD Guitar",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 8,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Center(
-                          child: GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MusicianSelect2(
-                                  document_id: widget.document_id,
-                                  instrument: "Drums",
-                                ),
-                              ),
-                            ),
-                            child: Container(
-                              width: 100,
-                              margin: EdgeInsets.only(top: 24, bottom: 0),
-                              decoration: BoxDecoration(
-                                color: Color(0xff4465D9),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text(
-                                    "ADD Drums",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 8,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
 
                     /*Text(
                       "Culto: " + cultoatual.nome,
