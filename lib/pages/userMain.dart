@@ -500,10 +500,14 @@ class _userMainPageState extends State<userMainPage> {
                                 // Outras informações do culto, se necessário
                               ],
                             )
-                          : Text(
-                              "Nenhum culto futuro encontrado.",
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.white),
+                          : Visibility(
+                              visible: false,
+                              child: Text(
+                                // Aqui mostra caso a tabela de cultos esteja vazia
+                                "Nenhum culto futuro encontrado.",
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.white),
+                              ),
                             ),
                     ],
                   ),
@@ -675,6 +679,7 @@ class _userMainPageState extends State<userMainPage> {
                             String horario = "";
                             String data = "";
                             String servicename = "";
+                            String culto = "";
                             print("Horario sem nenhum horairo antes" + horario);
                             return StatefulBuilder(
                                 builder: (context, setState) {
@@ -692,13 +697,13 @@ class _userMainPageState extends State<userMainPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: <Widget>[
-                                          TextFormField(
+                                          /* TextFormField(
                                             decoration: const InputDecoration(
                                               hintStyle: TextStyle(
                                                   color: Colors.white),
                                               labelStyle: TextStyle(
                                                   color: Colors.white),
-                                              labelText: "Service Name",
+                                              labelText: "Culto",
                                               enabledBorder: OutlineInputBorder(
                                                   borderSide: BorderSide(
                                                       color: Colors.white)),
@@ -719,25 +724,144 @@ class _userMainPageState extends State<userMainPage> {
                                             onSaved: (value) {
                                               servicename = value!;
                                             },
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 24),
-                                          ),
-                                          Text(
-                                            "" +
-                                                DateFormat('dd/MM/yyyy')
-                                                    .format(currentDate),
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
-                                          SizedBox(
-                                            height: 24,
-                                          ),
+                                          ),*/
                                           Row(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.center,
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceAround,
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Selecione o Culto",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              Text(
+                                                "" +
+                                                    DateFormat('dd/MMM')
+                                                        .format(currentDate),
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 12,
+                                          ),
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    culto = "Adoração";
+                                                  });
+                                                  print("Culto1: " + culto);
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: culto == "Adoração"
+                                                        ? Colors.blue
+                                                        : Colors.black,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Text(
+                                                      "Adoração",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 14),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    culto = "Fé";
+                                                  });
+                                                  print("culto1: " + culto);
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: culto == "Fé"
+                                                        ? Colors.blue
+                                                        : Colors.black,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Text(
+                                                      "Fé",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 14),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    culto = "Familia";
+                                                  });
+                                                  print("culto1: " + culto);
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: culto == "Familia"
+                                                        ? Colors.blue
+                                                        : Colors.black,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Text(
+                                                      "Familia",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 14),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 18,
+                                          ),
+                                          Text(
+                                            "Selecione o horário",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          SizedBox(
+                                            height: 12,
+                                          ),
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               GestureDetector(
                                                 onTap: () {
@@ -750,9 +874,7 @@ class _userMainPageState extends State<userMainPage> {
                                                   decoration: BoxDecoration(
                                                     color: horario == "10:30"
                                                         ? Colors.blue
-                                                        : Colors.transparent,
-                                                    border: Border.all(
-                                                        color: Colors.white),
+                                                        : Colors.black,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8),
@@ -780,9 +902,7 @@ class _userMainPageState extends State<userMainPage> {
                                                   decoration: BoxDecoration(
                                                     color: horario == "19:30"
                                                         ? Colors.blue
-                                                        : Colors.transparent,
-                                                    border: Border.all(
-                                                        color: Colors.white),
+                                                        : Colors.black,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8),
@@ -810,9 +930,7 @@ class _userMainPageState extends State<userMainPage> {
                                                   decoration: BoxDecoration(
                                                     color: horario == "20:30"
                                                         ? Colors.blue
-                                                        : Colors.transparent,
-                                                    border: Border.all(
-                                                        color: Colors.white),
+                                                        : Colors.black,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8),
@@ -855,7 +973,9 @@ class _userMainPageState extends State<userMainPage> {
                                               await FirebaseFirestore.instance
                                                   .collection('Cultos')
                                                   .add({
-                                            'nome': servicename,
+                                            'nome': culto != "Adoração"
+                                                ? "Culto da " + culto
+                                                : "Culto de " + culto,
                                             'musicos': [],
                                             'playlist': [],
                                             'date': timestamp,
@@ -934,7 +1054,7 @@ class _userMainPageState extends State<userMainPage> {
     if (events.isEmpty) {
       return [
         Center(
-          child: Text('Nenhum culto encontrado para esta data'),
+          child: Text(''),
         ),
       ];
     }
@@ -1137,14 +1257,15 @@ class _userMainPageState extends State<userMainPage> {
 
     // Verifica se há eventos na data selecionada
     if (events.isEmpty) {
-      eventWidgets.add(
+      // Aqui Mostra caso o array events esteja vazio
+      /*   eventWidgets.add(
         Center(
           child: Text(
             'Nenhum culto encontrado para esta data',
             style: TextStyle(color: Colors.white),
           ),
         ),
-      );
+      );*/
     } else {
       // Mapeia os eventos para uma lista de widgets
       eventWidgets.addAll(events.map((culto) {
@@ -1231,6 +1352,7 @@ class _userMainPageState extends State<userMainPage> {
                 context: context,
                 builder: (BuildContext context) {
                   String horario = "";
+                  String culto = "";
                   DateTime data = _selectedDate;
                   String servicename = "";
 
@@ -1242,6 +1364,7 @@ class _userMainPageState extends State<userMainPage> {
                   Timestamp timestamp = Timestamp.fromDate(data);
 
                   print(horario);
+                  print(culto);
                   return StatefulBuilder(builder: (context, setState) {
                     return AlertDialog(
                       backgroundColor: Color(0xff171717),
@@ -1256,56 +1379,142 @@ class _userMainPageState extends State<userMainPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    hintStyle: TextStyle(color: Colors.white),
-                                    labelStyle: TextStyle(color: Colors.white),
-                                    labelText: "Nome do Culto",
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white)),
-                                    border: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white)),
-                                  ),
-                                  style: TextStyle(
-                                      color: Colors.white), // Cor do texto
-                                  validator: (String? value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Insira o nome do culto';
-                                    }
-                                    return null;
-                                  },
-                                  onSaved: (value) {
-                                    servicename = value!;
-                                  },
-                                ),
-                                Container(
-                                  margin: EdgeInsets.only(top: 24),
-                                  child: Text(
-                                    "Data: $formattedDate",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Selecione o Culto",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      "" +
+                                          DateFormat('dd/MMM')
+                                              .format(currentDate),
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 12,
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          culto = "Adoração";
+                                        });
+                                        print("Culto1: " + culto);
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: culto == "Adoração"
+                                              ? Colors.blue
+                                              : Colors.black,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Adoração",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          culto = "Fé";
+                                        });
+                                        print("culto1: " + culto);
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: culto == "Fé"
+                                              ? Colors.blue
+                                              : Colors.black,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Fé",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          culto = "Familia";
+                                        });
+                                        print("culto1: " + culto);
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: culto == "Familia"
+                                              ? Colors.blue
+                                              : Colors.black,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Familia",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 18,
+                                ),
+                                Text(
+                                  "Selecione o horário",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(
+                                  height: 12,
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     GestureDetector(
                                       onTap: () {
                                         setState(() {
                                           horario = "10:30";
                                         });
-                                        print("Clicado no: " + horario);
+                                        print("Horario1: " + horario);
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: horario == "10:30"
                                               ? Colors.blue
-                                              : Colors.transparent,
-                                          border:
-                                              Border.all(color: Colors.white),
+                                              : Colors.black,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
@@ -1324,15 +1533,13 @@ class _userMainPageState extends State<userMainPage> {
                                         setState(() {
                                           horario = "19:30";
                                         });
-                                        print("Clicado no: " + horario);
+                                        print("Horario1: " + horario);
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: horario == "19:30"
                                               ? Colors.blue
-                                              : Colors.transparent,
-                                          border:
-                                              Border.all(color: Colors.white),
+                                              : Colors.black,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
@@ -1351,14 +1558,13 @@ class _userMainPageState extends State<userMainPage> {
                                         setState(() {
                                           horario = "20:30";
                                         });
+                                        print("Horario1: " + horario);
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: horario == "20:30"
                                               ? Colors.blue
-                                              : Colors.transparent,
-                                          border:
-                                              Border.all(color: Colors.white),
+                                              : Colors.black,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
@@ -1397,7 +1603,9 @@ class _userMainPageState extends State<userMainPage> {
                                     await FirebaseFirestore.instance
                                         .collection('Cultos')
                                         .add({
-                                  'nome': servicename,
+                                  'nome': culto != "Adoração"
+                                      ? "Culto da " + culto
+                                      : "Culto de " + culto,
                                   'musicos': [],
                                   'playlist': [],
                                   'date': timestamp,
