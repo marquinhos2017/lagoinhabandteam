@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:lagoinha_music/firestoreservice.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
@@ -17,6 +18,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_date_pickers/flutter_date_pickers.dart' as dp;
 import 'package:intl/intl.dart';
 
+// Esse e o que mais funcionad
+
 class adminCultoForm2 extends StatefulWidget {
   late String document_id;
 
@@ -27,9 +30,11 @@ class adminCultoForm2 extends StatefulWidget {
 }
 
 class _adminCultoForm2State extends State<adminCultoForm2> {
+  late List<Map<String, dynamic>> musicos = []; // Defina a lista de musicos
   late bool isKeyboard;
   late bool isDrum;
   late bool isGuitar;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -443,6 +448,7 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                                 GestureDetector(
                                                                   onTap:
                                                                       () async {
+                                                                    // Verifica se o widget está montado
                                                                     if (!mounted)
                                                                       return;
 
@@ -466,11 +472,12 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                                     });
 
                                                                     try {
+                                                                      // Remove o músico do documento 'Cultos'
                                                                       DocumentReference
                                                                           cultosDocRef =
                                                                           _firestore
                                                                               .collection('Cultos')
-                                                                              .doc(widget.document_id);
+                                                                              .doc(idCulto);
                                                                       await cultosDocRef
                                                                           .update({
                                                                         'musicos':
@@ -482,7 +489,7 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                                         ])
                                                                       });
 
-                                                                      // Obtém e remove o documento da coleção 'user_culto_instrument'
+                                                                      // Remove o documento da coleção 'user_culto_instrument'
                                                                       var userCultoQuery = await _firestore
                                                                           .collection(
                                                                               'user_culto_instrument')
@@ -506,24 +513,21 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                                             .delete();
                                                                       }
 
-                                                                      // Exibe uma mensagem de sucesso
-                                                                      Future.microtask(
-                                                                          () {
+                                                                      // Exibe uma mensagem de sucesso e navega para a tela com a atualização
+                                                                      SchedulerBinding
+                                                                          .instance
+                                                                          .addPostFrameCallback(
+                                                                              (_) {
                                                                         if (mounted) {
-                                                                          ScaffoldMessenger.of(context)
-                                                                              .showSnackBar(
-                                                                            SnackBar(content: Text('Músico e documento de instrumento removidos com sucesso')),
-                                                                          );
-                                                                        }
-                                                                      });
+                                                                          /*
+                                                                        ScaffoldMessenger.of(context)
+                                                                            .showSnackBar(
+                                                                          SnackBar(
+                                                                              content: Text('Músico e documento de instrumento removidos com sucesso')),
+                                                                        );*/
 
-                                                                      // Navega para a tela com a atualização
-                                                                      Future.microtask(
-                                                                          () {
-                                                                        if (mounted) {
-                                                                          Navigator
+                                                                          Navigator.of(context)
                                                                               .pushReplacement(
-                                                                            context,
                                                                             MaterialPageRoute(
                                                                               builder: (context) => adminCultoForm2(document_id: widget.document_id),
                                                                             ),
@@ -531,31 +535,35 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                                         }
                                                                       });
                                                                     } catch (e) {
-                                                                      Future.microtask(
-                                                                          () {
-                                                                        if (mounted) {
-                                                                          ScaffoldMessenger.of(context)
-                                                                              .showSnackBar(
-                                                                            SnackBar(content: Text('Erro ao remover músico: $e')),
-                                                                          );
-                                                                        }
-                                                                      });
+                                                                      if (mounted) {
+                                                                        /*
+                                                                        ScaffoldMessenger.of(context)
+                                                                            .showSnackBar(
+                                                                          SnackBar(
+                                                                              content: Text('Erro ao remover músico: $e')),
+                                                                        );*/
+                                                                      }
                                                                       print(
                                                                           'Erro ao remover músico: $e');
                                                                     }
                                                                   },
                                                                   child: Icon(
-                                                                      Icons
-                                                                          .delete,
-                                                                      color: Colors
-                                                                          .white),
+                                                                    Icons
+                                                                        .delete,
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
                                                                 ),
                                                               ],
                                                             ),
                                                           ],
                                                         ),
                                                       ),
-                                                      Divider(),
+                                                      Divider(
+                                                        color:
+                                                            Color(0xff558FFF),
+                                                        thickness: 0.2,
+                                                      ),
                                                     ],
                                                   );
                                                 },

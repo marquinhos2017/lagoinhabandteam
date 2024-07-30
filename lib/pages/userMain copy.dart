@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
+import 'package:lagoinha_music/pages/GerenciamentoCulto.dart';
 import 'package:lagoinha_music/pages/MusicDataBase/main.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:lagoinha_music/pages/adminCultoForm2.dart';
@@ -1043,8 +1044,8 @@ class _userMainPageState extends State<userMainPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => adminCultoForm2(
-                                      document_id: doc,
+                                builder: (context) => GerenciamentoCulto(
+                                      documentId: doc,
                                     )),
                           );
 
@@ -1245,8 +1246,8 @@ class _userMainPageState extends State<userMainPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => adminCultoForm2(
-                          document_id: cultoId,
+                    builder: (context) => GerenciamentoCulto(
+                          documentId: cultoId,
                         )),
               );
             },

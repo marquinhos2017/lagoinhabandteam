@@ -1,13 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lagoinha_music/main.dart';
-import 'package:lagoinha_music/models/culto.dart';
-import 'package:lagoinha_music/models/musician.dart';
-import 'package:lagoinha_music/models/musico.dart';
-import 'package:lagoinha_music/pages/adminCultoForm.dart';
-import 'package:lagoinha_music/pages/adminCultoForm2.dart';
-import 'package:lagoinha_music/pages/userMain.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart'; // Importe o pacote intl
 
 class MusicianSelect2 extends StatefulWidget {
@@ -29,16 +21,19 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
   void initState() {
     super.initState();
     obterDataDocumento(widget.document_id).then((value) {
-      setState(() {
-        if (value != null) {
-          date = value['data'];
-          horario = value['horario'];
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (value != null) {
+            date = value['data'];
+            horario = value['horario'];
+          }
+        });
+      }
     });
   }
 
-  void adicionarMusico(String cultoId, int userId, String instrument) async {
+  Future<void> adicionarMusico(
+      String cultoId, int userId, String instrument) async {
     try {
       DocumentReference cultoRef = _firestore.collection('Cultos').doc(cultoId);
       DocumentSnapshot cultoDoc = await cultoRef.get();
@@ -53,19 +48,24 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
         ])
       });
 
-      // Obtém uma referência para a coleção 'user_culto_instrument'
       CollectionReference userCultoInstrument =
-          FirebaseFirestore.instance.collection('user_culto_instrument');
-
-      // Adiciona um novo documento com os campos especificados
+          _firestore.collection('user_culto_instrument');
       await userCultoInstrument.add({
         'idCulto': cultoId,
         'idUser': userId,
         'Instrument': instrument,
       });
 
-      print('Documento adicionado com sucesso!');
-      print('Musico adicionado com sucesso');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Músico adicionado!'),
+            backgroundColor: Color(0xff4465D9),
+          ),
+        );
+      }
+
+      Navigator.pop(context, true); // Indica que algo mudou
     } catch (e) {
       print('Erro ao adicionar músico: $e');
     }
@@ -74,16 +74,13 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
   Future<bool> verificaDisponibilidade(
       String date, String horario, String musicoId) async {
     try {
-      // Consultar a coleção Form_Voluntario_Culto
       QuerySnapshot querySnapshot = await _firestore
           .collection('Form_Voluntario_Culto')
           .where('musico_id', isEqualTo: musicoId)
           .get();
 
-      // Verificar cada documento se a disponibilidade_culto corresponde à data desejada
       for (var doc in querySnapshot.docs) {
         var disponibilidadeCultoId = doc['disponibilidade_culto'];
-
         DocumentSnapshot formMesCultosDoc = await _firestore
             .collection('Form_Mes_Cultos')
             .doc(disponibilidadeCultoId)
@@ -94,14 +91,13 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
               .format(formMesCultosDoc['data'].toDate());
           var horarioCulto = formMesCultosDoc['horario'];
 
-          // Comparar a data do culto com a data e horário desejados
           if (dataCulto == date && horarioCulto == horario) {
-            return true; // Se encontrou um documento disponível para a data e horário desejado
+            return true;
           }
         }
       }
 
-      return false; // Se nenhum documento foi encontrado para a data e horário desejado
+      return false;
     } catch (e) {
       print('Erro ao verificar disponibilidade: $e');
       return false;
@@ -116,8 +112,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
       if (documentSnapshot.exists) {
         var data =
             DateFormat('dd-MM-yyyy').format(documentSnapshot['date'].toDate());
-        var horario = documentSnapshot[
-            'horario']; // Assumindo que 'horario' é o campo de horário
+        var horario = documentSnapshot['horario'];
         return {'data': data, 'horario': horario};
       } else {
         return null;
@@ -130,17 +125,6 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
 
   @override
   Widget build(BuildContext context) {
-    CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
-
-    void addMarcos(int id) {
-      cultosProvider.cultos[id].musicos.add(Musician(
-          color: "grey",
-          instrument: "guitar",
-          name: "Marcos Rodrigues",
-          password: "08041999",
-          tipo: "user"));
-    }
-
     return Scaffold(
       backgroundColor: Color(0xff010101),
       body: Container(
@@ -152,7 +136,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
               child: Container(
                 margin: EdgeInsets.only(top: 60, bottom: 40),
                 child: GestureDetector(
-                    onTap: () => Navigator.pop(context, true),
+                    onTap: () => Navigator.pop(context, false),
                     child: Icon(
                       Icons.arrow_back_ios,
                       color: Colors.white,
@@ -237,7 +221,6 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                   var musicoData =
                                       musicoDoc.data() as Map<String, dynamic>;
                                   var musicoId = musicoData['user_id'];
-                                  // Verifica se o músico já está adicionado no culto
                                   return !musicosAtuais.any((musicoAtual) =>
                                       musicoAtual['user_id'] == musicoId);
                                 }).toList();
@@ -328,36 +311,21 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                               );
 
                                               if (resposta == true) {
-                                                adicionarMusico(
+                                                if (!mounted) return;
+
+                                                await adicionarMusico(
                                                     widget.document_id,
                                                     musicoId,
                                                     widget.instrument);
+
+                                                // Aguarda o fechamento do SnackBar
+                                                await Future.delayed(
+                                                    Duration(seconds: 1));
+
                                                 if (!mounted) return;
 
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Músico adicionado!'),
-                                                    backgroundColor:
-                                                        Color(0xff4465D9),
-                                                  ),
-                                                );
-
-                                                Navigator.pop(context);
-
-                                                Navigator.pushReplacement(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          adminCultoForm2(
-                                                            document_id: widget
-                                                                .document_id,
-                                                          )),
-                                                );
-
-                                                // Atualiza a tela atual
-                                                setState(() {});
+                                                Navigator.pop(context,
+                                                    true); // Retorna o resultado para a página anterior
                                               }
                                             },
                                             child: Row(
