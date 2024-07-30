@@ -1414,8 +1414,8 @@ class _userMainPageState extends State<userMainPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => adminCultoForm2(
-                                          document_id: docRef.id)),
+                                      builder: (context) => GerenciamentoCulto(
+                                          documentId: docRef.id)),
                                 );
                                 // Exibir uma mensagem de sucesso ou outro feedback ao usuário
                                 ScaffoldMessenger.of(context).showSnackBar(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lagoinha_music/pages/login.dart';
 
 class AddtoPlaylist extends StatefulWidget {
   final String document_id;
@@ -16,31 +17,39 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: Container(
+          child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Icon(
+                Icons.arrow_back_ios,
+                color: Colors.white,
+              )),
+        ),
+        centerTitle: true,
+        title: Text(
+          "Adicionar Canção",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          GestureDetector(
+              onTap: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => login()),
+                  ),
+              child: Icon(
+                Icons.login,
+                color: Colors.white,
+              )),
+        ],
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.black,
+      ),
       backgroundColor: Color(0xff010101),
       body: Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              margin: EdgeInsets.only(top: 80, left: 0, bottom: 20),
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Icon(
-                  Icons.arrow_back_ios,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            Center(
-              child: Text(
-                "Add to Playlist",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
             Padding(
               padding: const EdgeInsets.all(57.0),
               child: Container(
