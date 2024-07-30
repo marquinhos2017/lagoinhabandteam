@@ -305,22 +305,23 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                   title: Text(
                                                     mensagem,
                                                     style: TextStyle(
-                                                        color: Colors.white),
+                                                        color: Colors.white,
+                                                        fontSize: 16),
                                                   ),
                                                   actions: <Widget>[
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context, false),
-                                                      child: Text('Cancel'),
-                                                    ),
                                                     TextButton(
                                                       onPressed: () =>
                                                           Navigator.pop(
                                                               context, true),
                                                       child: Text(disponivel
                                                           ? 'OK'
-                                                          : 'Adicionar $nomeMusico na ${widget.instrument}'),
+                                                          : 'Adicionar'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, false),
+                                                      child: Text('Cancel'),
                                                     ),
                                                   ],
                                                 ),

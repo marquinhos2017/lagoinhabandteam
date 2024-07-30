@@ -880,6 +880,8 @@ class _userMainPageState extends State<userMainPage> {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             SnackBar(
+                                              backgroundColor:
+                                                  Color(0xff0A7AFF),
                                               content: Text(
                                                   'Novo culto adicionado com sucesso.'),
                                             ),

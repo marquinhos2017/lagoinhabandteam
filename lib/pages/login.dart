@@ -326,7 +326,7 @@ class _LoginStateState extends State<login> {
                             );
                           }
                         },
-                        child: const Text('Sign In'),
+                        child: const Text('Entrar'),
                       ),
                     ),
                   ),
