@@ -193,9 +193,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                           builder: (context, cultoSnapshot) {
                             if (cultoSnapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return Center(
-                                child: CircularProgressIndicator(),
-                              );
+                              return Center(child: CircularProgressIndicator());
                             }
 
                             if (!cultoSnapshot.hasData ||
@@ -221,15 +219,14 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
                                   return Center(
-                                    child: CircularProgressIndicator(),
-                                  );
+                                      child: CircularProgressIndicator());
                                 }
 
                                 if (!snapshot.hasData ||
                                     snapshot.data!.docs.isEmpty) {
                                   return Center(
                                     child: Text(
-                                      'Nenhum Musico cadastrado',
+                                      'Nenhum Músico cadastrado',
                                       style: TextStyle(color: Colors.white),
                                     ),
                                   );
@@ -252,15 +249,16 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                     var data = musicosDisponiveis[index];
                                     var musicos =
                                         data.data() as Map<String, dynamic>;
-                                    var cultoId = data.id;
                                     var musicoId = musicos['user_id'];
                                     var nomeMusico = musicos['name'];
 
                                     return FutureBuilder<bool>(
                                       future: verificaDisponibilidade(
                                           date!, horario!, musicoId.toString()),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
+                                      builder:
+                                          (context, disponibilidadeSnapshot) {
+                                        if (disponibilidadeSnapshot
+                                                .connectionState ==
                                             ConnectionState.waiting) {
                                           return ListTile(
                                             title: Text(nomeMusico),
@@ -269,7 +267,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                           );
                                         }
 
-                                        if (snapshot.hasError) {
+                                        if (disponibilidadeSnapshot.hasError) {
                                           return ListTile(
                                             title: Text(nomeMusico),
                                             subtitle: Text(
@@ -278,124 +276,89 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                         }
 
                                         bool disponivel =
-                                            snapshot.data ?? false;
+                                            disponibilidadeSnapshot.data ??
+                                                false;
 
                                         return Container(
                                           padding: EdgeInsets.all(8),
                                           child: GestureDetector(
-                                            onTap: () => showDialog<String>(
-                                              context: context,
-                                              builder: (BuildContext context) =>
-                                                  disponivel
-                                                      ? AlertDialog(
-                                                          backgroundColor:
-                                                              Color(0xff171717),
-                                                          title: Text(
-                                                            "Quer convidar " +
-                                                                musicos[
-                                                                    'name'] +
-                                                                "Para ser o " +
-                                                                widget
-                                                                    .instrument,
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white),
-                                                          ),
-                                                          actions: <Widget>[
-                                                            TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.pop(
-                                                                      context,
-                                                                      'Cancel'),
-                                                              child: const Text(
-                                                                  'Cancel'),
-                                                            ),
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                adicionarMusico(
-                                                                    widget
-                                                                        .document_id,
-                                                                    musicoId,
-                                                                    widget
-                                                                        .instrument);
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop(); // Fecha o popup
+                                            onTap: () async {
+                                              if (!mounted) return;
 
-                                                                Navigator.pop(
-                                                                    context);
-                                                              },
-                                                              child: const Text(
-                                                                  'OK'),
-                                                            ),
-                                                          ],
-                                                        )
-                                                      : AlertDialog(
-                                                          backgroundColor:
-                                                              Color(0xff171717),
-                                                          title: Text(
-                                                            "Ele esta como indisponivel. Quer convidar  " +
-                                                                musicos[
-                                                                    'name'] +
-                                                                "para ser o " +
-                                                                widget
-                                                                    .instrument,
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white),
-                                                          ),
-                                                          actions: <Widget>[
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                adicionarMusico(
-                                                                    widget
-                                                                        .document_id,
-                                                                    musicoId,
-                                                                    widget
-                                                                        .instrument);
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop(); // Fecha o popup
+                                              String mensagem;
+                                              if (disponivel) {
+                                                mensagem =
+                                                    "Quer convidar $nomeMusico para ser o ${widget.instrument}?";
+                                              } else {
+                                                mensagem =
+                                                    "$nomeMusico está indisponível. Quer convidar mesmo assim?";
+                                              }
 
-                                                                Navigator.pop(
-                                                                    context);
+                                              bool? resposta =
+                                                  await showDialog<bool>(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) =>
+                                                        AlertDialog(
+                                                  backgroundColor:
+                                                      Color(0xff171717),
+                                                  title: Text(
+                                                    mensagem,
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, false),
+                                                      child: Text('Cancel'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, true),
+                                                      child: Text(disponivel
+                                                          ? 'OK'
+                                                          : 'Adicionar $nomeMusico na ${widget.instrument}'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
 
-                                                                Navigator
-                                                                    .pushReplacement(
-                                                                  context,
-                                                                  MaterialPageRoute(
-                                                                      builder:
-                                                                          (context) =>
-                                                                              adminCultoForm2(
-                                                                                document_id: widget.document_id,
-                                                                              )),
-                                                                );
-                                                                ScaffoldMessenger.of(
-                                                                        context)
-                                                                    .showSnackBar(
-                                                                  SnackBar(
-                                                                    content: Text(
-                                                                        'Musico adicionado!'),
-                                                                    backgroundColor:
-                                                                        Color(
-                                                                            0xff4465D9), // Cor de aviso de remoção
-                                                                  ),
-                                                                );
-                                                              },
-                                                              child: const Text(
-                                                                  'Adicionar mesmo assim'),
-                                                            ),
-                                                            TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.pop(
-                                                                      context,
-                                                                      'Cancel'),
-                                                              child: const Text(
-                                                                  'Voltar'),
-                                                            ),
-                                                          ],
-                                                        ),
-                                            ),
+                                              if (resposta == true) {
+                                                adicionarMusico(
+                                                    widget.document_id,
+                                                    musicoId,
+                                                    widget.instrument);
+                                                if (!mounted) return;
+
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        'Músico adicionado!'),
+                                                    backgroundColor:
+                                                        Color(0xff4465D9),
+                                                  ),
+                                                );
+
+                                                Navigator.pop(context);
+
+                                                Navigator.pushReplacement(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          adminCultoForm2(
+                                                            document_id: widget
+                                                                .document_id,
+                                                          )),
+                                                );
+
+                                                // Atualiza a tela atual
+                                                setState(() {});
+                                              }
+                                            },
                                             child: Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment
@@ -406,12 +369,14 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                   style: TextStyle(
                                                       color: Colors.white),
                                                 ),
-                                                Text(
-                                                    disponivel
-                                                        ? 'Disponível'
-                                                        : 'Indisponível',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
+                                                Icon(
+                                                  disponivel
+                                                      ? Icons.confirmation_num
+                                                      : Icons.error,
+                                                  color: disponivel
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                ),
                                               ],
                                             ),
                                           ),
@@ -424,7 +389,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                             );
                           },
                         ),
-                      ),
+                      )
                     ],
                   ),
                 ),

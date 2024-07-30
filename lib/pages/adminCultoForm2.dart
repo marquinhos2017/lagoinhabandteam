@@ -313,97 +313,81 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                         List<Map<String, dynamic>>.from(
                                             cultoData['musicos'] ?? []);
 
-                                    // Inicializa os flags dos instrumentos
-                                    bool keyboardFound = false;
-                                    bool guitarFound = false;
-                                    bool drumsFound = false;
-
                                     return FutureBuilder<
                                         List<Map<String, dynamic>>>(
                                       future: Future.wait(
-                                          musicos.map((musico) async {
-                                        int userId = musico['user_id'];
-                                        String idCulto = widget.document_id;
+                                        musicos.map((musico) async {
+                                          int userId = musico['user_id'];
+                                          String idCulto = widget.document_id;
 
-                                        var results = await Future.wait([
-                                          _firestore
-                                              .collection('musicos')
-                                              .where('user_id',
-                                                  isEqualTo: userId)
-                                              .get()
-                                              .then((snapshot) {
-                                            if (snapshot.docs.isNotEmpty) {
-                                              return snapshot.docs.first.data()
-                                                  as Map<String, dynamic>;
-                                            } else {
-                                              return {};
-                                            }
-                                          }),
-                                          _firestore
-                                              .collection(
-                                                  'user_culto_instrument')
-                                              .where('idUser',
-                                                  isEqualTo: userId)
-                                              .where('idCulto',
-                                                  isEqualTo: idCulto)
-                                              .get()
-                                              .then((snapshot) {
-                                            if (snapshot.docs.isNotEmpty) {
-                                              return snapshot.docs.first.data()
-                                                  as Map<String, dynamic>;
-                                            } else {
-                                              return {};
-                                            }
-                                          }),
-                                        ]);
+                                          var results = await Future.wait([
+                                            _firestore
+                                                .collection('musicos')
+                                                .where('user_id',
+                                                    isEqualTo: userId)
+                                                .get()
+                                                .then((snapshot) => snapshot
+                                                        .docs.isNotEmpty
+                                                    ? snapshot.docs.first.data()
+                                                        as Map<String, dynamic>
+                                                    : {}),
+                                            _firestore
+                                                .collection(
+                                                    'user_culto_instrument')
+                                                .where('idUser',
+                                                    isEqualTo: userId)
+                                                .where('idCulto',
+                                                    isEqualTo: idCulto)
+                                                .get()
+                                                .then((snapshot) => snapshot
+                                                        .docs.isNotEmpty
+                                                    ? snapshot.docs.first.data()
+                                                        as Map<String, dynamic>
+                                                    : {}),
+                                          ]);
 
-                                        var musicoData = results[0];
-                                        var instrumentData = results[1];
-                                        return {
-                                          'name': musicoData['name'] ??
-                                              'Nome não encontrado',
-                                          'instrument':
-                                              instrumentData['Instrument'] ??
-                                                  'Instrumento não encontrado',
-                                        };
-                                      }).toList()),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
+                                          var musicoData = results[0];
+                                          var instrumentData = results[1];
+                                          return {
+                                            'name': musicoData['name'] ??
+                                                'Nome não encontrado',
+                                            'instrument': instrumentData[
+                                                    'Instrument'] ??
+                                                'Instrumento não encontrado',
+                                          };
+                                        }).toList(),
+                                      ),
+                                      builder: (context, futureSnapshot) {
+                                        if (futureSnapshot.connectionState ==
                                             ConnectionState.waiting) {
                                           return Center(
                                               child:
                                                   CircularProgressIndicator());
                                         }
-                                        if (snapshot.hasError) {
+                                        if (futureSnapshot.hasError) {
                                           return Center(
                                               child: Text(
-                                                  'Erro: ${snapshot.error}',
-                                                  style: TextStyle(
-                                                      color: Colors.white)));
+                                                  'Erro: ${futureSnapshot.error}'));
                                         }
-                                        if (!snapshot.hasData) {
+                                        if (!futureSnapshot.hasData) {
                                           return Center(
                                               child: Text(
-                                                  'Dados não encontrados',
-                                                  style: TextStyle(
-                                                      color: Colors.white)));
+                                                  'Dados não encontrados'));
                                         }
 
-                                        var musicoList = snapshot.data!;
-
-                                        // Atualiza os flags dos instrumentos
-                                        musicoList.forEach((musico) {
-                                          if (musico['instrument'] ==
-                                              'Keyboard') {
-                                            keyboardFound = true;
-                                          } else if (musico['instrument'] ==
-                                              'Guitar') {
-                                            guitarFound = true;
-                                          } else if (musico['instrument'] ==
-                                              'Drums') {
-                                            drumsFound = true;
-                                          }
-                                        });
+                                        var musicoList = futureSnapshot.data!;
+                                        bool keyboardFound = musicoList.any(
+                                            (musico) =>
+                                                musico['instrument'] ==
+                                                'Keyboard');
+                                        bool guitarFound = musicoList.any(
+                                            (musico) =>
+                                                musico['instrument'] ==
+                                                'Guitar');
+                                        bool drumsFound = musicoList.any(
+                                            (musico) =>
+                                                musico['instrument'] ==
+                                                'Drums');
 
                                         return Column(
                                           mainAxisAlignment:
@@ -459,14 +443,22 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                                 GestureDetector(
                                                                   onTap:
                                                                       () async {
-                                                                    var itemToRemove =
-                                                                        {
-                                                                      'user_id':
-                                                                          musicos[index]
-                                                                              [
-                                                                              'user_id'],
-                                                                    };
+                                                                    if (!mounted)
+                                                                      return;
 
+                                                                    // Dados do músico a ser removido
+                                                                    var musicoToRemove =
+                                                                        musicos[
+                                                                            index];
+                                                                    int userId =
+                                                                        musicoToRemove[
+                                                                            'user_id'];
+                                                                    String
+                                                                        idCulto =
+                                                                        widget
+                                                                            .document_id;
+
+                                                                    // Remove o músico da lista local
                                                                     setState(
                                                                         () {
                                                                       musicos.removeAt(
@@ -475,19 +467,79 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
 
                                                                     try {
                                                                       DocumentReference
-                                                                          docRef =
+                                                                          cultosDocRef =
                                                                           _firestore
                                                                               .collection('Cultos')
                                                                               .doc(widget.document_id);
-
-                                                                      await docRef
+                                                                      await cultosDocRef
                                                                           .update({
                                                                         'musicos':
                                                                             FieldValue.arrayRemove([
-                                                                          itemToRemove
+                                                                          {
+                                                                            'user_id':
+                                                                                userId
+                                                                          }
                                                                         ])
                                                                       });
+
+                                                                      // Obtém e remove o documento da coleção 'user_culto_instrument'
+                                                                      var userCultoQuery = await _firestore
+                                                                          .collection(
+                                                                              'user_culto_instrument')
+                                                                          .where(
+                                                                              'idUser',
+                                                                              isEqualTo:
+                                                                                  userId)
+                                                                          .where(
+                                                                              'idCulto',
+                                                                              isEqualTo: idCulto)
+                                                                          .get();
+
+                                                                      if (userCultoQuery
+                                                                          .docs
+                                                                          .isNotEmpty) {
+                                                                        DocumentSnapshot
+                                                                            docToDelete =
+                                                                            userCultoQuery.docs.first;
+                                                                        await docToDelete
+                                                                            .reference
+                                                                            .delete();
+                                                                      }
+
+                                                                      // Exibe uma mensagem de sucesso
+                                                                      Future.microtask(
+                                                                          () {
+                                                                        if (mounted) {
+                                                                          ScaffoldMessenger.of(context)
+                                                                              .showSnackBar(
+                                                                            SnackBar(content: Text('Músico e documento de instrumento removidos com sucesso')),
+                                                                          );
+                                                                        }
+                                                                      });
+
+                                                                      // Navega para a tela com a atualização
+                                                                      Future.microtask(
+                                                                          () {
+                                                                        if (mounted) {
+                                                                          Navigator
+                                                                              .pushReplacement(
+                                                                            context,
+                                                                            MaterialPageRoute(
+                                                                              builder: (context) => adminCultoForm2(document_id: widget.document_id),
+                                                                            ),
+                                                                          );
+                                                                        }
+                                                                      });
                                                                     } catch (e) {
+                                                                      Future.microtask(
+                                                                          () {
+                                                                        if (mounted) {
+                                                                          ScaffoldMessenger.of(context)
+                                                                              .showSnackBar(
+                                                                            SnackBar(content: Text('Erro ao remover músico: $e')),
+                                                                          );
+                                                                        }
+                                                                      });
                                                                       print(
                                                                           'Erro ao remover músico: $e');
                                                                     }
@@ -509,13 +561,44 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                 },
                                               ),
                                             ),
-                                            Text(
-                                              "Needing",
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            ),
+                                            if (!(drumsFound &&
+                                                keyboardFound &&
+                                                guitarFound))
+                                              Container(
+                                                margin:
+                                                    EdgeInsets.only(bottom: 12),
+                                                child: Text(
+                                                  "Precisando",
+                                                  style: TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 217, 68, 68),
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ),
+                                            if ((drumsFound &&
+                                                keyboardFound &&
+                                                guitarFound))
+                                              Container(
+                                                margin:
+                                                    EdgeInsets.only(bottom: 12),
+                                                child: Text(
+                                                  "Banda Completa",
+                                                  style: TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 68, 217, 118),
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ),
                                             // Botões para adicionar músicos
                                             Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
                                               children: [
                                                 if (!keyboardFound)
                                                   Center(
@@ -658,13 +741,13 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                     ),
                                                   ),
                                               ],
-                                            )
+                                            ),
                                           ],
                                         );
                                       },
                                     );
                                   },
-                                ),
+                                )
                               ],
                             ),
                           ),

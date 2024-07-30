@@ -274,7 +274,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          "CONFIRMED ",
+                          "CONFIRMADO ",
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,

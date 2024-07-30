@@ -102,9 +102,9 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                                       print('Erro ao adicionar música: $e');
                                     }
                                   },
-                                  child: Text(
-                                    "adicionar",
-                                    style: TextStyle(color: Colors.blue),
+                                  child: Icon(
+                                    Icons.add,
+                                    color: Color(0xff4465D9),
                                   ),
                                 ),
                                 title: Text(
