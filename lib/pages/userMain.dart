@@ -525,27 +525,49 @@ class _userMainPageState extends State<userMainPage> {
   }
 
   Future<void> _deleteCulto(String id) async {
-    try {
-      await FirebaseFirestore.instance.collection('Cultos').doc(id).delete();
-      // Remover o culto da lista _proximosCultos
-      setState(() {
-        _proximosCultos.removeWhere((culto) => culto.id == id);
-      });
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // Começa uma nova transação
+    return firestore.runTransaction((transaction) async {
+      // Obter todos os documentos na coleção user_culto_instruments com o idCulto igual ao cultoId
+      final QuerySnapshot userCultoInstrumentsSnapshot = await firestore
+          .collection('user_culto_instrument')
+          .where('idCulto', isEqualTo: id)
+          .get();
+
+      // Deletar cada documento na coleção user_culto_instruments
+      for (DocumentSnapshot doc in userCultoInstrumentsSnapshot.docs) {
+        transaction.delete(doc.reference);
+      }
+
+      // Deletar o documento do culto
+      final DocumentReference cultoDocRef =
+          firestore.collection('Cultos').doc(id);
+      transaction.delete(cultoDocRef);
+    }).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Culto removido com sucesso!'),
           backgroundColor: Colors.red, // Cor de aviso de remoção
         ),
       );
-    } catch (e) {
-      print('Erro ao deletar culto: $e');
+      print(
+          'Culto com ID $id e todos os documentos associados na coleção user_culto_instruments foram deletados.');
+      if (mounted) {
+        setState(() {
+          _proximosCultos.removeWhere((culto) => culto.id == id);
+        });
+      }
+    }).catchError((error) {
+      print('Erro ao deletar culto e documentos associados: $error');
+      print('Erro ao deletar culto: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erro ao remover culto. Tente novamente mais tarde.'),
           backgroundColor: Colors.red,
         ),
       );
-    }
+    });
   }
 
   Widget _buildHeader() {
