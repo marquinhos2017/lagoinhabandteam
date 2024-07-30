@@ -259,419 +259,26 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
         child: Column(
           children: [
             Container(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                          color: Color(0xff171717),
-                          borderRadius: BorderRadius.circular(24)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(bottom: 20),
-                              child: Text(
-                                "Team",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            StreamBuilder<DocumentSnapshot>(
-                              stream: _firestore
-                                  .collection('Cultos')
-                                  .doc(widget.document_id)
-                                  .snapshots(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Center(
-                                      child: CircularProgressIndicator());
-                                }
-                                if (!snapshot.hasData) {
-                                  return Center(child: Text('No data found'));
-                                }
-
-                                var cultoData = snapshot.data!.data()
-                                    as Map<String, dynamic>;
-                                var musicos = List<Map<String, dynamic>>.from(
-                                    cultoData['musicos'] ?? []);
-
-                                // Inicializa os flags dos instrumentos
-                                bool keyboardFound = false;
-                                bool guitarFound = false;
-                                bool drumsFound = false;
-
-                                return FutureBuilder<
-                                    List<Map<String, dynamic>>>(
-                                  future:
-                                      Future.wait(musicos.map((musico) async {
-                                    int userId = musico['user_id'];
-                                    String idCulto = widget.document_id;
-
-                                    var results = await Future.wait([
-                                      _firestore
-                                          .collection('musicos')
-                                          .where('user_id', isEqualTo: userId)
-                                          .get()
-                                          .then((snapshot) {
-                                        if (snapshot.docs.isNotEmpty) {
-                                          return snapshot.docs.first.data()
-                                              as Map<String, dynamic>;
-                                        } else {
-                                          return {};
-                                        }
-                                      }),
-                                      _firestore
-                                          .collection('user_culto_instrument')
-                                          .where('idUser', isEqualTo: userId)
-                                          .where('idCulto', isEqualTo: idCulto)
-                                          .get()
-                                          .then((snapshot) {
-                                        if (snapshot.docs.isNotEmpty) {
-                                          return snapshot.docs.first.data()
-                                              as Map<String, dynamic>;
-                                        } else {
-                                          return {};
-                                        }
-                                      }),
-                                    ]);
-
-                                    var musicoData = results[0];
-                                    var instrumentData = results[1];
-                                    return {
-                                      'name': musicoData['name'] ??
-                                          'Nome não encontrado',
-                                      'instrument':
-                                          instrumentData['Instrument'] ??
-                                              'Instrumento não encontrado',
-                                    };
-                                  }).toList()),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return Center(
-                                          child: CircularProgressIndicator());
-                                    }
-                                    if (snapshot.hasError) {
-                                      return Center(
-                                          child: Text('Erro: ${snapshot.error}',
-                                              style: TextStyle(
-                                                  color: Colors.white)));
-                                    }
-                                    if (!snapshot.hasData) {
-                                      return Center(
-                                          child: Text('Dados não encontrados',
-                                              style: TextStyle(
-                                                  color: Colors.white)));
-                                    }
-
-                                    var musicoList = snapshot.data!;
-
-                                    // Atualiza os flags dos instrumentos
-                                    musicoList.forEach((musico) {
-                                      if (musico['instrument'] == 'Keyboard') {
-                                        keyboardFound = true;
-                                      } else if (musico['instrument'] ==
-                                          'Guitar') {
-                                        guitarFound = true;
-                                      } else if (musico['instrument'] ==
-                                          'Drums') {
-                                        drumsFound = true;
-                                      }
-                                    });
-
-                                    return Column(
-                                      children: [
-                                        Container(
-                                          height: 200,
-                                          child: ListView.builder(
-                                            itemCount: musicoList.length,
-                                            itemBuilder: (context, index) {
-                                              var musico = musicoList[index];
-                                              var name = musico['name'];
-                                              var instrument =
-                                                  musico['instrument'];
-
-                                              return Column(
-                                                children: [
-                                                  GestureDetector(
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        Text(
-                                                          name,
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
-                                                        Row(
-                                                          children: [
-                                                            Container(
-                                                              margin: EdgeInsets
-                                                                  .only(
-                                                                      right:
-                                                                          20),
-                                                              child: Text(
-                                                                instrument,
-                                                                style: TextStyle(
-                                                                    color: Color(
-                                                                        0xff558FFF),
-                                                                    fontSize:
-                                                                        12),
-                                                              ),
-                                                            ),
-                                                            GestureDetector(
-                                                              onTap: () async {
-                                                                var itemToRemove =
-                                                                    {
-                                                                  'user_id': musicos[
-                                                                          index]
-                                                                      [
-                                                                      'user_id'],
-                                                                };
-
-                                                                setState(() {
-                                                                  musicos
-                                                                      .removeAt(
-                                                                          index);
-                                                                });
-
-                                                                try {
-                                                                  DocumentReference
-                                                                      docRef =
-                                                                      _firestore
-                                                                          .collection(
-                                                                              'Cultos')
-                                                                          .doc(widget
-                                                                              .document_id);
-
-                                                                  await docRef
-                                                                      .update({
-                                                                    'musicos':
-                                                                        FieldValue
-                                                                            .arrayRemove([
-                                                                      itemToRemove
-                                                                    ])
-                                                                  });
-                                                                } catch (e) {
-                                                                  print(
-                                                                      'Erro ao remover músico: $e');
-                                                                }
-                                                              },
-                                                              child: Icon(
-                                                                  Icons.delete,
-                                                                  color: Colors
-                                                                      .white),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Divider(),
-                                                ],
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        // Botões para adicionar músicos
-                                        if (!keyboardFound)
-                                          Center(
-                                            child: GestureDetector(
-                                              onTap: () => Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      MusicianSelect2(
-                                                    document_id:
-                                                        widget.document_id,
-                                                    instrument: "Keyboard",
-                                                  ),
-                                                ),
-                                              ),
-                                              child: Container(
-                                                width: 100,
-                                                margin: EdgeInsets.only(
-                                                    top: 24, bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  color: Color(0xff4465D9),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Center(
-                                                    child: Text(
-                                                      "ADD Keyboard",
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 8,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        if (!guitarFound)
-                                          Center(
-                                            child: GestureDetector(
-                                              onTap: () => Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      MusicianSelect2(
-                                                    document_id:
-                                                        widget.document_id,
-                                                    instrument: "Guitar",
-                                                  ),
-                                                ),
-                                              ),
-                                              child: Container(
-                                                width: 100,
-                                                margin: EdgeInsets.only(
-                                                    top: 24, bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  color: Color(0xff4465D9),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Center(
-                                                    child: Text(
-                                                      "ADD Guitar",
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 8,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        if (!drumsFound)
-                                          Center(
-                                            child: GestureDetector(
-                                              onTap: () => Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      MusicianSelect2(
-                                                    document_id:
-                                                        widget.document_id,
-                                                    instrument: "Drums",
-                                                  ),
-                                                ),
-                                              ),
-                                              child: Container(
-                                                width: 100,
-                                                margin: EdgeInsets.only(
-                                                    top: 24, bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  color: Color(0xff4465D9),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Center(
-                                                    child: Text(
-                                                      "ADD Drums",
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 8,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Botões para adicionar músicos (fora do ListView.builder)
-
-                    /*Text(
-                      "Culto: " + cultoatual.nome,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    Text(
-                      "Musicos: " + nomes,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(top: 20, bottom: 25),
-                      child: GestureDetector(
-                          onTap: () => Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => userMainPage()),
-                              ),
-                          child: Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.white,
-                          )),
-                    ),*/
-                    Column(
+              margin: EdgeInsets.only(top: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        /*
                         Container(
-                          child: Text(
-                            "${cultosProvider.cultos}",
-                          ),
-                        ),*/
-
-                        /*
-                        Container(
-                          margin: EdgeInsets.only(bottom: 20),
-                          child: Text(
-                            "", //cultoEspecifico.nome//,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),*/
-                        /* Container(
-                          width: MediaQuery.of(context).size.width,
+                          margin: EdgeInsets.only(right: 24),
+                          width: 300,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Color(0xff171717),
-                          ),
+                              color: Color(0xff171717),
+                              borderRadius: BorderRadius.circular(24)),
                           child: Padding(
                             padding: const EdgeInsets.all(24.0),
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
@@ -684,445 +291,683 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                         fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                                SizedBox(
-                                  height: 120,
-                                  child: Container(
-                                    padding: EdgeInsets.zero,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Container(
-                                            child: StreamBuilder<QuerySnapshot>(
-                                              stream: FirebaseFirestore.instance
-                                                  .collection('Cultos')
-                                                  .doc('nome',
-                                                      isEqualTo:
-                                                          widget.cultoatual.nome)
-                                                  .snapshots(),
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState ==
-                                                    ConnectionState.waiting) {
-                                                  return Center(
-                                                    child:
-                                                        CircularProgressIndicator(),
-                                                  );
-                                                }
-            
-                                                if (!snapshot.hasData ||
-                                                    snapshot.data!.docs.isEmpty) {
-                                                  return Center(
-                                                    child: Text(
-                                                        'Culto de Batismo não encontrado'),
-                                                  );
-                                                }
-            
-                                                var cultoDoc =
-                                                    snapshot.data!.docs.first;
-                                                var cultoData = cultoDoc.data()
-                                                    as Map<String, dynamic>;
-            
-                                                print("Documento do Culto: " +
-                                                    cultoDoc.id);
-                                                print("Musicos Escalados: " +
-                                                    (cultoData['musicos']
-                                                        .toString()));
-            
-                                                // Verifica se o campo 'musicos' está presente e não é nulo
-                                                if (cultoData
-                                                        .containsKey('musicos') &&
-                                                    cultoData['musicos'] != null) {
-                                                  var musicos = cultoData['musicos']
-                                                      as List<dynamic>;
-            
-                                                  return ListView.builder(
-                                                      padding: EdgeInsets.zero,
-                                                      itemCount: musicos.length,
-                                                      itemBuilder:
-                                                          (context, index) {
-                                                        var musicoData = musicos[
-                                                                index]
-                                                            as Map<String, dynamic>;
-                                                        return Column(
+                                StreamBuilder<DocumentSnapshot>(
+                                  stream: _firestore
+                                      .collection('Cultos')
+                                      .doc(widget.document_id)
+                                      .snapshots(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                          child: CircularProgressIndicator());
+                                    }
+                                    if (!snapshot.hasData) {
+                                      return Center(
+                                          child: Text('No data found'));
+                                    }
+
+                                    var cultoData = snapshot.data!.data()
+                                        as Map<String, dynamic>;
+                                    var musicos =
+                                        List<Map<String, dynamic>>.from(
+                                            cultoData['musicos'] ?? []);
+
+                                    // Inicializa os flags dos instrumentos
+                                    bool keyboardFound = false;
+                                    bool guitarFound = false;
+                                    bool drumsFound = false;
+
+                                    return FutureBuilder<
+                                        List<Map<String, dynamic>>>(
+                                      future: Future.wait(
+                                          musicos.map((musico) async {
+                                        int userId = musico['user_id'];
+                                        String idCulto = widget.document_id;
+
+                                        var results = await Future.wait([
+                                          _firestore
+                                              .collection('musicos')
+                                              .where('user_id',
+                                                  isEqualTo: userId)
+                                              .get()
+                                              .then((snapshot) {
+                                            if (snapshot.docs.isNotEmpty) {
+                                              return snapshot.docs.first.data()
+                                                  as Map<String, dynamic>;
+                                            } else {
+                                              return {};
+                                            }
+                                          }),
+                                          _firestore
+                                              .collection(
+                                                  'user_culto_instrument')
+                                              .where('idUser',
+                                                  isEqualTo: userId)
+                                              .where('idCulto',
+                                                  isEqualTo: idCulto)
+                                              .get()
+                                              .then((snapshot) {
+                                            if (snapshot.docs.isNotEmpty) {
+                                              return snapshot.docs.first.data()
+                                                  as Map<String, dynamic>;
+                                            } else {
+                                              return {};
+                                            }
+                                          }),
+                                        ]);
+
+                                        var musicoData = results[0];
+                                        var instrumentData = results[1];
+                                        return {
+                                          'name': musicoData['name'] ??
+                                              'Nome não encontrado',
+                                          'instrument':
+                                              instrumentData['Instrument'] ??
+                                                  'Instrumento não encontrado',
+                                        };
+                                      }).toList()),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        }
+                                        if (snapshot.hasError) {
+                                          return Center(
+                                              child: Text(
+                                                  'Erro: ${snapshot.error}',
+                                                  style: TextStyle(
+                                                      color: Colors.white)));
+                                        }
+                                        if (!snapshot.hasData) {
+                                          return Center(
+                                              child: Text(
+                                                  'Dados não encontrados',
+                                                  style: TextStyle(
+                                                      color: Colors.white)));
+                                        }
+
+                                        var musicoList = snapshot.data!;
+
+                                        // Atualiza os flags dos instrumentos
+                                        musicoList.forEach((musico) {
+                                          if (musico['instrument'] ==
+                                              'Keyboard') {
+                                            keyboardFound = true;
+                                          } else if (musico['instrument'] ==
+                                              'Guitar') {
+                                            guitarFound = true;
+                                          } else if (musico['instrument'] ==
+                                              'Drums') {
+                                            drumsFound = true;
+                                          }
+                                        });
+
+                                        return Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              height: 200,
+                                              child: ListView.builder(
+                                                itemCount: musicoList.length,
+                                                itemBuilder: (context, index) {
+                                                  var musico =
+                                                      musicoList[index];
+                                                  var name = musico['name'];
+                                                  var instrument =
+                                                      musico['instrument'];
+
+                                                  return Column(
+                                                    children: [
+                                                      GestureDetector(
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
                                                           children: [
-                                                            GestureDetector(
-                                                              onTap: () {
-                                                                FirebaseFirestore
-                                                                    .instance
-                                                                    .collection(
-                                                                        'clicks')
-                                                                    .add({
-                                                                  'clicked': true,
-                                                                  'timestamp':
-                                                                      FieldValue
-                                                                          .serverTimestamp(),
-                                                                });
-                                                                print(
-                                                                    "Clicado no: " +
-                                                                        musicoData[
-                                                                            'name']);
-                                                              },
-                                                              child: Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .spaceBetween,
-                                                                children: [
-                                                                  Text(
-                                                                    musicoData[
-                                                                        'name'],
+                                                            Text(
+                                                              name,
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                Container(
+                                                                  margin: EdgeInsets
+                                                                      .only(
+                                                                          right:
+                                                                              20),
+                                                                  child: Text(
+                                                                    instrument,
                                                                     style: TextStyle(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color: Color(
+                                                                            0xff558FFF),
                                                                         fontSize:
-                                                                            12,
-                                                                        fontWeight:
-                                                                            FontWeight
-                                                                                .bold),
+                                                                            12),
                                                                   ),
-                                                                  Row(
-                                                                    children: [
-                                                                      Container(
-                                                                        margin: EdgeInsets.only(
-                                                                            right:
-                                                                                20),
-                                                                        child: Text(
-                                                                          musicoData[
-                                                                              'instrument'],
-                                                                          style: TextStyle(
-                                                                              color: Color(
-                                                                                  0xff558FFF),
-                                                                              fontSize:
-                                                                                  12),
-                                                                        ),
-                                                                      ),
-                                                                      Icon(
-                                                                        Icons
-                                                                            .keyboard,
-                                                                        color: Colors
-                                                                            .white,
-                                                                      )
-                                                                    ],
-                                                                  )
-                                                                ],
-                                                              ),
+                                                                ),
+                                                                GestureDetector(
+                                                                  onTap:
+                                                                      () async {
+                                                                    var itemToRemove =
+                                                                        {
+                                                                      'user_id':
+                                                                          musicos[index]
+                                                                              [
+                                                                              'user_id'],
+                                                                    };
+
+                                                                    setState(
+                                                                        () {
+                                                                      musicos.removeAt(
+                                                                          index);
+                                                                    });
+
+                                                                    try {
+                                                                      DocumentReference
+                                                                          docRef =
+                                                                          _firestore
+                                                                              .collection('Cultos')
+                                                                              .doc(widget.document_id);
+
+                                                                      await docRef
+                                                                          .update({
+                                                                        'musicos':
+                                                                            FieldValue.arrayRemove([
+                                                                          itemToRemove
+                                                                        ])
+                                                                      });
+                                                                    } catch (e) {
+                                                                      print(
+                                                                          'Erro ao remover músico: $e');
+                                                                    }
+                                                                  },
+                                                                  child: Icon(
+                                                                      Icons
+                                                                          .delete,
+                                                                      color: Colors
+                                                                          .white),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ],
-                                                        );
-                                                      });
-                                                } else {
-                                                  return Center(
-                                                    child: Text(
-                                                        'Não há músicos neste culto de Batismo'),
+                                                        ),
+                                                      ),
+                                                      Divider(),
+                                                    ],
                                                   );
-                                                }
-                                              },
+                                                },
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                            Text(
+                                              "Needing",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                            // Botões para adicionar músicos
+                                            Row(
+                                              children: [
+                                                if (!keyboardFound)
+                                                  Center(
+                                                    child: GestureDetector(
+                                                      onTap: () =>
+                                                          Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              MusicianSelect2(
+                                                            document_id: widget
+                                                                .document_id,
+                                                            instrument:
+                                                                "Keyboard",
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: Container(
+                                                        margin: EdgeInsets.only(
+                                                            bottom: 0),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Color(0xff4465D9),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(4),
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: Center(
+                                                            child: Text(
+                                                              "Keyboard",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 8,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                if (!guitarFound)
+                                                  Center(
+                                                    child: GestureDetector(
+                                                      onTap: () =>
+                                                          Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              MusicianSelect2(
+                                                            document_id: widget
+                                                                .document_id,
+                                                            instrument:
+                                                                "Guitar",
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: Container(
+                                                        margin: EdgeInsets.only(
+                                                            bottom: 0),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Color(0xff4465D9),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(4),
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: Center(
+                                                            child: Text(
+                                                              "Guitar",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 8,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                if (!drumsFound)
+                                                  Center(
+                                                    child: GestureDetector(
+                                                      onTap: () =>
+                                                          Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              MusicianSelect2(
+                                                            document_id: widget
+                                                                .document_id,
+                                                            instrument: "Drums",
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: Container(
+                                                        margin: EdgeInsets.only(
+                                                            bottom: 0),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Color(0xff4465D9),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(4),
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: Center(
+                                                            child: Text(
+                                                              "Drums",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 8,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            )
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
                                 ),
-                                Center(
-                                  child: GestureDetector(
-                                    onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => MusicianSelect(
-                                            cultoatual: Culto(
-                                                nome: widget.cultoatual
-                                                    .nome)), //cultoEspecifico.nome//)),
-                                      ),
-                                    ),
-                                    child: Container(
-                                      width: 100,
-                                      margin: EdgeInsets.only(top: 24, bottom: 0),
-                                      decoration: BoxDecoration(
-                                          color: Color(0xff4465D9),
-                                          borderRadius: BorderRadius.circular(4)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Center(
-                                          child: Text(
-                                            "ADD MUSICIAN",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 8,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                )
                               ],
                             ),
                           ),
-                        ),*/
+                        ),
                         Container(
-                          margin: EdgeInsets.only(top: 24),
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Color(0xff171717),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  child: Text(
-                                    "Playlist",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold),
+                          width: 300,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              /*
+                          Container(
+                            child: Text(
+                              "${cultosProvider.cultos}",
+                            ),
+                          ),*/
+
+                              /*
+                          Container(
+                            margin: EdgeInsets.only(bottom: 20),
+                            child: Text(
+                              "", //cultoEspecifico.nome//,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),*/
+                              /* Container(
+                            width: MediaQuery.of(context).size.width,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Color(0xff171717),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    margin: EdgeInsets.only(bottom: 20),
+                                    child: Text(
+                                      "Team",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
-                                ),
-                                Container(
-                                  child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          margin: EdgeInsets.only(top: 12),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceAround,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  "Name",
-                                                  style: TextStyle(
-                                                      color: Colors.white54,
-                                                      fontSize: 12),
-                                                ),
+                                  SizedBox(
+                                    height: 120,
+                                    child: Container(
+                                      padding: EdgeInsets.zero,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Container(
+                                              child: StreamBuilder<QuerySnapshot>(
+                                                stream: FirebaseFirestore.instance
+                                                    .collection('Cultos')
+                                                    .doc('nome',
+                                                        isEqualTo:
+                                                            widget.cultoatual.nome)
+                                                    .snapshots(),
+                                                builder: (context, snapshot) {
+                                                  if (snapshot.connectionState ==
+                                                      ConnectionState.waiting) {
+                                                    return Center(
+                                                      child:
+                                                          CircularProgressIndicator(),
+                                                    );
+                                                  }
+                                  
+                                                  if (!snapshot.hasData ||
+                                                      snapshot.data!.docs.isEmpty) {
+                                                    return Center(
+                                                      child: Text(
+                                                          'Culto de Batismo não encontrado'),
+                                                    );
+                                                  }
+                                  
+                                                  var cultoDoc =
+                                                      snapshot.data!.docs.first;
+                                                  var cultoData = cultoDoc.data()
+                                                      as Map<String, dynamic>;
+                                  
+                                                  print("Documento do Culto: " +
+                                                      cultoDoc.id);
+                                                  print("Musicos Escalados: " +
+                                                      (cultoData['musicos']
+                                                          .toString()));
+                                  
+                                                  // Verifica se o campo 'musicos' está presente e não é nulo
+                                                  if (cultoData
+                                                          .containsKey('musicos') &&
+                                                      cultoData['musicos'] != null) {
+                                                    var musicos = cultoData['musicos']
+                                                        as List<dynamic>;
+                                  
+                                                    return ListView.builder(
+                                                        padding: EdgeInsets.zero,
+                                                        itemCount: musicos.length,
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                          var musicoData = musicos[
+                                                                  index]
+                                                              as Map<String, dynamic>;
+                                                          return Column(
+                                                            children: [
+                                                              GestureDetector(
+                                                                onTap: () {
+                                                                  FirebaseFirestore
+                                                                      .instance
+                                                                      .collection(
+                                                                          'clicks')
+                                                                      .add({
+                                                                    'clicked': true,
+                                                                    'timestamp':
+                                                                        FieldValue
+                                                                            .serverTimestamp(),
+                                                                  });
+                                                                  print(
+                                                                      "Clicado no: " +
+                                                                          musicoData[
+                                                                              'name']);
+                                                                },
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  children: [
+                                                                    Text(
+                                                                      musicoData[
+                                                                          'name'],
+                                                                      style: TextStyle(
+                                                                          color: Colors
+                                                                              .white,
+                                                                          fontSize:
+                                                                              12,
+                                                                          fontWeight:
+                                                                              FontWeight
+                                                                                  .bold),
+                                                                    ),
+                                                                    Row(
+                                                                      children: [
+                                                                        Container(
+                                                                          margin: EdgeInsets.only(
+                                                                              right:
+                                                                                  20),
+                                                                          child: Text(
+                                                                            musicoData[
+                                                                                'instrument'],
+                                                                            style: TextStyle(
+                                                                                color: Color(
+                                                                                    0xff558FFF),
+                                                                                fontSize:
+                                                                                    12),
+                                                                          ),
+                                                                        ),
+                                                                        Icon(
+                                                                          Icons
+                                                                              .keyboard,
+                                                                          color: Colors
+                                                                              .white,
+                                                                        )
+                                                                      ],
+                                                                    )
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          );
+                                                        });
+                                                  } else {
+                                                    return Center(
+                                                      child: Text(
+                                                          'Não há músicos neste culto de Batismo'),
+                                                    );
+                                                  }
+                                                },
                                               ),
-                                              Expanded(
-                                                child: Text(
-                                                  "Singer",
-                                                  style: TextStyle(
-                                                      color: Colors.white54,
-                                                      fontSize: 12),
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  "Tone",
-                                                  style: TextStyle(
-                                                      color: Colors.white54,
-                                                      fontSize: 12),
-                                                ),
-                                              ),
-                                            ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Center(
+                                    child: GestureDetector(
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => MusicianSelect(
+                                              cultoatual: Culto(
+                                                  nome: widget.cultoatual
+                                                      .nome)), //cultoEspecifico.nome//)),
+                                        ),
+                                      ),
+                                      child: Container(
+                                        width: 100,
+                                        margin: EdgeInsets.only(top: 24, bottom: 0),
+                                        decoration: BoxDecoration(
+                                            color: Color(0xff4465D9),
+                                            borderRadius: BorderRadius.circular(4)),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Center(
+                                            child: Text(
+                                              "ADD MUSICIAN",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 8,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
                                           ),
                                         ),
-                                        Visibility(
-                                            visible: false,
-                                            child: Column(
-                                              children: [
-                                                Container(
-                                                  margin:
-                                                      EdgeInsets.only(top: 12),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceAround,
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          "Te Exaltamos",
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          "Bethel",
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          "C",
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                Container(
-                                                  margin:
-                                                      EdgeInsets.only(top: 12),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceAround,
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          "Pra Sempre",
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          "Kari Jobe",
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          "F",
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            )),
-                                        Container(
-                                          key: _scaffoldKey,
-                                          height: 100,
-                                          child: FutureBuilder<
-                                                  DocumentSnapshot>(
-                                              future: FirebaseFirestore.instance
-                                                  .collection('Cultos')
-                                                  .doc(widget.document_id)
-                                                  .get(),
-                                              builder:
-                                                  (context, cultoSnapshot) {
-                                                if (cultoSnapshot
-                                                        .connectionState ==
-                                                    ConnectionState.waiting) {
-                                                  return Center(
-                                                      child:
-                                                          CircularProgressIndicator());
-                                                }
-
-                                                if (cultoSnapshot.hasError) {
-                                                  return Center(
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),*/
+                              Container(
+                                width: MediaQuery.of(context).size.width,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Color(0xff171717),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        child: Text(
+                                          "Playlist",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Container(
+                                        child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                margin:
+                                                    EdgeInsets.only(top: 12),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
+                                                  children: [
+                                                    Expanded(
                                                       child: Text(
-                                                          'Erro ao carregar os dados do culto'));
-                                                }
-
-                                                if (!cultoSnapshot.hasData ||
-                                                    !cultoSnapshot
-                                                        .data!.exists) {
-                                                  return Center(
+                                                        "Name",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white54,
+                                                            fontSize: 12),
+                                                      ),
+                                                    ),
+                                                    Expanded(
                                                       child: Text(
-                                                          'Nenhum documento de culto encontrado'));
-                                                }
-
-                                                final cultoData =
-                                                    cultoSnapshot.data!.data()
-                                                        as Map<String, dynamic>;
-                                                final List<dynamic> playlist =
-                                                    cultoData['playlist'];
-
-                                                return ListView.builder(
-                                                  itemCount: playlist.length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    final musicDocumentId =
-                                                        playlist[index][
-                                                                'music_document']
-                                                            as String;
-
-                                                    return FutureBuilder<
-                                                        DocumentSnapshot>(
-                                                      future: FirebaseFirestore
-                                                          .instance
-                                                          .collection(
-                                                              'music_database')
-                                                          .doc(musicDocumentId)
-                                                          .get(),
-                                                      builder: (context,
-                                                          musicSnapshot) {
-                                                        if (!mounted) {
-                                                          // Verifica se o widget foi descartado antes de continuar
-                                                          return SizedBox
-                                                              .shrink(); // Retorno vazio se o widget não estiver montado
-                                                        }
-                                                        if (musicSnapshot
-                                                                .connectionState ==
-                                                            ConnectionState
-                                                                .waiting) {
-                                                          return CircularProgressIndicator();
-                                                        }
-
-                                                        if (musicSnapshot
-                                                            .hasError) {
-                                                          return Text(
-                                                              'Erro ao carregar música');
-                                                        }
-
-                                                        if (!musicSnapshot
-                                                                .hasData ||
-                                                            !musicSnapshot
-                                                                .data!.exists) {
-                                                          return Text(
-                                                              'Música não encontrada');
-                                                        }
-
-                                                        final musicData =
-                                                            musicSnapshot.data!
-                                                                    .data()
-                                                                as Map<String,
-                                                                    dynamic>;
-                                                        final autor = musicData[
-                                                                'Author'] ??
-                                                            'Autor Desconhecido';
-                                                        final musica = musicData[
-                                                                'Music'] ??
-                                                            'Música Desconhecida';
-
-                                                        return Row(
+                                                        "Singer",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white54,
+                                                            fontSize: 12),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Tone",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white54,
+                                                            fontSize: 12),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Visibility(
+                                                  visible: false,
+                                                  child: Column(
+                                                    children: [
+                                                      Container(
+                                                        margin: EdgeInsets.only(
+                                                            top: 12),
+                                                        child: Row(
                                                           mainAxisAlignment:
                                                               MainAxisAlignment
                                                                   .spaceAround,
                                                           children: [
                                                             Expanded(
                                                               child: Text(
-                                                                '$musica',
+                                                                "Te Exaltamos",
                                                                 style: TextStyle(
                                                                     color: Colors
                                                                         .white,
@@ -1135,7 +980,7 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                             ),
                                                             Expanded(
                                                               child: Text(
-                                                                '$autor',
+                                                                "Bethel",
                                                                 style: TextStyle(
                                                                     color: Colors
                                                                         .white,
@@ -1148,209 +993,444 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                                             ),
                                                             Expanded(
                                                               child: Text(
-                                                                'C#',
+                                                                "C",
                                                                 style: TextStyle(
                                                                     color: Colors
-                                                                        .white),
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
                                                               ),
                                                             ),
                                                           ],
-                                                        );
-                                                      },
-                                                    );
-                                                  },
-                                                );
-                                              }),
-                                        ),
-                                      ]),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AddtoPlaylist(
-                                          document_id: widget.document_id,
-                                        ),
-                                      ),
-                                    ).then((value) {
-                                      // Após retornar da tela de adicionar música, você pode atualizar a página
-                                      setState(() {});
-                                      // Ou atualizar de acordo com a necessidade do seu fluxo
-                                    });
-                                    ;
-                                    //Navigator.pushNamed(
-                                    //    context, '/adminCultoForm');
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        margin: EdgeInsets.only(
+                                                            top: 12),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceAround,
+                                                          children: [
+                                                            Expanded(
+                                                              child: Text(
+                                                                "Pra Sempre",
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                "Kari Jobe",
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                "F",
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  )),
+                                              Container(
+                                                key: _scaffoldKey,
+                                                height: 100,
+                                                child: FutureBuilder<
+                                                        DocumentSnapshot>(
+                                                    future: FirebaseFirestore
+                                                        .instance
+                                                        .collection('Cultos')
+                                                        .doc(widget.document_id)
+                                                        .get(),
+                                                    builder: (context,
+                                                        cultoSnapshot) {
+                                                      if (cultoSnapshot
+                                                              .connectionState ==
+                                                          ConnectionState
+                                                              .waiting) {
+                                                        return Center(
+                                                            child:
+                                                                CircularProgressIndicator());
+                                                      }
 
-                                    //Navigator.pushNamed(
-                                    //    context, '/adminCultoForm');
-                                  },
-                                  child: Container(
-                                    width: MediaQuery.of(context).size.width,
-                                    margin:
-                                        EdgeInsets.only(top: 24, bottom: 16),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(4),
-                                      color: Color(0xff4465D9),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(0.0),
-                                      child: Center(
-                                        child: Text(
-                                          "+",
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 24),
-                                        ),
+                                                      if (cultoSnapshot
+                                                          .hasError) {
+                                                        return Center(
+                                                            child: Text(
+                                                                'Erro ao carregar os dados do culto'));
+                                                      }
+
+                                                      if (!cultoSnapshot
+                                                              .hasData ||
+                                                          !cultoSnapshot
+                                                              .data!.exists) {
+                                                        return Center(
+                                                            child: Text(
+                                                                'Nenhum documento de culto encontrado'));
+                                                      }
+
+                                                      final cultoData =
+                                                          cultoSnapshot.data!
+                                                                  .data()
+                                                              as Map<String,
+                                                                  dynamic>;
+                                                      final List<dynamic>
+                                                          playlist =
+                                                          cultoData['playlist'];
+
+                                                      return ListView.builder(
+                                                        itemCount:
+                                                            playlist.length,
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                          final musicDocumentId =
+                                                              playlist[index][
+                                                                      'music_document']
+                                                                  as String;
+
+                                                          return FutureBuilder<
+                                                              DocumentSnapshot>(
+                                                            future: FirebaseFirestore
+                                                                .instance
+                                                                .collection(
+                                                                    'music_database')
+                                                                .doc(
+                                                                    musicDocumentId)
+                                                                .get(),
+                                                            builder: (context,
+                                                                musicSnapshot) {
+                                                              if (!mounted) {
+                                                                // Verifica se o widget foi descartado antes de continuar
+                                                                return SizedBox
+                                                                    .shrink(); // Retorno vazio se o widget não estiver montado
+                                                              }
+                                                              if (musicSnapshot
+                                                                      .connectionState ==
+                                                                  ConnectionState
+                                                                      .waiting) {
+                                                                return CircularProgressIndicator();
+                                                              }
+
+                                                              if (musicSnapshot
+                                                                  .hasError) {
+                                                                return Text(
+                                                                    'Erro ao carregar música');
+                                                              }
+
+                                                              if (!musicSnapshot
+                                                                      .hasData ||
+                                                                  !musicSnapshot
+                                                                      .data!
+                                                                      .exists) {
+                                                                return Text(
+                                                                    'Música não encontrada');
+                                                              }
+
+                                                              final musicData =
+                                                                  musicSnapshot
+                                                                          .data!
+                                                                          .data()
+                                                                      as Map<
+                                                                          String,
+                                                                          dynamic>;
+                                                              final autor = musicData[
+                                                                      'Author'] ??
+                                                                  'Autor Desconhecido';
+                                                              final musica = musicData[
+                                                                      'Music'] ??
+                                                                  'Música Desconhecida';
+
+                                                              return Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .spaceAround,
+                                                                children: [
+                                                                  Expanded(
+                                                                    child: Text(
+                                                                      '$musica',
+                                                                      style: TextStyle(
+                                                                          color: Colors
+                                                                              .white,
+                                                                          fontSize:
+                                                                              12,
+                                                                          fontWeight:
+                                                                              FontWeight.bold),
+                                                                    ),
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: Text(
+                                                                      '$autor',
+                                                                      style: TextStyle(
+                                                                          color: Colors
+                                                                              .white,
+                                                                          fontSize:
+                                                                              12,
+                                                                          fontWeight:
+                                                                              FontWeight.bold),
+                                                                    ),
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: Text(
+                                                                      'C#',
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              Colors.white),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                      );
+                                                    }),
+                                              ),
+                                            ]),
                                       ),
-                                    ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  AddtoPlaylist(
+                                                document_id: widget.document_id,
+                                              ),
+                                            ),
+                                          ).then((value) {
+                                            // Após retornar da tela de adicionar música, você pode atualizar a página
+                                            setState(() {});
+                                            // Ou atualizar de acordo com a necessidade do seu fluxo
+                                          });
+                                          ;
+                                          //Navigator.pushNamed(
+                                          //    context, '/adminCultoForm');
+
+                                          //Navigator.pushNamed(
+                                          //    context, '/adminCultoForm');
+                                        },
+                                        child: Container(
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          margin: EdgeInsets.only(
+                                              top: 24, bottom: 16),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            color: Color(0xff4465D9),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(0.0),
+                                            child: Center(
+                                              child: Text(
+                                                "+",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 24),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
                                   ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 24),
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      width: 100,
-                                      child: InkWell(
-                                        onTap: () {
-                                          _selectDate(context);
-                                        },
-                                        child: InputDecorator(
-                                          decoration: InputDecoration(
-                                              labelText: "Date"),
-                                          child: Text(
-                                            _formatDate(_selectedDate),
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors
-                                                    .white), // Cor do texto
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      width: 100,
-                                      child: InkWell(
-                                        onTap: () {
-                                          _selectTime(context);
-                                        },
-                                        child: InputDecorator(
-                                          decoration: InputDecoration(
-                                              labelText: "Time"),
-                                          child: Text(
-                                            _formatTime(_selectedTime),
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors
-                                                    .white), // Cor do texto
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ),
-                                /*
-                                Row(
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.only(top: 24),
-                                      decoration:
-                                          BoxDecoration(color: Color(0xff171717)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 24, vertical: 8),
-                                        child: Text(
-                                          "DATE",
-                                          style: TextStyle(
-                                              color: Colors.white, fontSize: 10),
-                                        ),
+                              ),
+                              Container(
+                                margin: EdgeInsets.only(top: 24),
+                                width: MediaQuery.of(context).size.width,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            width: 100,
+                                            child: InkWell(
+                                              onTap: () {
+                                                _selectDate(context);
+                                              },
+                                              child: InputDecorator(
+                                                decoration: InputDecoration(
+                                                    labelText: "Date"),
+                                                child: Text(
+                                                  _formatDate(_selectedDate),
+                                                  style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors
+                                                          .white), // Cor do texto
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 100,
+                                            child: InkWell(
+                                              onTap: () {
+                                                _selectTime(context);
+                                              },
+                                              child: InputDecorator(
+                                                decoration: InputDecoration(
+                                                    labelText: "Time"),
+                                                child: Text(
+                                                  _formatTime(_selectedTime),
+                                                  style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors
+                                                          .white), // Cor do texto
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: Container(
-                                        width:
-                                            MediaQuery.of(context).size.width * 0.4,
-                                        margin: EdgeInsets.only(top: 24, left: 16),
+                                      /*
+                                  Row(
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(top: 24),
                                         decoration:
                                             BoxDecoration(color: Color(0xff171717)),
-                                        child: Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              "14/ABR",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 10),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 24, vertical: 8),
+                                          child: Text(
+                                            "DATE",
+                                            style: TextStyle(
+                                                color: Colors.white, fontSize: 10),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          width:
+                                              MediaQuery.of(context).size.width * 0.4,
+                                          margin: EdgeInsets.only(top: 24, left: 16),
+                                          decoration:
+                                              BoxDecoration(color: Color(0xff171717)),
+                                          child: Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                "14/ABR",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.only(top: 24, bottom: 16),
-                                      decoration:
-                                          BoxDecoration(color: Color(0xff171717)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 24, vertical: 8),
-                                        child: Text(
-                                          "TIME",
-                                          style: TextStyle(
-                                              color: Colors.white, fontSize: 10),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Container(
-                                        width:
-                                            MediaQuery.of(context).size.width * 0.4,
-                                        margin: EdgeInsets.only(
-                                            top: 24, bottom: 16, left: 16),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(top: 24, bottom: 16),
                                         decoration:
                                             BoxDecoration(color: Color(0xff171717)),
-                                        child: Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              "7PM",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 10),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 24, vertical: 8),
+                                          child: Text(
+                                            "TIME",
+                                            style: TextStyle(
+                                                color: Colors.white, fontSize: 10),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          width:
+                                              MediaQuery.of(context).size.width * 0.4,
+                                          margin: EdgeInsets.only(
+                                              top: 24, bottom: 16, left: 16),
+                                          decoration:
+                                              BoxDecoration(color: Color(0xff171717)),
+                                          child: Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                "7PM",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),*/
-                              ],
-                            ),
+                                    ],
+                                  ),*/
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  // Botões para adicionar músicos (fora do ListView.builder)
+
+                  /*Text(
+                    "Culto: " + cultoatual.nome,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Text(
+                    "Musicos: " + nomes,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 20, bottom: 25),
+                    child: GestureDetector(
+                        onTap: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => userMainPage()),
+                            ),
+                        child: Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.white,
+                        )),
+                  ),*/
+                ],
               ),
             ),
           ],

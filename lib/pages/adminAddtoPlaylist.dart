@@ -92,6 +92,7 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
+                                          backgroundColor: Color(0xff4465D9),
                                           content: Text(
                                               'Música adicionada à playlist com sucesso'),
                                           duration: Duration(seconds: 2),

@@ -35,160 +35,197 @@ class _LoginStateState extends State<login> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
-          "LMF",
+          "",
           style: TextStyle(color: Colors.white),
         ),
         foregroundColor: Colors.black,
         backgroundColor: Colors.black,
       ),
-      body: Column(
-        children: [
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('Cultos').where(
-                'musicos',
-                arrayContains: {'name': 'Marcos'}).snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Center(
-                  child: Text('Não há cultos com Marcos'),
-                );
-              }
-
-              return ListView.builder(
-                itemCount: snapshot.data!.docs.length,
-                itemBuilder: (context, index) {
-                  var cultoDoc = snapshot.data!.docs[index];
-                  var cultoData = cultoDoc.data() as Map<String, dynamic>;
-                  var cultoName = cultoData['nome'] ?? '';
-
-                  return ListTile(
-                    title: Text(cultoName),
-                    // Adicione mais campos conforme necessário
-                  );
-                },
-              );
-            },
-          ),
-          /*
-          Container(
-            height: 200,
-            child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance.collection('Cultos').snapshots(),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /*     StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('Cultos').where(
+                  'musicos',
+                  arrayContains: {'name': 'Marcos'}).snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(),
                   );
                 }
-
+        
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Center(
-                    child: Text('Nenhum culto encontrado'),
+                    child: Text('Não há cultos com Marcos'),
                   );
                 }
-
+        
                 return ListView.builder(
                   itemCount: snapshot.data!.docs.length,
                   itemBuilder: (context, index) {
-                    var culto = snapshot.data!.docs[index];
-                    var cultoData = culto.data() as Map<String, dynamic>;
-
+                    var cultoDoc = snapshot.data!.docs[index];
+                    var cultoData = cultoDoc.data() as Map<String, dynamic>;
+                    var cultoName = cultoData['nome'] ?? '';
+        
                     return ListTile(
-                      title: Text(cultoData['nome'] ?? ''),
-                      subtitle: Text(
-                          'Data: ${cultoData['data']}'), // Substitua 'data' pelo campo correto
+                      title: Text(cultoName),
                       // Adicione mais campos conforme necessário
                     );
                   },
                 );
               },
-            ),
-          ),*/
-          Form(
-            key: _formKey,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            ),*/
+            /*
+            Container(
+              height: 200,
+              child: StreamBuilder<QuerySnapshot>(
+                stream:
+                    FirebaseFirestore.instance.collection('Cultos').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+        
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
+                      child: Text('Nenhum culto encontrado'),
+                    );
+                  }
+        
+                  return ListView.builder(
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      var culto = snapshot.data!.docs[index];
+                      var cultoData = culto.data() as Map<String, dynamic>;
+        
+                      return ListTile(
+                        title: Text(cultoData['nome'] ?? ''),
+                        subtitle: Text(
+                            'Data: ${cultoData['data']}'), // Substitua 'data' pelo campo correto
+                        // Adicione mais campos conforme necessário
+                      );
+                    },
+                  );
+                },
+              ),
+            ),*/
+            Form(
+              key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Center(
+                    child: Container(
+                      margin: EdgeInsets.only(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 70,
+                            child: Text(
+                              "LM",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 64,
+                                fontStyle: FontStyle.normal,
+                                fontWeight: FontWeight.w200,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            "faro",
+                            style: TextStyle(
+                                letterSpacing: 14,
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   Container(
-                    margin: EdgeInsets.only(bottom: 24),
-                    child: Text(
-                      "Sign In",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                    child: TextFormField(
-                      style: TextStyle(color: Colors.white),
-                      controller: emailController,
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.white), // Borda branca
+                    margin: EdgeInsets.only(top: 40),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 16),
+                          child: TextFormField(
+                            style: TextStyle(color: Colors.white),
+                            controller: emailController,
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.white), // Borda branca
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20)),
+                                  borderSide: BorderSide(
+                                      color: Colors
+                                          .white), // Borda branca quando o campo está habilitado
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20)),
+                                  borderSide: BorderSide(
+                                      color: Colors
+                                          .white), // Borda branca quando o campo está focado
+                                ),
+                                labelText: "Usuario",
+                                labelStyle: TextStyle(color: Colors.white)),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor insira seu usuario';
+                              }
+                              return null;
+                            },
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors
-                                    .white), // Borda branca quando o campo está habilitado
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 16),
+                          child: TextFormField(
+                            style: TextStyle(color: Colors.white),
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.white), // Borda branca
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20)),
+                                  borderSide: BorderSide(
+                                      color: Colors
+                                          .white), // Borda branca quando o campo está habilitado
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20)),
+                                  borderSide: BorderSide(
+                                      color: Colors
+                                          .white), // Borda branca quando o campo está focado
+                                ),
+                                labelText: "Senha",
+                                labelStyle: TextStyle(color: Colors.white)),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              return null;
+                            },
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors
-                                    .white), // Borda branca quando o campo está focado
-                          ),
-                          labelText: "Username",
-                          labelStyle: TextStyle(color: Colors.white)),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                    child: TextFormField(
-                      style: TextStyle(color: Colors.white),
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.white), // Borda branca
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors
-                                    .white), // Borda branca quando o campo está habilitado
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors
-                                    .white), // Borda branca quando o campo está focado
-                          ),
-                          labelText: "Password",
-                          labelStyle: TextStyle(color: Colors.white)),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        return null;
-                      },
+                        ),
+                      ],
                     ),
                   ),
                   Padding(
@@ -204,6 +241,7 @@ class _LoginStateState extends State<login> {
                               offset: Offset(0, 4),
                               blurRadius: 5.0)
                         ],
+                        /*
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -212,8 +250,8 @@ class _LoginStateState extends State<login> {
                             Color(0xff41AA5C),
                             Color(0xff558FFF),
                           ],
-                        ),
-                        color: Colors.deepPurple.shade300,
+                        ),*/
+                        color: Color(0xff4465D9),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: ElevatedButton(
@@ -282,6 +320,7 @@ class _LoginStateState extends State<login> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
+                                  backgroundColor: Colors.red,
                                   content:
                                       Text('Por favor, preencha os campos')),
                             );
@@ -294,8 +333,8 @@ class _LoginStateState extends State<login> {
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
