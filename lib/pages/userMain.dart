@@ -186,36 +186,65 @@ class _userMainPageState extends State<userMainPage> {
               ),
               child: Text('Drawer Header'),
             ),
-            ListTile(
-              title: const Text(
-                'Formularios Mensais',
-                style: TextStyle(color: Colors.white),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  // Update the state of the app.
+                  // ...
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => forms_disponiblidade()),
+                  );
+                },
+                child: Row(children: [
+                  Icon(
+                    Icons.library_add,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(left: 24),
+                    child: Text(
+                      'Formularios Mensais',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                ]),
               ),
-              onTap: () {
-                Navigator.pop(context);
-                // Update the state of the app.
-                // ...
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => forms_disponiblidade()),
-                );
-              },
             ),
-            ListTile(
-              title: const Text(
-                'Muisc Database',
-                style: TextStyle(color: Colors.white),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: GestureDetector(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.music_note,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(left: 24),
+                      child: Text(
+                        'Muisc Database',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Update the state of the app.
+                  // ...
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MainMusicDataBase()),
+                  );
+                },
               ),
-              onTap: () {
-                Navigator.pop(context);
-                // Update the state of the app.
-                // ...
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainMusicDataBase()),
-                );
-              },
             ),
           ],
         ),

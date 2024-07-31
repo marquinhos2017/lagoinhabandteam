@@ -169,15 +169,15 @@ class _LoginStateState extends State<login> {
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   borderSide: BorderSide(
-                                      color: Colors
-                                          .white), // Borda branca quando o campo está habilitado
+                                      color: Color.fromRGBO(255, 255, 255,
+                                          0.498)), // Borda branca quando o campo está habilitado
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   borderSide: BorderSide(
-                                      color: Colors
-                                          .white), // Borda branca quando o campo está focado
+                                      color: Color.fromRGBO(68, 101, 217,
+                                          0.5)), // Borda branca quando o campo está focado
                                 ),
                                 labelText: "Usuario",
                                 labelStyle: TextStyle(color: Colors.white)),
@@ -205,15 +205,15 @@ class _LoginStateState extends State<login> {
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   borderSide: BorderSide(
-                                      color: Colors
-                                          .white), // Borda branca quando o campo está habilitado
+                                      color: Color.fromRGBO(255, 255, 255,
+                                          0.5)), // Borda branca quando o campo está habilitado
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   borderSide: BorderSide(
-                                      color: Colors
-                                          .white), // Borda branca quando o campo está focado
+                                      color: Color.fromRGBO(68, 101, 217,
+                                          0.5)), // Borda branca quando o campo está focado
                                 ),
                                 labelText: "Senha",
                                 labelStyle: TextStyle(color: Colors.white)),
