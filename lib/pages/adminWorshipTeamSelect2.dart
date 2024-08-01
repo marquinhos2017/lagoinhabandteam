@@ -236,8 +236,11 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                     var nomeMusico = musicos['name'];
 
                                     return FutureBuilder<bool>(
-                                      future: verificaDisponibilidade(
-                                          date!, horario!, musicoId.toString()),
+                                      future: (date != null && horario != null)
+                                          ? verificaDisponibilidade(date!,
+                                              horario!, musicoId.toString())
+                                          : Future.value(
+                                              false), // or handle the null case appropriately
                                       builder:
                                           (context, disponibilidadeSnapshot) {
                                         if (disponibilidadeSnapshot

@@ -3,6 +3,8 @@ import 'dart:ffi';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lagoinha_music/pages/AddSongPage.dart';
+import 'package:lagoinha_music/pages/EuClamoJesus.dart';
 
 class ScheduleDetailsMusician extends StatefulWidget {
   final String id;
@@ -138,19 +140,35 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                       color: Color(0xff171717),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                musica['Music'] ?? 'Título desconhecido',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              Text(
-                                musica['Author'] ?? 'Autor desconhecido',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ]),
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  musica['Music'] ?? 'Título desconhecido',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                Text(
+                                  musica['Author'] ?? 'Autor desconhecido',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddSongPage(),
+                                        ));
+                                  },
+                                  child: Icon(
+                                    Icons.library_music_rounded,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              ]),
+                        ),
                       ),
                     ))
                 .toList(),
