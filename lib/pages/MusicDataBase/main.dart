@@ -75,12 +75,12 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                             width: 320,
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
-                              leading: Container(
+                              /* leading: Container(
                                 height: 65,
                                 width: 65,
                                 color: Colors.white,
                                 child: Icon(Icons.music_note_sharp),
-                              ),
+                              ),*/
                               trailing: ElevatedButton(
                                 style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(
@@ -142,18 +142,18 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                 },
                                 child: Icon(
                                   Icons.more_horiz,
-                                  color: Colors.white,
+                                  color: Color(0xff4465D9),
                                 ),
                               ),
                               title: Text(
-                                data['Author'] ?? 'No title',
+                                data['Music'] ?? 'No artist',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600),
                               ),
                               subtitle: Text(
-                                data['Music'] ?? 'No artist',
+                                data['Author'] ?? 'No title',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,

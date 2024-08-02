@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class VerCifra extends StatefulWidget {
@@ -13,7 +12,6 @@ class VerCifra extends StatefulWidget {
 
 class _VerCifraState extends State<VerCifra> {
   late Future<Map<String, dynamic>?> _songDetailsFuture;
-  int _transposeAmount = 0;
 
   @override
   void initState() {
@@ -34,131 +32,13 @@ class _VerCifraState extends State<VerCifra> {
     }
   }
 
-  // Mapa de transposição de notas
-  static const List<String> notes = [
-    'C',
-    'C#',
-    'D',
-    'D#',
-    'E',
-    'F',
-    'F#',
-    'G',
-    'G#',
-    'A',
-    'A#',
-    'B'
-  ];
-
-  String transposeChord(String chord, int semitones) {
-    final chordPattern = RegExp(r'^([A-Ga-g][#b]?)(.*)$');
-    final match = chordPattern.firstMatch(chord);
-
-    if (match != null) {
-      final note = match.group(1)!;
-      final rest = match.group(2) ?? '';
-
-      final noteIndex = notes.indexOf(note);
-      if (noteIndex != -1) {
-        final transposedIndex = (noteIndex + semitones) % notes.length;
-        final transposedNote = notes[transposedIndex < 0
-            ? transposedIndex + notes.length
-            : transposedIndex];
-        return transposedNote + rest;
-      }
-    }
-
-    return chord;
-  }
-
-  String transposeContent(String content, int semitones) {
-    final lines = content.split('\n');
-    final transposedLines = lines.map((line) {
-      if (_isChordLine(line.trim())) {
-        final words = line.split(' ');
-        final transposedWords =
-            words.map((word) => transposeChord(word, semitones)).toList();
-        return transposedWords.join(' ');
-      } else {
-        return line;
-      }
-    }).toList();
-
-    return transposedLines.join('\n');
-  }
-
-  List<TextSpan> _parseContent(BuildContext context, String content) {
-    final spans = <TextSpan>[];
-    final lines = content.split('\n');
-
-    for (var line in lines) {
-      final trimmedLine = line.trim();
-
-      if (trimmedLine.isEmpty) {
-        spans.add(TextSpan(text: '\n'));
-      } else {
-        final isChordLine = _isChordLine(trimmedLine);
-
-        if (isChordLine) {
-          spans.add(TextSpan(
-            text: line + '\n',
-            style: TextStyle(color: Colors.blue, fontFamily: 'monospace'),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                _showChordDialog(context, trimmedLine);
-              },
-          ));
-        } else {
-          spans.add(TextSpan(
-            text: line + '\n',
-            style: TextStyle(color: Colors.black, fontSize: 16),
-          ));
-        }
-      }
-    }
-
-    return spans;
-  }
-
-  bool _isChordLine(String line) {
-    final trimmedLine = line.trim();
-
-    if (trimmedLine.isEmpty) {
-      return false;
-    }
-
-    final chordPattern = RegExp(
-      r'^([A-Ga-g][#b]?m?(maj|min|dim|aug|sus[24]?|add[0-9]*|7|9|11|13)?|[A-Ga-g][#b]?/[A-Ga-g][#b]?|[A-Ga-g][#b]?maj7?|[A-Ga-g][#b]?m7?|[A-Ga-g][#b]?7?)(\s+[A-Ga-g][#b]?[m|maj|min|dim|aug|sus[24]?|add[0-9]*|7|9|11|13]?)*$',
-      caseSensitive: false,
-    );
-
-    return chordPattern.hasMatch(trimmedLine);
-  }
-
-  void _showChordDialog(BuildContext context, String chord) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Cifra'),
-          content: Text('Você clicou na cifra: $chord'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.black,
         title: FutureBuilder<Map<String, dynamic>?>(
           future: _songDetailsFuture,
           builder: (context, snapshot) {
@@ -167,32 +47,13 @@ class _VerCifraState extends State<VerCifra> {
             } else if (snapshot.hasError || !snapshot.hasData) {
               return Text('Erro');
             } else {
-              return Text(snapshot.data!['title'] ?? 'Sem título');
+              return Text(
+                snapshot.data!['title'] ?? 'Sem título',
+                style: TextStyle(color: Colors.white),
+              );
             }
           },
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.arrow_upward),
-            onPressed: () {
-              setState(() {
-                _transposeAmount += 1;
-                _songDetailsFuture =
-                    _fetchSongDetails(); // Recarregar detalhes com a transposição
-              });
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.arrow_downward),
-            onPressed: () {
-              setState(() {
-                _transposeAmount -= 1;
-                _songDetailsFuture =
-                    _fetchSongDetails(); // Recarregar detalhes com a transposição
-              });
-            },
-          ),
-        ],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _songDetailsFuture,
@@ -205,15 +66,12 @@ class _VerCifraState extends State<VerCifra> {
             return Center(child: Text('Música não encontrada'));
           } else {
             final content = snapshot.data!['content'] ?? '';
-            final transposedContent =
-                transposeContent(content, _transposeAmount);
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
-                child: RichText(
-                  text: TextSpan(
-                    children: _parseContent(context, transposedContent),
-                  ),
+                child: Text(
+                  content,
+                  style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
               ),
             );

@@ -352,12 +352,17 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                             List<Map<String, dynamic>> musicDataList =
                                 musicSnapshots.map((musicSnapshot) {
                               if (musicSnapshot.exists) {
-                                return musicSnapshot.data()
-                                    as Map<String, dynamic>;
+                                Map<String, dynamic> musicData = musicSnapshot
+                                    .data() as Map<String, dynamic>;
+                                musicData['document_id'] =
+                                    musicSnapshot.id; // Adiciona o documentId
+                                return musicData;
                               } else {
                                 return {
                                   'Music': 'Música Desconhecida',
                                   'Author': 'Autor Desconhecido',
+                                  'document_id':
+                                      '', // Adiciona um campo vazio se o documento não existir
                                 };
                               }
                             }).toList();

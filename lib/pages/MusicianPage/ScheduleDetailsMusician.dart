@@ -1,10 +1,7 @@
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:lagoinha_music/pages/AddSongPage.dart';
-import 'package:lagoinha_music/pages/EuClamoJesus.dart';
+import 'package:lagoinha_music/pages/VerCifra.dart';
 
 class ScheduleDetailsMusician extends StatefulWidget {
   final String id;
@@ -32,7 +29,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       currentIndex = index;
       isLoading = true;
     });
-    //  _loadInitialData(widget.documents[index].id);
   }
 
   late int currentIndex;
@@ -45,8 +41,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   void initState() {
     super.initState();
     currentIndex = widget.currentIndex;
-
-    //_loadInitialData();
   }
 
   Future<void> _loadInitialData([String? cultoId]) async {
@@ -127,7 +121,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   Widget _buildContent() {
     switch (selectedMenu) {
       case 'Musicas':
-
         // Acessa as músicas do culto atual utilizando o currentIndex
         List<Map<String, dynamic>> musicasAtuais = widget.musics[currentIndex];
 
@@ -140,37 +133,35 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                       color: Color(0xff171717),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  musica['Music'] ?? 'Título desconhecido',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                Text(
-                                  musica['Author'] ?? 'Autor desconhecido',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => AddSongPage(
-                                            document_id: 'asd',
-                                            title: "asd",
-                                          ),
-                                        ));
-                                  },
-                                  child: Icon(
-                                    Icons.library_music_rounded,
-                                    color: Colors.white,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              musica['Music'] ?? 'Título desconhecido',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            Text(
+                              musica['Author'] ?? 'Autor desconhecido',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VerCifra(
+                                      documentId: musica['document_id'],
+                                    ),
                                   ),
-                                )
-                              ]),
+                                );
+                              },
+                              child: Icon(
+                                Icons.library_music_rounded,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ))
