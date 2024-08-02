@@ -3,6 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lagoinha_music/pages/SongDetailsPage.dart';
 
 class AddSongPage extends StatefulWidget {
+  late String document_id;
+  late String title;
+
+  AddSongPage({required this.document_id, required this.title});
+
   @override
   _AddSongPageState createState() => _AddSongPageState();
 }
@@ -16,8 +21,9 @@ class _AddSongPageState extends State<AddSongPage> {
 
     // Adiciona a nova música
     await firestore.collection('songs').add({
-      'title': _titleController.text,
+      'title': widget.title,
       'content': _contentController.text,
+      'SongId': widget.document_id
     });
 
     // Limpa os campos
@@ -29,7 +35,7 @@ class _AddSongPageState extends State<AddSongPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Adicionar Música'),
+        title: Text('Cifra ' + widget.title),
       ),
       body: Column(
         children: [

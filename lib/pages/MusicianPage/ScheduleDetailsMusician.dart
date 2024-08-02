@@ -159,7 +159,10 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => AddSongPage(),
+                                          builder: (context) => AddSongPage(
+                                            document_id: 'asd',
+                                            title: "asd",
+                                          ),
                                         ));
                                   },
                                   child: Icon(
