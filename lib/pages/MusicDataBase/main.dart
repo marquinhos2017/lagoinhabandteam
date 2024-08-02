@@ -25,7 +25,12 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Music Library"),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.black,
+        title: Text(
+          "Banco de Cançōes",
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       backgroundColor: Colors.black,
       body: Padding(
@@ -35,9 +40,9 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 45, bottom: 45),
+              margin: EdgeInsets.only(top: 0, bottom: 12),
               child: Text(
-                "Music Library",
+                "Cançōes",
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -45,7 +50,7 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
               ),
             ),
             Container(
-              height: 500,
+              height: 600,
               child: StreamBuilder<QuerySnapshot>(
                 stream: _firestore.collection('music_database').snapshots(),
                 builder: (context, snapshot) {

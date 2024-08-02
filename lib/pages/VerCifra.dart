@@ -2,15 +2,29 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-class VerCifra extends StatelessWidget {
+class VerCifra extends StatefulWidget {
   final String documentId;
 
   VerCifra({required this.documentId});
 
+  @override
+  _VerCifraState createState() => _VerCifraState();
+}
+
+class _VerCifraState extends State<VerCifra> {
+  late Future<Map<String, dynamic>?> _songDetailsFuture;
+  int _transposeAmount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _songDetailsFuture = _fetchSongDetails();
+  }
+
   Future<Map<String, dynamic>?> _fetchSongDetails() async {
     final querySnapshot = await FirebaseFirestore.instance
         .collection('songs')
-        .where('SongId', isEqualTo: documentId)
+        .where('SongId', isEqualTo: widget.documentId)
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
@@ -18,6 +32,59 @@ class VerCifra extends StatelessWidget {
     } else {
       return null;
     }
+  }
+
+  // Mapa de transposição de notas
+  static const List<String> notes = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B'
+  ];
+
+  String transposeChord(String chord, int semitones) {
+    final chordPattern = RegExp(r'^([A-Ga-g][#b]?)(.*)$');
+    final match = chordPattern.firstMatch(chord);
+
+    if (match != null) {
+      final note = match.group(1)!;
+      final rest = match.group(2) ?? '';
+
+      final noteIndex = notes.indexOf(note);
+      if (noteIndex != -1) {
+        final transposedIndex = (noteIndex + semitones) % notes.length;
+        final transposedNote = notes[transposedIndex < 0
+            ? transposedIndex + notes.length
+            : transposedIndex];
+        return transposedNote + rest;
+      }
+    }
+
+    return chord;
+  }
+
+  String transposeContent(String content, int semitones) {
+    final lines = content.split('\n');
+    final transposedLines = lines.map((line) {
+      if (_isChordLine(line.trim())) {
+        final words = line.split(' ');
+        final transposedWords =
+            words.map((word) => transposeChord(word, semitones)).toList();
+        return transposedWords.join(' ');
+      } else {
+        return line;
+      }
+    }).toList();
+
+    return transposedLines.join('\n');
   }
 
   List<TextSpan> _parseContent(BuildContext context, String content) {
@@ -93,7 +160,7 @@ class VerCifra extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: FutureBuilder<Map<String, dynamic>?>(
-          future: _fetchSongDetails(),
+          future: _songDetailsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Text('Carregando...');
@@ -104,9 +171,31 @@ class VerCifra extends StatelessWidget {
             }
           },
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.arrow_upward),
+            onPressed: () {
+              setState(() {
+                _transposeAmount += 1;
+                _songDetailsFuture =
+                    _fetchSongDetails(); // Recarregar detalhes com a transposição
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.arrow_downward),
+            onPressed: () {
+              setState(() {
+                _transposeAmount -= 1;
+                _songDetailsFuture =
+                    _fetchSongDetails(); // Recarregar detalhes com a transposição
+              });
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
-        future: _fetchSongDetails(),
+        future: _songDetailsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -116,12 +205,14 @@ class VerCifra extends StatelessWidget {
             return Center(child: Text('Música não encontrada'));
           } else {
             final content = snapshot.data!['content'] ?? '';
+            final transposedContent =
+                transposeContent(content, _transposeAmount);
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
                 child: RichText(
                   text: TextSpan(
-                    children: _parseContent(context, content),
+                    children: _parseContent(context, transposedContent),
                   ),
                 ),
               ),
