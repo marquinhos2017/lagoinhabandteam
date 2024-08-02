@@ -12,14 +12,20 @@ class VerCifra extends StatefulWidget {
 
 class _VerCifraState extends State<VerCifra> {
   late Future<Map<String, dynamic>?> _songDetailsFuture;
+  bool _isEditing = false;
+  late TextEditingController _titleController;
+  late TextEditingController _contentController;
 
   @override
   void initState() {
     super.initState();
     _songDetailsFuture = _fetchSongDetails();
+    _titleController = TextEditingController();
+    _contentController = TextEditingController();
   }
 
   Future<Map<String, dynamic>?> _fetchSongDetails() async {
+    print(widget.documentId);
     final querySnapshot = await FirebaseFirestore.instance
         .collection('songs')
         .where('SongId', isEqualTo: widget.documentId)
@@ -30,6 +36,42 @@ class _VerCifraState extends State<VerCifra> {
     } else {
       return null;
     }
+  }
+
+  void _enableEditing(Map<String, dynamic> songDetails) {
+    setState(() {
+      _isEditing = true;
+      _titleController.text = songDetails['title'] ?? '';
+      _contentController.text = songDetails['content'] ?? '';
+    });
+  }
+
+  Future<void> _saveChanges() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('songs')
+        .where('SongId', isEqualTo: widget.documentId)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      final docId = querySnapshot.docs.first.id;
+
+      await FirebaseFirestore.instance.collection('songs').doc(docId).update({
+        'title': _titleController.text,
+        'content': _contentController.text,
+      });
+
+      setState(() {
+        _isEditing = false;
+        _songDetailsFuture = _fetchSongDetails();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
   }
 
   @override
@@ -43,17 +85,51 @@ class _VerCifraState extends State<VerCifra> {
           future: _songDetailsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text('Carregando...');
-            } else if (snapshot.hasError || !snapshot.hasData) {
-              return Text('Erro');
-            } else {
               return Text(
-                snapshot.data!['title'] ?? 'Sem título',
+                'Carregando...',
                 style: TextStyle(color: Colors.white),
               );
+            } else if (snapshot.hasError || !snapshot.hasData) {
+              return Text('Erro', style: TextStyle(color: Colors.white));
+            } else {
+              return _isEditing
+                  ? TextField(
+                      controller: _titleController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Título',
+                        hintStyle: TextStyle(color: Colors.white54),
+                      ),
+                    )
+                  : Text(
+                      snapshot.data!['title'] ?? 'Sem título',
+                      style: TextStyle(color: Colors.white),
+                    );
             }
           },
         ),
+        actions: [
+          FutureBuilder<Map<String, dynamic>?>(
+            future: _songDetailsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
+                return IconButton(
+                  icon: Icon(_isEditing ? Icons.save : Icons.edit),
+                  onPressed: () {
+                    if (_isEditing) {
+                      _saveChanges();
+                    } else {
+                      _enableEditing(snapshot.data!);
+                    }
+                  },
+                );
+              } else {
+                return Container();
+              }
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _songDetailsFuture,
@@ -61,18 +137,31 @@ class _VerCifraState extends State<VerCifra> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Erro ao carregar conteúdo'));
+            return Center(
+                child: Text('Erro ao carregar conteúdo',
+                    style: TextStyle(color: Colors.white)));
           } else if (!snapshot.hasData) {
-            return Center(child: Text('Música não encontrada'));
+            return Center(
+                child: Text('Música não encontrada',
+                    style: TextStyle(color: Colors.white)));
           } else {
-            final content = snapshot.data!['content'] ?? '';
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
-                child: Text(
-                  content,
-                  style: TextStyle(color: Colors.white, fontSize: 15),
-                ),
+                child: _isEditing
+                    ? TextField(
+                        controller: _contentController,
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          hintText: 'Conteúdo',
+                          hintStyle: TextStyle(color: Colors.white54),
+                        ),
+                      )
+                    : Text(
+                        snapshot.data!['content'] ?? '',
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                      ),
               ),
             );
           }
