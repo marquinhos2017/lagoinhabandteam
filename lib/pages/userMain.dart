@@ -150,7 +150,7 @@ class _userMainPageState extends State<userMainPage> {
       key: scaffoldKey,
       appBar: AppBar(
         title: Text(
-          "Lagoinha Worship Faro",
+          "Lagoinha Music Faro",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -257,11 +257,10 @@ class _userMainPageState extends State<userMainPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(12.0),
                 child: Row(
                   children: [
                     Container(
-                      margin: EdgeInsets.only(bottom: 0),
                       width: 170,
                       height: 154,
                       decoration: BoxDecoration(
@@ -311,52 +310,6 @@ class _userMainPageState extends State<userMainPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        "Calendar",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 12, bottom: 24),
-                        height: 270,
-                        decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(24))),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildHeader(),
-                            _buildDaysOfWeek(),
-                            _buildDays(),
-                          ],
-                        ),
-                      ),
-                      /* ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _showEvents =
-                                !_showEvents; // Alternar entre mostrar e ocultar eventos
-                          });
-                        },
-                        child: Text(_showEvents
-                            ? 'Ocultar Eventos'
-                            : 'Mostrar Eventos'),
-                      ),
-                      SizedBox(height: 20),
-                      // Lista de eventos da data selecionada
-                      if (_showEvents) ..._buildEventList(),
-*/
-                      if (_events.isNotEmpty)
-                        Column(
-                          children: [
-                            if (_buildEventList2().isNotEmpty)
-                              ..._buildEventList2(),
-                          ],
-                        ),
                       proximoCulto != null
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -367,7 +320,7 @@ class _userMainPageState extends State<userMainPage> {
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                 ),
-                                SizedBox(height: 16),
+
                                 Container(
                                   margin: EdgeInsets.only(bottom: 10),
                                   decoration: BoxDecoration(
@@ -382,7 +335,7 @@ class _userMainPageState extends State<userMainPage> {
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 30.0, vertical: 12),
+                                            horizontal: 16.0, vertical: 16),
                                         child: Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
@@ -419,7 +372,7 @@ class _userMainPageState extends State<userMainPage> {
                                             SizedBox(height: 8),
                                             Container(
                                               height: 30,
-                                              width: 280,
+                                              width: 320,
                                               child: ListView.builder(
                                                 scrollDirection:
                                                     Axis.horizontal,
@@ -485,13 +438,13 @@ class _userMainPageState extends State<userMainPage> {
                                                               Color(0xff0075FF),
                                                           borderRadius:
                                                               BorderRadius
-                                                                  .circular(24),
+                                                                  .circular(0),
                                                         ),
                                                         child: Padding(
                                                           padding:
                                                               const EdgeInsets
                                                                   .symmetric(
-                                                            horizontal: 24.0,
+                                                            horizontal: 32.0,
                                                             vertical: 6,
                                                           ),
                                                           child: Text(
@@ -538,6 +491,52 @@ class _userMainPageState extends State<userMainPage> {
                                     fontSize: 18, color: Colors.white),
                               ),
                             ),
+                      Text(
+                        "Calendário",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 12, bottom: 24),
+                        height: 270,
+                        decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(24))),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildHeader(),
+                            _buildDaysOfWeek(),
+                            _buildDays(),
+                          ],
+                        ),
+                      ),
+                      /* ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _showEvents =
+                                !_showEvents; // Alternar entre mostrar e ocultar eventos
+                          });
+                        },
+                        child: Text(_showEvents
+                            ? 'Ocultar Eventos'
+                            : 'Mostrar Eventos'),
+                      ),
+                      SizedBox(height: 20),
+                      // Lista de eventos da data selecionada
+                      if (_showEvents) ..._buildEventList(),
+*/
+                      if (_events.isNotEmpty)
+                        Column(
+                          children: [
+                            if (_buildEventList2().isNotEmpty)
+                              ..._buildEventList2(),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -632,18 +631,28 @@ class _userMainPageState extends State<userMainPage> {
     );
   }
 
+  String capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
+  }
+
   Widget _buildDaysOfWeek() {
+    final List<String> weekdays = [];
+    for (var i = 0; i < 7; i++) {
+      final weekDay = DateFormat.E('pt_BR').format(DateTime(2020, 1, i + 6));
+      weekdays.add(capitalize(weekDay));
+    }
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(7, (index) {
-          final weekDay = DateFormat.E().format(DateTime(2020, 1, index + 6));
           return Container(
             width: 30,
             child: Center(
               child: Text(
-                weekDay,
+                weekdays[index],
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

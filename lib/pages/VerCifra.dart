@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class VerCifra extends StatefulWidget {
   final String documentId;
+  final bool isAdmin;
 
-  VerCifra({required this.documentId});
+  VerCifra({required this.documentId, required this.isAdmin});
 
   @override
   _VerCifraState createState() => _VerCifraState();
@@ -25,7 +26,6 @@ class _VerCifraState extends State<VerCifra> {
   }
 
   Future<Map<String, dynamic>?> _fetchSongDetails() async {
-    print(widget.documentId);
     final querySnapshot = await FirebaseFirestore.instance
         .collection('songs')
         .where('SongId', isEqualTo: widget.documentId)
@@ -109,26 +109,27 @@ class _VerCifraState extends State<VerCifra> {
           },
         ),
         actions: [
-          FutureBuilder<Map<String, dynamic>?>(
-            future: _songDetailsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                return IconButton(
-                  icon: Icon(_isEditing ? Icons.save : Icons.edit),
-                  onPressed: () {
-                    if (_isEditing) {
-                      _saveChanges();
-                    } else {
-                      _enableEditing(snapshot.data!);
-                    }
-                  },
-                );
-              } else {
-                return Container();
-              }
-            },
-          ),
+          if (widget.isAdmin)
+            FutureBuilder<Map<String, dynamic>?>(
+              future: _songDetailsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData) {
+                  return IconButton(
+                    icon: Icon(_isEditing ? Icons.save : Icons.edit),
+                    onPressed: () {
+                      if (_isEditing) {
+                        _saveChanges();
+                      } else {
+                        _enableEditing(snapshot.data!);
+                      }
+                    },
+                  );
+                } else {
+                  return Container();
+                }
+              },
+            ),
         ],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(

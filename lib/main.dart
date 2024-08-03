@@ -10,6 +10,8 @@ import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class CultosProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -114,6 +116,7 @@ class CultosProvider extends ChangeNotifier {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await initializeDateFormatting('pt_BR', null);
 
   runApp(
     MultiProvider(

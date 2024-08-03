@@ -152,6 +152,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                   MaterialPageRoute(
                                     builder: (context) => VerCifra(
                                       documentId: musica['document_id'],
+                                      isAdmin: false,
                                     ),
                                   ),
                                 );

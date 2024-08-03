@@ -109,8 +109,9 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                                     MaterialPageRoute(
                                                       builder: (context) =>
                                                           VerCifra(
-                                                              documentId:
-                                                                  document.id),
+                                                        documentId: document.id,
+                                                        isAdmin: true,
+                                                      ),
                                                     ),
                                                   );
                                                 },
