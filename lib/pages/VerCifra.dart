@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class VerCifra extends StatefulWidget {
@@ -72,6 +73,105 @@ class _VerCifraState extends State<VerCifra> {
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
+  }
+
+  // Utility function to build RichText with mixed styles
+  RichText buildRichText(String content) {
+    final lines = content.split('\n');
+    final textSpans = <TextSpan>[];
+
+    for (var line in lines) {
+      // Find all chord matches and their positions
+      final chordMatches = RegExp(r'<(.*?)>').allMatches(line);
+
+      if (chordMatches.isEmpty) {
+        // If no chords found, add the whole line as normal text
+        textSpans.add(
+          TextSpan(
+            text: line + '\n',
+            style: TextStyle(color: Colors.white),
+          ),
+        );
+      } else {
+        int lastEnd = 0;
+
+        // Add text before the first chord
+        for (final match in chordMatches) {
+          final start = match.start;
+          final end = match.end;
+          final chord = match.group(1) ?? '';
+
+          // Add text from last match to the start of the current chord
+          if (lastEnd < start) {
+            textSpans.add(
+              TextSpan(
+                text: line.substring(lastEnd, start),
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          // Add the chord itself with a GestureDetector
+          textSpans.add(
+            TextSpan(
+              text: chord,
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  _showChordAlert(chord);
+                },
+            ),
+          );
+
+          lastEnd = end;
+        }
+
+        // Add any remaining text after the last chord
+        if (lastEnd < line.length) {
+          textSpans.add(
+            TextSpan(
+              text: line.substring(lastEnd) + '\n',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        } else {
+          // Ensure a newline is added after the last chord if there's no remaining text
+          textSpans.add(
+            TextSpan(
+              text: '\n',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        }
+      }
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(fontSize: 16.0),
+        children: textSpans,
+      ),
+    );
+  }
+
+  void _showChordAlert(String chord) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Acorde'),
+          content: Text('Você clicou no acorde: $chord'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -159,10 +259,7 @@ class _VerCifraState extends State<VerCifra> {
                           hintStyle: TextStyle(color: Colors.white54),
                         ),
                       )
-                    : Text(
-                        snapshot.data!['content'] ?? '',
-                        style: TextStyle(color: Colors.white, fontSize: 15),
-                      ),
+                    : buildRichText(snapshot.data!['content'] ?? ''),
               ),
             );
           }
