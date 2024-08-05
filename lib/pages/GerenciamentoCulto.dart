@@ -292,9 +292,13 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             }
 
             if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
-              return Center(
-                child: Text('Dados não encontrados',
-                    style: TextStyle(color: Colors.white)),
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: Text(
+                      'Clique no Botao acima para adicionar instrumentistas', // Significa que esta faltando todos os instrumentos
+                      style: TextStyle(color: Colors.white, fontSize: 12)),
+                ),
               );
             }
 
@@ -303,7 +307,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             return Container(
               color: Color(0xff171717),
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 2),
                 child: ListView.builder(
                   padding: EdgeInsets.zero,
                   itemCount: musicoList.length,
@@ -429,7 +434,6 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Container(
-                margin: EdgeInsets.only(top: 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -450,6 +454,9 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                           height: 20,
                         ),
                         _buildInstrumentButtons(context),
+                        SizedBox(
+                          height: 20,
+                        ),
                         _buildMusicianList(),
                       ],
                     ),
