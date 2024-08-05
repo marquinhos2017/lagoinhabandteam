@@ -152,7 +152,9 @@ class _userMainPageState extends State<userMainPage> {
       appBar: AppBar(
         title: Text(
           "Lagoinha Music Faro",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+          ),
         ),
         leading: IconButton(
           icon: Icon(

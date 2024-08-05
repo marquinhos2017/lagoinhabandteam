@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:lagoinha_music/pages/VerCifra.dart';
 import 'package:lagoinha_music/pages/VerCifraUser.dart';
 
 class ScheduleDetailsMusician extends StatefulWidget {
@@ -25,13 +24,6 @@ class ScheduleDetailsMusician extends StatefulWidget {
 class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void _navigateToDocument(int index) {
-    setState(() {
-      currentIndex = index;
-      isLoading = true;
-    });
-  }
-
   late int currentIndex;
   List<Map<String, dynamic>> musicos = [];
   String selectedMenu = 'Musicas';
@@ -42,6 +34,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   void initState() {
     super.initState();
     currentIndex = widget.currentIndex;
+    _loadInitialData(); // Carrega os dados iniciais ao iniciar
   }
 
   Future<void> _loadInitialData([String? cultoId]) async {
@@ -119,10 +112,21 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     }
   }
 
+  void _navigateToDocument(int index) async {
+    if (index < 0 || index >= widget.documents.length)
+      return; // Check index bounds
+
+    setState(() {
+      isLoading = true;
+      currentIndex = index;
+    });
+
+    await _loadInitialData(widget.documents[currentIndex].id);
+  }
+
   Widget _buildContent() {
     switch (selectedMenu) {
       case 'Musicas':
-        // Acessa as músicas do culto atual utilizando o currentIndex
         List<Map<String, dynamic>> musicasAtuais = widget.musics[currentIndex];
 
         return Container(
@@ -132,31 +136,31 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                 .map((musica) => Container(
                       margin: EdgeInsets.all(12),
                       color: Color(0xff171717),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
+                      child: ExpansionTile(
+                        dense: false,
+                        iconColor: Colors.blueAccent,
+                        shape: Border.all(color: Color(0xff171717)),
+                        title: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(
-                              child: Text(
-                                musica['Music'] ?? 'Título desconhecido',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                            Text(
+                              musica['Music'] ?? 'Título desconhecido',
+                              style: TextStyle(color: Colors.white),
                             ),
-                            Expanded(
-                              child: Text(
-                                musica['Author'] ?? 'Autor desconhecido',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                            Text(
+                              musica['Author'] ?? 'Autor desconhecido',
+                              style: TextStyle(color: Colors.white),
                             ),
-                            Expanded(
-                              child: Text(
-                                musica['key'] ?? 'Key desconhecido',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                          ],
+                        ),
+                        children: [
+                          ListTile(
+                            title: Text(
+                              'Tom: ${musica['key'] ?? 'Desconhecido'}',
+                              style: TextStyle(color: Colors.white),
                             ),
-                            GestureDetector(
+                            trailing: GestureDetector(
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -171,11 +175,12 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                               },
                               child: Icon(
                                 Icons.library_music_rounded,
-                                color: Colors.white,
+                                color: Colors.blueAccent,
+                                size: 24,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ))
                 .toList(),
@@ -227,9 +232,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   Widget build(BuildContext context) {
     final List<DocumentSnapshot> documentsAll = widget.documents;
     final List<List<Map<String, dynamic>>> musicsAll = widget.musics;
-    print(documentsAll[currentIndex]['nome']);
-    print(musicsAll[currentIndex]);
-    print(documentsAll[currentIndex]['musicos']);
     final id = documentsAll[currentIndex].id;
 
     return Scaffold(

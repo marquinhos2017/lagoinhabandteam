@@ -161,7 +161,7 @@ class _VerCifraState extends State<VerCifra> {
   };
 
   String _transposeChords(String content, int steps) {
-    final chordRegex = RegExp(r'<([A-G][#b]?)([mM]?[7]?[9]?[11]?[b]?)>');
+    final chordRegex = RegExp(r'<([A-G][#b]?)([mM]?[7]?[9]?[11]?[b]?[b6]?)>');
 
     return content.replaceAllMapped(chordRegex, (match) {
       final baseChord = match.group(1) ?? '';
