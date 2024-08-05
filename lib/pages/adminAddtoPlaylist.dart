@@ -14,6 +14,24 @@ class AddtoPlaylist extends StatefulWidget {
 class _AddtoPlaylistState extends State<AddtoPlaylist> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<List<String>> _getPlaylistMusicIds() async {
+    try {
+      DocumentReference cultoRef =
+          _firestore.collection('Cultos').doc(widget.document_id);
+      DocumentSnapshot cultoDoc = await cultoRef.get();
+
+      if (!cultoDoc.exists) {
+        throw Exception('Documento de culto não encontrado');
+      }
+
+      List<dynamic> playlist = cultoDoc['playlist'] ?? [];
+      return playlist.map((item) => item['music_document'] as String).toList();
+    } catch (e) {
+      print('Erro ao obter IDs das músicas na playlist: $e');
+      return [];
+    }
+  }
+
   Future<void> _showKeyDialog(String documentId) async {
     String? selectedKey;
 
@@ -92,6 +110,7 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                             duration: Duration(seconds: 2),
                           ),
                         );
+                        Navigator.pop(context);
                       } catch (e) {
                         print('Erro ao adicionar música: $e');
                       }
@@ -148,58 +167,79 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
               padding: const EdgeInsets.all(57.0),
               child: Container(
                 height: 500,
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: _firestore.collection('music_database').snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
+                child: FutureBuilder<List<String>>(
+                  future: _getPlaylistMusicIds(),
+                  builder: (context, playlistSnapshot) {
+                    if (!playlistSnapshot.hasData) {
                       return Center(child: CircularProgressIndicator());
                     }
 
-                    final List<DocumentSnapshot> documents =
-                        snapshot.data!.docs;
-                    return ListView.builder(
-                      padding: EdgeInsets.all(0),
-                      itemCount: documents.length,
-                      itemBuilder: (context, index) {
-                        final data =
-                            documents[index].data() as Map<String, dynamic>;
-                        var documentId = documents[index].id;
+                    final List<String> playlistMusicIds =
+                        playlistSnapshot.data!;
 
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 270,
-                              child: ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                trailing: GestureDetector(
-                                  onTap: () async {
-                                    await _showKeyDialog(documentId);
-                                  },
-                                  child: Icon(
-                                    Icons.add,
-                                    color: Color(0xff4465D9),
+                    return StreamBuilder<QuerySnapshot>(
+                      stream:
+                          _firestore.collection('music_database').snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+
+                        final List<DocumentSnapshot> documents =
+                            snapshot.data!.docs;
+
+                        // Filtrar músicas que já estão na playlist
+                        final List<DocumentSnapshot> filteredDocuments =
+                            documents
+                                .where(
+                                    (doc) => !playlistMusicIds.contains(doc.id))
+                                .toList();
+
+                        return ListView.builder(
+                          padding: EdgeInsets.all(0),
+                          itemCount: filteredDocuments.length,
+                          itemBuilder: (context, index) {
+                            final data = filteredDocuments[index].data()
+                                as Map<String, dynamic>;
+                            var documentId = filteredDocuments[index].id;
+
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 270,
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    trailing: GestureDetector(
+                                      onTap: () async {
+                                        await _showKeyDialog(documentId);
+                                      },
+                                      child: Icon(
+                                        Icons.add,
+                                        color: Color(0xff4465D9),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      data['Author'] ?? 'No title',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      data['Music'] ?? 'No artist',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w200,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                title: Text(
-                                  data['Author'] ?? 'No title',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  data['Music'] ?? 'No artist',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w200,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         );
                       },
                     );
