@@ -120,6 +120,27 @@ class _VerCifraState extends State<VerCifra> {
     'B'
   ];
 
+  // Define chord formations
+  final Map<String, String> chordFormations = {
+    'C': 'C (Tônica), E (Terça maior), G (Quinta justa)',
+    'C#': 'C# (Tônica), F (Terça maior), G# (Quinta justa)',
+    'Db': 'Db (Tônica), F (Terça maior), Ab (Quinta justa)',
+    'D': 'D (Tônica), F# (Terça maior), A (Quinta justa)',
+    'D#': 'D# (Tônica), G (Terça maior), A# (Quinta justa)',
+    'Eb': 'Eb (Tônica), G (Terça maior), Bb (Quinta justa)',
+    'E': 'E (Tônica), G# (Terça maior), B (Quinta justa)',
+    'F': 'F (Tônica), A (Terça maior), C (Quinta justa)',
+    'F#': 'F# (Tônica), A# (Terça maior), C# (Quinta justa)',
+    'Gb': 'Gb (Tônica), Bb (Terça maior), Db (Quinta justa)',
+    'G': 'G (Tônica), B (Terça maior), D (Quinta justa)',
+    'G#': 'G# (Tônica), B# (Terça maior), D# (Quinta justa)',
+    'Ab': 'Ab (Tônica), C (Terça maior), Eb (Quinta justa)',
+    'A': 'A (Tônica), C# (Terça maior), E (Quinta justa)',
+    'A#': 'A# (Tônica), Cx (Terça maior), E# (Quinta justa)',
+    'Bb': 'Bb (Tônica), D (Terça maior), F (Quinta justa)',
+    'B': 'B (Tônica), D# (Terça maior), F# (Quinta justa)'
+  };
+
   String _transposeChords(String content, int steps) {
     final chordRegex = RegExp(r'<([A-G][#b]?)([mM]?[7]?[9]?[11]?[b]?)>');
 
@@ -241,12 +262,14 @@ class _VerCifraState extends State<VerCifra> {
   }
 
   void _showChordAlert(String chord) {
+    final chordFormation = chordFormations[chord] ?? 'Formação desconhecida';
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Acorde'),
-          content: Text('Você clicou no acorde: $chord'),
+          title: Text('Formação do Acorde'),
+          content: Text('Acorde: $chord\nFormação: $chordFormation'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
