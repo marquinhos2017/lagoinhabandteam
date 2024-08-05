@@ -17,6 +17,9 @@ class _VerCifraState extends State<VerCifra> {
   bool _isEditing = false;
   late TextEditingController _titleController;
   late TextEditingController _contentController;
+  String tomOriginal = '';
+  String _originalContent = '';
+  int _transpositionSteps = 0; // Number of steps for transposition
 
   @override
   void initState() {
@@ -33,7 +36,19 @@ class _VerCifraState extends State<VerCifra> {
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      return querySnapshot.docs.first.data();
+      final data = querySnapshot.docs.first.data();
+      final content = data['content'] ?? '';
+
+      // Extract the original key from the content
+      final tomMatch = RegExp(r'Tom: <(.*?)>').firstMatch(content);
+      if (tomMatch != null) {
+        tomOriginal = tomMatch.group(1) ?? '';
+      }
+
+      _originalContent = content; // Save the original content
+      _contentController.text = _transposeChords(content, _transpositionSteps);
+
+      return data;
     } else {
       return null;
     }
@@ -43,7 +58,9 @@ class _VerCifraState extends State<VerCifra> {
     setState(() {
       _isEditing = true;
       _titleController.text = songDetails['title'] ?? '';
-      _contentController.text = songDetails['content'] ?? '';
+      // Ensure we update the content controller with transposed content
+      _contentController.text =
+          _transposeChords(_originalContent, _transpositionSteps);
     });
   }
 
@@ -68,6 +85,82 @@ class _VerCifraState extends State<VerCifra> {
     }
   }
 
+  Map<String, String> _normalizeNotes = {
+    'C': 'C',
+    'C#': 'C#',
+    'Db': 'C#',
+    'D': 'D',
+    'D#': 'D#',
+    'Eb': 'D#',
+    'E': 'E',
+    'F': 'F',
+    'F#': 'F#',
+    'Gb': 'F#',
+    'G': 'G',
+    'G#': 'G#',
+    'Ab': 'G#',
+    'A': 'A',
+    'A#': 'A#',
+    'Bb': 'A#',
+    'B': 'B'
+  };
+
+  List<String> _notes = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B'
+  ];
+
+  String _transposeChords(String content, int steps) {
+    final chordRegex = RegExp(r'<([A-G][#b]?)([mM]?[7]?[9]?[11]?[b]?)>');
+
+    return content.replaceAllMapped(chordRegex, (match) {
+      final baseChord = match.group(1) ?? '';
+      final variations = match.group(2) ?? '';
+
+      // Normalize the baseChord to handle all forms of the same note
+      final normalizedChord = _normalizeNotes[baseChord] ?? baseChord;
+      final index = _notes.indexOf(normalizedChord);
+
+      if (index != -1) {
+        final newIndex = (index + steps) % _notes.length;
+        final adjustedIndex = (newIndex + _notes.length) % _notes.length;
+        final transposedChord = _notes[adjustedIndex];
+
+        // Return the transposed chord with variations
+        return '<${transposedChord}${variations}>';
+      }
+
+      // Return the original text if no chord is found
+      return match.group(0) ?? '';
+    });
+  }
+
+  void _increaseTransposition() {
+    setState(() {
+      _transpositionSteps++;
+      _contentController.text =
+          _transposeChords(_originalContent, _transpositionSteps);
+    });
+  }
+
+  void _decreaseTransposition() {
+    setState(() {
+      _transpositionSteps--;
+      _contentController.text =
+          _transposeChords(_originalContent, _transpositionSteps);
+    });
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -75,17 +168,14 @@ class _VerCifraState extends State<VerCifra> {
     super.dispose();
   }
 
-  // Utility function to build RichText with mixed styles
   RichText buildRichText(String content) {
     final lines = content.split('\n');
     final textSpans = <TextSpan>[];
 
     for (var line in lines) {
-      // Find all chord matches and their positions
       final chordMatches = RegExp(r'<(.*?)>').allMatches(line);
 
       if (chordMatches.isEmpty) {
-        // If no chords found, add the whole line as normal text
         textSpans.add(
           TextSpan(
             text: line + '\n',
@@ -95,13 +185,11 @@ class _VerCifraState extends State<VerCifra> {
       } else {
         int lastEnd = 0;
 
-        // Add text before the first chord
         for (final match in chordMatches) {
           final start = match.start;
           final end = match.end;
           final chord = match.group(1) ?? '';
 
-          // Add text from last match to the start of the current chord
           if (lastEnd < start) {
             textSpans.add(
               TextSpan(
@@ -111,7 +199,6 @@ class _VerCifraState extends State<VerCifra> {
             );
           }
 
-          // Add the chord itself with a GestureDetector
           textSpans.add(
             TextSpan(
               text: chord,
@@ -126,7 +213,6 @@ class _VerCifraState extends State<VerCifra> {
           lastEnd = end;
         }
 
-        // Add any remaining text after the last chord
         if (lastEnd < line.length) {
           textSpans.add(
             TextSpan(
@@ -135,7 +221,6 @@ class _VerCifraState extends State<VerCifra> {
             ),
           );
         } else {
-          // Ensure a newline is added after the last chord if there's no remaining text
           textSpans.add(
             TextSpan(
               text: '\n',
@@ -147,6 +232,7 @@ class _VerCifraState extends State<VerCifra> {
     }
 
     return RichText(
+      textAlign: TextAlign.start,
       text: TextSpan(
         style: TextStyle(fontSize: 16.0),
         children: textSpans,
@@ -201,14 +287,28 @@ class _VerCifraState extends State<VerCifra> {
                         hintStyle: TextStyle(color: Colors.white54),
                       ),
                     )
-                  : Text(
-                      snapshot.data!['title'] ?? 'Sem título',
-                      style: TextStyle(color: Colors.white),
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          snapshot.data!['title'] ?? 'Sem título',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        if (tomOriginal.isNotEmpty)
+                          Text(
+                            'Tom Original: $tomOriginal',
+                            style: TextStyle(color: Colors.white, fontSize: 14),
+                          ),
+                      ],
                     );
             }
           },
         ),
         actions: [
+          Text(
+            tomOriginal,
+            style: TextStyle(color: Colors.white),
+          ),
           if (widget.isAdmin)
             FutureBuilder<Map<String, dynamic>?>(
               future: _songDetailsFuture,
@@ -248,18 +348,87 @@ class _VerCifraState extends State<VerCifra> {
           } else {
             return Padding(
               padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: _isEditing
-                    ? TextField(
-                        controller: _contentController,
-                        style: TextStyle(color: Colors.white, fontSize: 15),
-                        maxLines: null,
-                        decoration: InputDecoration(
-                          hintText: 'Conteúdo',
-                          hintStyle: TextStyle(color: Colors.white54),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_isEditing) // Display the transposition buttons only when editing
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _decreaseTransposition,
+                          style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all<Color>(Colors.black),
+                            foregroundColor:
+                                MaterialStateProperty.all<Color>(Colors.blue),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                EdgeInsets.symmetric(
+                                    horizontal: 16.0, vertical: 8.0)),
+                            textStyle: MaterialStateProperty.all<TextStyle>(
+                                TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold)),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                          ),
+                          child: Text('−1 Semitom'),
                         ),
-                      )
-                    : buildRichText(snapshot.data!['content'] ?? ''),
+                        ElevatedButton(
+                          onPressed: _increaseTransposition,
+                          style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all<Color>(Colors.black),
+                            foregroundColor:
+                                MaterialStateProperty.all<Color>(Colors.blue),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                EdgeInsets.symmetric(
+                                    horizontal: 16.0, vertical: 8.0)),
+                            textStyle: MaterialStateProperty.all<TextStyle>(
+                                TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold)),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                          ),
+                          child: Text('+1 Semitom'),
+                        ),
+                      ],
+                    ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: _isEditing
+                          ? TextField(
+                              controller: _contentController,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
+                              maxLines: null,
+                              decoration: InputDecoration(
+                                hintText: 'Conteúdo',
+                                hintStyle: TextStyle(color: Colors.white54),
+                              ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                    child:
+                                        buildRichText(_contentController.text)),
+                              ],
+                            ),
+                    ),
+                  ),
+                ],
               ),
             );
           }
