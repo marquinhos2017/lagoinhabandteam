@@ -46,6 +46,9 @@ class _VerCifraState extends State<VerCifra> {
       }
 
       _originalContent = content; // Save the original content
+      _transpositionSteps =
+          data['transpositionSteps'] ?? 0; // Load transposition steps
+
       _contentController.text = _transposeChords(content, _transpositionSteps);
 
       return data;
@@ -80,7 +83,7 @@ class _VerCifraState extends State<VerCifra> {
 
       setState(() {
         _isEditing = false;
-        _songDetailsFuture = _fetchSongDetails();
+        _songDetailsFuture = _fetchSongDetails(); // Fetch updated song details
       });
     }
   }
@@ -344,10 +347,6 @@ class _VerCifraState extends State<VerCifra> {
           },
         ),
         actions: [
-          Text(
-            tomOriginal,
-            style: TextStyle(color: Colors.white),
-          ),
           if (widget.isAdmin)
             FutureBuilder<Map<String, dynamic>?>(
               future: _songDetailsFuture,
@@ -467,15 +466,8 @@ class _VerCifraState extends State<VerCifra> {
                                 hintStyle: TextStyle(color: Colors.white54),
                               ),
                             )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                    child:
-                                        buildRichText(_contentController.text)),
-                              ],
-                            ),
+                          : buildRichText(
+                              _contentController.text), // Update this part
                     ),
                   ),
                 ],
