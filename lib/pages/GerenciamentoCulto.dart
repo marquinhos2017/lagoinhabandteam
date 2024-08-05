@@ -182,9 +182,11 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildInstrumentButton(context, "Keyboard"),
-                    _buildInstrumentButton(context, "Guitar"),
-                    _buildInstrumentButton(context, "Drums"),
+                    _buildInstrumentButton(context, "Piano"),
+                    _buildInstrumentButton(context, "Guitarra"),
+                    _buildInstrumentButton(context, "Bateria"),
+                    _buildInstrumentButton(context, "Violão"),
+                    _buildInstrumentButton(context, "Baixo"),
                   ],
                 ),
               );
@@ -196,12 +198,16 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  if (!instruments.contains('Keyboard'))
-                    _buildInstrumentButton(context, "Keyboard"),
-                  if (!instruments.contains('Guitar'))
-                    _buildInstrumentButton(context, "Guitar"),
-                  if (!instruments.contains('Drums'))
-                    _buildInstrumentButton(context, "Drums"),
+                  if (!instruments.contains('Piano'))
+                    _buildInstrumentButton(context, "Piano"),
+                  if (!instruments.contains('Guitarra'))
+                    _buildInstrumentButton(context, "Guitarra"),
+                  if (!instruments.contains('Bateria'))
+                    _buildInstrumentButton(context, "Bateria"),
+                  if (!instruments.contains('Violão'))
+                    _buildInstrumentButton(context, "Violão"),
+                  if (!instruments.contains('Baixo'))
+                    _buildInstrumentButton(context, "Baixo"),
                 ],
               ),
             );
@@ -214,7 +220,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
   Widget _buildInstrumentButton(BuildContext context, String instrument) {
     return Container(
       margin: EdgeInsets.only(right: 24),
-      width: 100,
+      width: 75,
       decoration: BoxDecoration(
         color: Color(0xff4465D9),
         borderRadius: BorderRadius.circular(4),
@@ -294,76 +300,86 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
 
             final musicoList = futureSnapshot.data!;
 
-            return ListView.builder(
-              itemCount: musicoList.length,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                final musico = musicoList[index];
-                final name = musico['name'] ?? 'Nome não disponível';
-                final instrument =
-                    musico['instrument'] ?? 'Instrumento não disponível';
+            return Container(
+              color: Color(0xff171717),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: musicoList.length,
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    final musico = musicoList[index];
+                    final name = musico['name'] ?? 'Nome não disponível';
+                    final instrument =
+                        musico['instrument'] ?? 'Instrumento não disponível';
 
-                return Column(
-                  children: [
-                    GestureDetector(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    return Container(
+                      child: Column(
                         children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(right: 20),
-                                child: Text(
-                                  instrument,
+                          GestureDetector(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  name,
                                   style: TextStyle(
-                                      color: Color(0xff558FFF), fontSize: 12),
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete, color: Colors.white),
-                                onPressed: () async {
-                                  if (_isProcessing || !mounted) return;
+                                Row(
+                                  children: [
+                                    Container(
+                                      margin: EdgeInsets.only(right: 20),
+                                      child: Text(
+                                        instrument,
+                                        style: TextStyle(
+                                            color: Color(0xff558FFF),
+                                            fontSize: 12),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete,
+                                          color: Colors.white),
+                                      onPressed: () async {
+                                        if (_isProcessing || !mounted) return;
 
-                                  setState(() {
-                                    _isProcessing = true;
-                                  });
+                                        setState(() {
+                                          _isProcessing = true;
+                                        });
 
-                                  final musicoToRemove = musicos[index];
-                                  final userId = musicoToRemove['user_id']
-                                          as int? ??
-                                      0; // Garantir que user_id é um inteiro
-                                  final idCulto = widget.documentId;
+                                        final musicoToRemove = musicos[index];
+                                        final userId = musicoToRemove['user_id']
+                                                as int? ??
+                                            0; // Garantir que user_id é um inteiro
+                                        final idCulto = widget.documentId;
 
-                                  // Remover o músico da lista local
-                                  setState(() {
-                                    musicos.removeAt(index);
-                                  });
+                                        // Remover o músico da lista local
+                                        setState(() {
+                                          musicos.removeAt(index);
+                                        });
 
-                                  // Remover o músico do Firestore
-                                  await _removeMusician(userId, idCulto);
+                                        // Remover o músico do Firestore
+                                        await _removeMusician(userId, idCulto);
 
-                                  setState(() {
-                                    _isProcessing = false;
-                                  });
-                                },
-                              ),
-                            ],
+                                        setState(() {
+                                          _isProcessing = false;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    Divider(color: Color(0xff558FFF), thickness: 0.2),
-                  ],
-                );
-              },
+                    );
+                  },
+                ),
+              ),
             );
           },
         );
@@ -430,15 +446,15 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
-                        _buildInstrumentButtons(context),
                         SizedBox(
                           height: 20,
                         ),
+                        _buildInstrumentButtons(context),
                         _buildMusicianList(),
                       ],
                     ),
                     SizedBox(
-                      height: 64,
+                      height: 42,
                     ),
                     Container(
                       width: MediaQuery.of(context).size.width,
@@ -715,48 +731,99 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                             color:
                                                                 Colors.white),
                                                       ),
-                                                      IconButton(
-                                                        icon: Icon(Icons.delete,
-                                                            color: Colors.red),
-                                                        onPressed: () async {
-                                                          try {
-                                                            DocumentReference
-                                                                cultoRef =
-                                                                FirebaseFirestore
-                                                                    .instance
-                                                                    .collection(
-                                                                        'Cultos')
-                                                                    .doc(widget
-                                                                        .documentId);
-                                                            await cultoRef
-                                                                .update({
-                                                              'playlist': FieldValue
-                                                                  .arrayRemove([
-                                                                playlist[index]
-                                                              ])
-                                                            });
+                                                      PopupMenuButton<String>(
+                                                        onSelected: (String
+                                                            value) async {
+                                                          if (value ==
+                                                              'update') {
+                                                            //  _updateVideoLink();
+                                                          } else if (value ==
+                                                              'delete') {
+                                                            try {
+                                                              DocumentReference
+                                                                  cultoRef =
+                                                                  FirebaseFirestore
+                                                                      .instance
+                                                                      .collection(
+                                                                          'Cultos')
+                                                                      .doc(widget
+                                                                          .documentId);
+                                                              await cultoRef
+                                                                  .update({
+                                                                'playlist':
+                                                                    FieldValue
+                                                                        .arrayRemove([
+                                                                  playlist[
+                                                                      index]
+                                                                ])
+                                                              });
 
-                                                            ScaffoldMessenger
-                                                                    .of(context)
-                                                                .showSnackBar(
-                                                              SnackBar(
-                                                                backgroundColor:
-                                                                    Colors.red,
-                                                                content: Text(
-                                                                    'Música removida da playlist com sucesso'),
-                                                                duration:
-                                                                    Duration(
-                                                                        seconds:
-                                                                            2),
-                                                              ),
-                                                            );
+                                                              ScaffoldMessenger
+                                                                      .of(context)
+                                                                  .showSnackBar(
+                                                                SnackBar(
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .red,
+                                                                  content: Text(
+                                                                      'Música removida da playlist com sucesso'),
+                                                                  duration:
+                                                                      Duration(
+                                                                          seconds:
+                                                                              2),
+                                                                ),
+                                                              );
 
-                                                            setState(() {});
-                                                          } catch (e) {
-                                                            print(
-                                                                'Erro ao remover música: $e');
+                                                              setState(() {});
+                                                            } catch (e) {
+                                                              print(
+                                                                  'Erro ao remover música: $e');
+                                                            }
                                                           }
                                                         },
+                                                        itemBuilder:
+                                                            (BuildContext
+                                                                context) {
+                                                          return [
+                                                            PopupMenuItem<
+                                                                String>(
+                                                              value: 'update',
+                                                              child: Text(
+                                                                'Alterar Link do Vídeo',
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12),
+                                                              ),
+                                                            ),
+                                                            PopupMenuItem<
+                                                                String>(
+                                                              value: 'delete',
+                                                              child: Text(
+                                                                'Excluir',
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12),
+                                                              ),
+                                                            ),
+                                                          ];
+                                                        },
+                                                        icon: Icon(
+                                                          Icons.more_vert,
+                                                          color: Colors.white,
+                                                        ),
+                                                        color: Colors.black,
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8),
+                                                        ),
+                                                        padding:
+                                                            EdgeInsets.zero,
                                                       ),
                                                     ],
                                                   );
