@@ -6,6 +6,7 @@ import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/pages/GerenciamentoCulto.dart';
 import 'package:lagoinha_music/pages/MusicDataBase/main.dart';
+import 'package:lagoinha_music/pages/MusiciansPage.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:lagoinha_music/pages/adminCultoForm2.dart';
 import 'package:lagoinha_music/pages/disponibilidade.dart';
@@ -213,6 +214,36 @@ class _userMainPageState extends State<userMainPage> {
                     ),
                   ),
                 ]),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: GestureDetector(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(left: 24),
+                      child: Text(
+                        'Voluntários',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Update the state of the app.
+                  // ...
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MusiciansPage()),
+                  );
+                },
               ),
             ),
             Padding(
