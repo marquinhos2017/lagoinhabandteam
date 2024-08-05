@@ -447,6 +447,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceAround,
                                       children: [
+                                        /*
                                         Expanded(
                                           child: Text(
                                             "Name",
@@ -471,6 +472,14 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                 fontSize: 12),
                                           ),
                                         ),
+                                        Expanded(
+                                          child: Text(
+                                            "Açōes",
+                                            style: TextStyle(
+                                                color: Colors.white54,
+                                                fontSize: 12),
+                                          ),
+                                        ),*/
                                       ],
                                     ),
                                   ),
@@ -561,132 +570,169 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                   Container(
                                     height: 100,
                                     child: FutureBuilder<DocumentSnapshot>(
-                                        future: FirebaseFirestore.instance
-                                            .collection('Cultos')
-                                            .doc(widget.documentId)
-                                            .get(),
-                                        builder: (context, cultoSnapshot) {
-                                          if (cultoSnapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            return Center(
-                                                child:
-                                                    CircularProgressIndicator());
-                                          }
+                                      future: FirebaseFirestore.instance
+                                          .collection('Cultos')
+                                          .doc(widget.documentId)
+                                          .get(),
+                                      builder: (context, cultoSnapshot) {
+                                        if (cultoSnapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        }
 
-                                          if (cultoSnapshot.hasError) {
-                                            return Center(
-                                                child: Text(
-                                                    'Erro ao carregar os dados do culto'));
-                                          }
+                                        if (cultoSnapshot.hasError) {
+                                          return Center(
+                                              child: Text(
+                                                  'Erro ao carregar os dados do culto'));
+                                        }
 
-                                          if (!cultoSnapshot.hasData ||
-                                              !cultoSnapshot.data!.exists) {
-                                            return Center(
-                                                child: Text(
-                                                    'Nenhum documento de culto encontrado'));
-                                          }
+                                        if (!cultoSnapshot.hasData ||
+                                            !cultoSnapshot.data!.exists) {
+                                          return Center(
+                                              child: Text(
+                                                  'Nenhum documento de culto encontrado'));
+                                        }
 
-                                          final cultoData = cultoSnapshot.data!
-                                              .data() as Map<String, dynamic>;
-                                          final List<dynamic> playlist =
-                                              cultoData['playlist'];
+                                        final cultoData = cultoSnapshot.data!
+                                            .data() as Map<String, dynamic>;
+                                        final List<dynamic> playlist =
+                                            cultoData['playlist'];
 
-                                          return ListView.builder(
-                                            itemCount: playlist.length,
-                                            itemBuilder: (context, index) {
-                                              final musicDocumentId =
-                                                  playlist[index]
-                                                          ['music_document']
-                                                      as String;
+                                        return ListView.builder(
+                                          itemCount: playlist.length,
+                                          itemBuilder: (context, index) {
+                                            final musicDocumentId =
+                                                playlist[index]
+                                                        ['music_document']
+                                                    as String;
 
-                                              return FutureBuilder<
-                                                  DocumentSnapshot>(
-                                                future: FirebaseFirestore
-                                                    .instance
-                                                    .collection(
-                                                        'music_database')
-                                                    .doc(musicDocumentId)
-                                                    .get(),
-                                                builder:
-                                                    (context, musicSnapshot) {
-                                                  if (!mounted) {
-                                                    // Verifica se o widget foi descartado antes de continuar
-                                                    return SizedBox
-                                                        .shrink(); // Retorno vazio se o widget não estiver montado
-                                                  }
-                                                  if (musicSnapshot
-                                                          .connectionState ==
-                                                      ConnectionState.waiting) {
-                                                    return CircularProgressIndicator();
-                                                  }
+                                            final key = playlist[index]
+                                                    ['key'] ??
+                                                'key Desconhecido';
 
-                                                  if (musicSnapshot.hasError) {
-                                                    return Text(
-                                                        'Erro ao carregar música');
-                                                  }
+                                            return FutureBuilder<
+                                                DocumentSnapshot>(
+                                              future: FirebaseFirestore.instance
+                                                  .collection('music_database')
+                                                  .doc(musicDocumentId)
+                                                  .get(),
+                                              builder:
+                                                  (context, musicSnapshot) {
+                                                if (!mounted) {
+                                                  return SizedBox.shrink();
+                                                }
+                                                if (musicSnapshot
+                                                        .connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return CircularProgressIndicator();
+                                                }
 
-                                                  if (!musicSnapshot.hasData ||
-                                                      !musicSnapshot
-                                                          .data!.exists) {
-                                                    return Text(
-                                                        'Música não encontrada');
-                                                  }
+                                                if (musicSnapshot.hasError) {
+                                                  return Text(
+                                                      'Erro ao carregar música');
+                                                }
 
-                                                  final musicData =
-                                                      musicSnapshot.data!.data()
-                                                          as Map<String,
-                                                              dynamic>;
-                                                  final autor =
-                                                      musicData['Author'] ??
-                                                          'Autor Desconhecido';
-                                                  final musica =
-                                                      musicData['Music'] ??
-                                                          'Música Desconhecida';
+                                                if (!musicSnapshot.hasData ||
+                                                    !musicSnapshot
+                                                        .data!.exists) {
+                                                  return Text(
+                                                      'Música não encontrada');
+                                                }
 
-                                                  return Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceAround,
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          '$musica',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
+                                                final musicData =
+                                                    musicSnapshot.data!.data()
+                                                        as Map<String, dynamic>;
+
+                                                final musica =
+                                                    musicData['Music'] ??
+                                                        'Música Desconhecida';
+
+                                                final author =
+                                                    musicData['Author'] ??
+                                                        'Música Desconhecida';
+
+                                                return Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                        '$musica',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
                                                       ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          '$autor',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
+                                                    ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        '$author',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
                                                       ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          'C#',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-                                            },
-                                          );
-                                        }),
+                                                    ),
+                                                    Text(
+                                                      '$key', // Aqui você pode mostrar o tom da música
+                                                      style: TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                    IconButton(
+                                                      icon: Icon(Icons.delete,
+                                                          color: Colors.red),
+                                                      onPressed: () async {
+                                                        try {
+                                                          DocumentReference
+                                                              cultoRef =
+                                                              FirebaseFirestore
+                                                                  .instance
+                                                                  .collection(
+                                                                      'Cultos')
+                                                                  .doc(widget
+                                                                      .documentId);
+                                                          await cultoRef
+                                                              .update({
+                                                            'playlist': FieldValue
+                                                                .arrayRemove([
+                                                              playlist[index]
+                                                            ])
+                                                          });
+
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            SnackBar(
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                              content: Text(
+                                                                  'Música removida da playlist com sucesso'),
+                                                              duration:
+                                                                  Duration(
+                                                                      seconds:
+                                                                          2),
+                                                            ),
+                                                          );
+
+                                                          setState(() {});
+                                                        } catch (e) {
+                                                          print(
+                                                              'Erro ao remover música: $e');
+                                                        }
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ]),
                           ),

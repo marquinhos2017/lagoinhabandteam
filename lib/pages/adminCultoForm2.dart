@@ -994,7 +994,7 @@ class _adminCultoForm2State extends State<adminCultoForm2> {
                                     children: [
                                       Container(
                                         child: Text(
-                                          "Playlist",
+                                          "Playlsist",
                                           style: TextStyle(
                                               color: Colors.white,
                                               fontSize: 20,

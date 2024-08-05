@@ -335,6 +335,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                           final doc = docs[docIndex];
                           final data = doc.data() as Map<String, dynamic>;
                           final playlist = data['playlist'] as List<dynamic>?;
+                          print(playlist);
 
                           if (playlist != null) {
                             List<Future<DocumentSnapshot>> musicFutures =
@@ -356,11 +357,24 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                     .data() as Map<String, dynamic>;
                                 musicData['document_id'] =
                                     musicSnapshot.id; // Adiciona o documentId
+
+                                // Encontra o item correspondente no playlist para adicionar a key
+                                var song = playlist.firstWhere(
+                                    (song) =>
+                                        song['music_document'] ==
+                                        musicSnapshot.id,
+                                    orElse: () => null);
+                                if (song != null) {
+                                  musicData['key'] =
+                                      song['key']; // Adiciona o campo key
+                                }
+
                                 return musicData;
                               } else {
                                 return {
                                   'Music': 'Música Desconhecida',
                                   'Author': 'Autor Desconhecido',
+                                  'key': 'Key Desconhecido',
                                   'document_id':
                                       '', // Adiciona um campo vazio se o documento não existir
                                 };

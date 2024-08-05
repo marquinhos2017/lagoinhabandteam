@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lagoinha_music/pages/VerCifra.dart';
+import 'package:lagoinha_music/pages/VerCifraUser.dart';
 
 class ScheduleDetailsMusician extends StatefulWidget {
   final String id;
@@ -137,22 +138,33 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              musica['Music'] ?? 'Título desconhecido',
-                              style: TextStyle(color: Colors.white),
+                            Expanded(
+                              child: Text(
+                                musica['Music'] ?? 'Título desconhecido',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
-                            Text(
-                              musica['Author'] ?? 'Autor desconhecido',
-                              style: TextStyle(color: Colors.white),
+                            Expanded(
+                              child: Text(
+                                musica['Author'] ?? 'Autor desconhecido',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                musica['key'] ?? 'Key desconhecido',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                             GestureDetector(
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => VerCifra(
+                                    builder: (context) => VerCifraUser(
                                       documentId: musica['document_id'],
                                       isAdmin: false,
+                                      tone: musica['key'],
                                     ),
                                   ),
                                 );

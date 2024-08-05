@@ -14,6 +14,100 @@ class AddtoPlaylist extends StatefulWidget {
 class _AddtoPlaylistState extends State<AddtoPlaylist> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<void> _showKeyDialog(String documentId) async {
+    String? selectedKey;
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Selecione o tom'),
+              content: DropdownButton<String>(
+                value: selectedKey,
+                items: <String>[
+                  'C',
+                  'C#',
+                  'D',
+                  'D#',
+                  'E',
+                  'F',
+                  'F#',
+                  'G',
+                  'G#',
+                  'A',
+                  'A#',
+                  'B'
+                ].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedKey = value;
+                  });
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('CANCELAR'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () async {
+                    if (selectedKey != null) {
+                      try {
+                        DocumentReference cultoRef = _firestore
+                            .collection('Cultos')
+                            .doc(widget.document_id);
+                        DocumentSnapshot cultoDoc = await cultoRef.get();
+
+                        if (!cultoDoc.exists) {
+                          throw Exception('Documento de culto não encontrado');
+                        }
+
+                        await cultoRef.update({
+                          'playlist': FieldValue.arrayUnion([
+                            {
+                              'music_document': documentId,
+                              'key': selectedKey,
+                            }
+                          ])
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Color(0xff4465D9),
+                            content: Text(
+                                'Música adicionada à playlist com sucesso'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      } catch (e) {
+                        print('Erro ao adicionar música: $e');
+                      }
+
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,36 +174,7 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                                 contentPadding: EdgeInsets.zero,
                                 trailing: GestureDetector(
                                   onTap: () async {
-                                    try {
-                                      DocumentReference cultoRef = _firestore
-                                          .collection('Cultos')
-                                          .doc(widget.document_id);
-                                      DocumentSnapshot cultoDoc =
-                                          await cultoRef.get();
-
-                                      if (!cultoDoc.exists) {
-                                        throw Exception(
-                                            'Documento de culto não encontrado');
-                                      }
-
-                                      await cultoRef.update({
-                                        'playlist': FieldValue.arrayUnion([
-                                          {'music_document': documentId}
-                                        ])
-                                      });
-
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          backgroundColor: Color(0xff4465D9),
-                                          content: Text(
-                                              'Música adicionada à playlist com sucesso'),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      print('Erro ao adicionar música: $e');
-                                    }
+                                    await _showKeyDialog(documentId);
                                   },
                                   child: Icon(
                                     Icons.add,

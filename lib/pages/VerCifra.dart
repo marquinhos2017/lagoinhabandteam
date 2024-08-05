@@ -85,6 +85,22 @@ class _VerCifraState extends State<VerCifra> {
     }
   }
 
+  Future<void> _deleteSong() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('songs')
+        .where('SongId', isEqualTo: widget.documentId)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      final docId = querySnapshot.docs.first.id;
+
+      await FirebaseFirestore.instance.collection('songs').doc(docId).delete();
+
+      // Navigate back or perform another action after deletion
+      Navigator.of(context).pop();
+    }
+  }
+
   Map<String, String> _normalizeNotes = {
     'C': 'C',
     'C#': 'C#',
@@ -338,15 +354,26 @@ class _VerCifraState extends State<VerCifra> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.hasData) {
-                  return IconButton(
-                    icon: Icon(_isEditing ? Icons.save : Icons.edit),
-                    onPressed: () {
-                      if (_isEditing) {
-                        _saveChanges();
-                      } else {
-                        _enableEditing(snapshot.data!);
-                      }
-                    },
+                  return Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(_isEditing ? Icons.save : Icons.edit),
+                        onPressed: () {
+                          if (_isEditing) {
+                            _saveChanges();
+                          } else {
+                            _enableEditing(snapshot.data!);
+                          }
+                        },
+                      ),
+                      if (_isEditing)
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            _showDeleteConfirmation();
+                          },
+                        ),
+                    ],
                   );
                 } else {
                   return Container();
@@ -457,6 +484,33 @@ class _VerCifraState extends State<VerCifra> {
           }
         },
       ),
+    );
+  }
+
+  void _showDeleteConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Excluir Música'),
+          content: Text('Tem certeza de que deseja excluir esta música?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteSong();
+                Navigator.of(context).pop();
+              },
+              child: Text('Excluir'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
