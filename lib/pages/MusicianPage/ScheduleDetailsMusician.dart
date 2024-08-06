@@ -3,6 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lagoinha_music/pages/VerCifraUser.dart';
 
+extension StringCasingExtension on String {
+  String toCapitalized() =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
+      .split(' ')
+      .map((str) => str.toCapitalized())
+      .join(' ');
+}
+
 class ScheduleDetailsMusician extends StatefulWidget {
   final String id;
   final List<DocumentSnapshot> documents;
@@ -41,6 +50,11 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     try {
       Map<String, dynamic> fetchedCultoData =
           await _getCultoData(cultoId ?? widget.id);
+
+      // Buscar documentos na coleção 'user_culto_instrument'
+      List<Map<String, dynamic>> userCultoInstruments =
+          await _getUserCultoInstruments(widget.documents[currentIndex].id);
+
       setState(() {
         cultoData = fetchedCultoData;
         musicos = List<Map<String, dynamic>>.from(cultoData?['musicos'] ?? []);
@@ -51,6 +65,47 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _getUserCultoInstruments(
+      String cultoId) async {
+    try {
+      // Buscar os documentos de user_culto_instrument para o culto atual
+      QuerySnapshot userCultoInstrumentsSnapshot = await _firestore
+          .collection('user_culto_instrument')
+          .where('idCulto', isEqualTo: cultoId)
+          .get();
+
+      List<Map<String, dynamic>> userCultoInstrumentsData = [];
+
+      for (var doc in userCultoInstrumentsSnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        int userId = data['idUser'];
+        print(userId);
+
+        // Buscar o nome do usuário
+        QuerySnapshot userSnapshot = await _firestore
+            .collection('musicos')
+            .where('user_id', isEqualTo: userId)
+            .get();
+
+        if (userSnapshot.docs.isNotEmpty) {
+          Map<String, dynamic> userData =
+              userSnapshot.docs.first.data() as Map<String, dynamic>;
+          data['name'] = userData['name'] ?? 'Nome não encontrado';
+          print(userData['name']);
+        } else {
+          data['name'] = 'Nome não encontrado';
+        }
+
+        userCultoInstrumentsData.add(data);
+      }
+
+      return userCultoInstrumentsData;
+    } catch (e) {
+      print('Erro ao buscar dados da coleção user_culto_instrument: $e');
+      throw e;
     }
   }
 
@@ -137,7 +192,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                       margin: EdgeInsets.all(12),
                       color: Color(0xff171717),
                       child: ExpansionTile(
-                        dense: false,
+                        initiallyExpanded: false,
+                        maintainState: false,
                         iconColor: Colors.blueAccent,
                         shape: Border.all(color: Color(0xff171717)),
                         title: Row(
@@ -187,26 +243,70 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
           ),
         );
       case 'Teams':
-        return Container(
-          color: Colors.black,
-          child: ListView(
-            children: musicos
-                .map((musico) => Container(
-                      margin: EdgeInsets.all(12),
-                      color: Colors.black,
-                      child: ListTile(
-                        title: Text(
-                          musico['name'] ?? 'Nome desconhecido',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        subtitle: Text(
-                          'ID: ${musico['user_id']}',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
+        if (isLoading) {
+          return Container(
+            color: Colors.black,
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+              ),
+            ),
+          );
+        }
+
+        return FutureBuilder<List<Map<String, dynamic>>>(
+          future: _getUserCultoInstruments(widget.documents[currentIndex].id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container(
+                color: Colors.black,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                  ),
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                  child: Text('Erro ao carregar dados: ${snapshot.error}',
+                      style: TextStyle(color: Colors.white)));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                  child: Text('Nenhum dado disponível',
+                      style: TextStyle(color: Colors.white)));
+            }
+
+            return Container(
+              color: Colors.black,
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: snapshot.data!
+                    .map((item) => Container(
+                          margin: EdgeInsets.all(12),
+                          color: Color(0xff171717),
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  item['name'].toString().toTitleCase() ??
+                                      'Nome desconhecido',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                Text(
+                                  ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ))
+                    .toList(),
+              ),
+            );
+          },
         );
       case 'Ensaio':
         return Column(
@@ -233,6 +333,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     final List<DocumentSnapshot> documentsAll = widget.documents;
     final List<List<Map<String, dynamic>>> musicsAll = widget.musics;
     final id = documentsAll[currentIndex].id;
+    print(documentsAll[currentIndex].id);
 
     return Scaffold(
       appBar: AppBar(
