@@ -24,6 +24,27 @@ class userMainPage extends StatefulWidget {
 }
 
 class _userMainPageState extends State<userMainPage> {
+  Widget _createDrawerItem({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: Colors.white,
+        size: 24,
+      ),
+      title: Text(
+        text,
+        style: TextStyle(color: Colors.white, fontSize: 16),
+      ),
+      onTap: onTap,
+      contentPadding: EdgeInsets.symmetric(horizontal: 24),
+      visualDensity: VisualDensity(vertical: -3),
+    );
+  }
+
   // StreamSubscription para controlar a inscrição no snapshot do Firestore
   late StreamSubscription<QuerySnapshot> _snapshotSubscription;
 
@@ -179,103 +200,88 @@ class _userMainPageState extends State<userMainPage> {
       ),
       drawer: Drawer(
         backgroundColor: Colors.black,
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            const DrawerHeader(
+            // Drawer Header
+            DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: Colors.blueGrey[800],
+                gradient: LinearGradient(
+                  colors: [Colors.blueGrey[900]!, Colors.blueGrey[600]!],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-              child: Text('Drawer Header'),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                  // Update the state of the app.
-                  // ...
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => forms_disponiblidade()),
-                  );
-                },
-                child: Row(children: [
-                  Icon(
-                    Icons.library_add,
+              child: Center(
+                child: Text(
+                  'Menu',
+                  style: TextStyle(
                     color: Colors.white,
-                    size: 16,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                  Container(
-                    margin: EdgeInsets.only(left: 24),
-                    child: Text(
-                      'Formularios Mensais',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ),
-                ]),
+                ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: GestureDetector(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(left: 24),
-                      child: Text(
-                        'Voluntários',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                  ],
+            // Menu Items
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _createDrawerItem(
+                    icon: Icons.library_add,
+                    text: 'Formulários Mensais',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => forms_disponiblidade()),
+                      );
+                    },
+                  ),
+                  _createDrawerItem(
+                    icon: Icons.person,
+                    text: 'Voluntários',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MusiciansPage()),
+                      );
+                    },
+                  ),
+                  _createDrawerItem(
+                    icon: Icons.music_note,
+                    text: 'Banco de Canções',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MainMusicDataBase()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // Footer
+            Container(
+              color: Colors.blueGrey[800],
+              child: ListTile(
+                leading: Icon(
+                  Icons.info_outline,
+                  color: Colors.white,
+                ),
+                title: Text(
+                  'Sobre',
+                  style: TextStyle(color: Colors.white),
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  // Update the state of the app.
-                  // ...
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MusiciansPage()),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: GestureDetector(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.music_note,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(left: 24),
-                      child: Text(
-                        'Muisc Database',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Update the state of the app.
-                  // ...
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => MainMusicDataBase()),
-                  );
+                  // Handle the 'Sobre' navigation
                 },
               ),
             ),
@@ -289,6 +295,7 @@ class _userMainPageState extends State<userMainPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              /*
               Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Row(
@@ -335,7 +342,7 @@ class _userMainPageState extends State<userMainPage> {
                     ),
                   ],
                 ),
-              ),
+              ),*/
               Container(
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -345,13 +352,18 @@ class _userMainPageState extends State<userMainPage> {
                     children: [
                       proximoCulto != null
                           ? Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Próximo Culto:",
+                                  "Próximo culto",
                                   style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
+                                ),
+                                SizedBox(
+                                  height: 12,
                                 ),
 
                                 Container(
@@ -359,6 +371,18 @@ class _userMainPageState extends State<userMainPage> {
                                   decoration: BoxDecoration(
                                     color: Color(0xff010101),
                                     borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.blue.withOpacity(
+                                            1), // Cor da sombra com opacidade
+                                        spreadRadius:
+                                            2, // Opção para aumentar o tamanho da sombra
+                                        blurRadius:
+                                            3, // Intensidade do desfoque da sombra
+                                        offset: Offset(2,
+                                            2), // Deslocamento da sombra (horizontal, vertical)
+                                      ),
+                                    ],
                                   ),
                                   child: Row(
                                     mainAxisAlignment:
@@ -716,6 +740,7 @@ class _userMainPageState extends State<userMainPage> {
         Container(
           height: 180,
           child: GridView.builder(
+            physics: NeverScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
             itemCount: daysInMonth + daysBefore,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -723,8 +748,8 @@ class _userMainPageState extends State<userMainPage> {
               crossAxisCount: 7,
               mainAxisSpacing:
                   1.0, // Espaçamento vertical mínimo entre as células
-              //   crossAxisSpacing:
-              //       0.0, // Espaçamento horizontal mínimo entre as células
+              crossAxisSpacing:
+                  4.0, // Espaçamento horizontal mínimo entre as células
             ),
             itemBuilder: (context, index) {
               if (index < daysBefore || index >= totalDays + daysBefore) {
