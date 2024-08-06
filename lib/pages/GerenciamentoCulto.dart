@@ -664,6 +664,10 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                       ['key'] ??
                                                   'key Desconhecido';
 
+                                              final link = playlist[index]
+                                                      ['link'] ??
+                                                  'Link Desconhecido';
+
                                               return FutureBuilder<
                                                   DocumentSnapshot>(
                                                 future: FirebaseFirestore
@@ -739,99 +743,34 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                 Colors.white),
                                                       ),
                                                       PopupMenuButton<String>(
+                                                        color: Colors.white,
+                                                        iconColor: Colors.white,
                                                         onSelected: (String
                                                             value) async {
                                                           if (value ==
                                                               'update') {
-                                                            //  _updateVideoLink();
-                                                          } else if (value ==
-                                                              'delete') {
-                                                            try {
-                                                              DocumentReference
-                                                                  cultoRef =
-                                                                  FirebaseFirestore
-                                                                      .instance
-                                                                      .collection(
-                                                                          'Cultos')
-                                                                      .doc(widget
-                                                                          .documentId);
-                                                              await cultoRef
-                                                                  .update({
-                                                                'playlist':
-                                                                    FieldValue
-                                                                        .arrayRemove([
-                                                                  playlist[
-                                                                      index]
-                                                                ])
-                                                              });
-
-                                                              ScaffoldMessenger
-                                                                      .of(context)
-                                                                  .showSnackBar(
-                                                                SnackBar(
-                                                                  backgroundColor:
-                                                                      Colors
-                                                                          .red,
-                                                                  content: Text(
-                                                                      'Música removida da playlist com sucesso'),
-                                                                  duration:
-                                                                      Duration(
-                                                                          seconds:
-                                                                              2),
-                                                                ),
-                                                              );
-
-                                                              setState(() {});
-                                                            } catch (e) {
-                                                              print(
-                                                                  'Erro ao remover música: $e');
-                                                            }
+                                                            _showUpdateLinkDialog(
+                                                                context,
+                                                                index,
+                                                                link); // Passa o índice para o método
                                                           }
                                                         },
                                                         itemBuilder:
                                                             (BuildContext
-                                                                context) {
-                                                          return [
-                                                            PopupMenuItem<
-                                                                String>(
-                                                              value: 'update',
-                                                              child: Text(
-                                                                'Alterar Link do Vídeo',
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        12),
-                                                              ),
+                                                                    context) =>
+                                                                [
+                                                          PopupMenuItem<String>(
+                                                            value: 'update',
+                                                            child: Text(
+                                                              'Alterar Link do Vídeo',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .black,
+                                                                  fontSize: 12),
                                                             ),
-                                                            PopupMenuItem<
-                                                                String>(
-                                                              value: 'delete',
-                                                              child: Text(
-                                                                'Excluir',
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        12),
-                                                              ),
-                                                            ),
-                                                          ];
-                                                        },
-                                                        icon: Icon(
-                                                          Icons.more_vert,
-                                                          color: Colors.white,
-                                                        ),
-                                                        color: Colors.black,
-                                                        shape:
-                                                            RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(8),
-                                                        ),
-                                                        padding:
-                                                            EdgeInsets.zero,
-                                                      ),
+                                                          ),
+                                                        ],
+                                                      )
                                                     ],
                                                   );
                                                 },
@@ -895,5 +834,83 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
         ),
       ),
     );
+  }
+
+  void _showUpdateLinkDialog(BuildContext context, int index, String link) {
+    final TextEditingController _linkController = TextEditingController();
+    _linkController.text = link; // Carrega o link atual no TextField
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Alterar Link'),
+          content: TextField(
+            controller: _linkController,
+            decoration: InputDecoration(
+              labelText: 'Novo Link',
+              hintText: 'Insira o novo link aqui',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                String newLink = _linkController.text;
+                if (newLink.isNotEmpty) {
+                  await _updatePlaylistLink(index, newLink);
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text('Atualizar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _updatePlaylistLink(int index, String newLink) async {
+    try {
+      DocumentReference documentRef = FirebaseFirestore.instance
+          .collection('Cultos')
+          .doc(widget.documentId);
+
+      // Obtenha o documento
+      DocumentSnapshot doc = await documentRef.get();
+
+      if (doc.exists) {
+        // Obtenha o array de playlists
+        List<dynamic> playlist = doc['playlist'] ?? [];
+
+        // Verifique se o índice está dentro dos limites
+        if (index >= 0 && index < playlist.length) {
+          // Atualize o campo 'link' do item específico no array
+          playlist[index]['link'] = newLink;
+
+          // Atualize o documento com o novo array
+          await documentRef.update({
+            'playlist': playlist,
+          });
+
+          setState(() {
+            // Atualize o estado local se necessário
+          });
+
+          print('Link atualizado com sucesso.');
+        } else {
+          print('Índice fora dos limites.');
+        }
+      } else {
+        print('Documento não encontrado.');
+      }
+    } catch (e) {
+      print('Erro ao atualizar o link: $e');
+    }
   }
 }

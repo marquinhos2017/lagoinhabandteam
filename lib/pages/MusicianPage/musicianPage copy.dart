@@ -358,15 +358,23 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                 musicData['document_id'] =
                                     musicSnapshot.id; // Adiciona o documentId
 
-                                // Encontra o item correspondente no playlist para adicionar a key
+                                // Encontra o item correspondente no playlist para adicionar a key e link
                                 var song = playlist.firstWhere(
-                                    (song) =>
-                                        song['music_document'] ==
-                                        musicSnapshot.id,
-                                    orElse: () => null);
+                                  (song) =>
+                                      song['music_document'] ==
+                                      musicSnapshot.id,
+                                  orElse: () => null,
+                                );
+
                                 if (song != null) {
                                   musicData['key'] =
                                       song['key']; // Adiciona o campo key
+                                  musicData['link'] = song['link'] ??
+                                      'Link não disponível'; // Adiciona o campo link
+                                } else {
+                                  // Caso não encontre a música no playlist, define valores padrão para key e link
+                                  musicData['key'] = 'Key Desconhecida';
+                                  musicData['link'] = 'Link não disponível';
                                 }
 
                                 return musicData;
@@ -374,7 +382,9 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                 return {
                                   'Music': 'Música Desconhecida',
                                   'Author': 'Autor Desconhecido',
-                                  'key': 'Key Desconhecido',
+                                  'key': 'Key Desconhecida',
+                                  'link':
+                                      'Link não disponível', // Adiciona o campo link
                                   'document_id':
                                       '', // Adiciona um campo vazio se o documento não existir
                                 };

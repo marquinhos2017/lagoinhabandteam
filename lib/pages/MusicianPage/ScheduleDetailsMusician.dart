@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lagoinha_music/pages/VerCifraUser.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 extension StringCasingExtension on String {
   String toCapitalized() =>
@@ -31,6 +34,32 @@ class ScheduleDetailsMusician extends StatefulWidget {
 }
 
 class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
+  void _openYouTubeLink(String? link) async {
+    if (link == null || link.isEmpty) {
+      // Exibir uma mensagem ou fazer nada se o link for nulo ou vazio
+      return;
+    }
+
+    final uri = Uri.parse(link);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Não foi possível abrir o URL: $link';
+    }
+  }
+
+  Future<void> _launchInBrowser(String url) async {
+    if (!await launch(
+      url,
+      forceSafariVC: true,
+      forceWebView: false,
+      headers: <String, String>{'my_header_key': 'my_header_value'},
+    )) {
+      throw 'Could not launch $url';
+    }
+  }
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   late int currentIndex;
@@ -216,6 +245,51 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                               'Tom: ${musica['key'] ?? 'Desconhecido'}',
                               style: TextStyle(color: Colors.white),
                             ),
+                            leading: GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Link da Música'),
+                                        content: Text(musica['link'] ??
+                                            'Link não disponível'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text('Fechar'),
+                                          ),
+                                          if (musica['link'] != null &&
+                                              musica['link'].isNotEmpty)
+                                            TextButton(
+                                              onPressed: () {
+                                                void _openLink(
+                                                    String url) async {
+                                                  final Uri uri =
+                                                      Uri.parse(url);
+                                                  if (await canLaunchUrl(uri)) {
+                                                    await launchUrl(uri,
+                                                        mode: LaunchMode
+                                                            .externalApplication);
+                                                  } else {
+                                                    throw 'Não foi possível abrir o URL: $url';
+                                                  }
+                                                }
+
+                                                _openLink(musica['link']);
+                                              },
+                                              child: Text('Abrir no Navegador'),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  );
+
+                                  print(musica['link']);
+                                },
+                                child: Icon(Icons.link)),
                             trailing: GestureDetector(
                               onTap: () {
                                 Navigator.push(
