@@ -346,8 +346,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.delete,
-                                          color: Colors.white),
+                                      icon:
+                                          Icon(Icons.delete, color: Colors.red),
                                       onPressed: () async {
                                         if (_isProcessing || !mounted) return;
 
