@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/pages/adminAddtoPlaylist.dart';
@@ -16,6 +18,150 @@ class GerenciamentoCulto extends StatefulWidget {
 }
 
 class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
+  String? selectedKey; // Armazena o tom selecionado
+  Future<void> _showKeyDialog(String documentId) async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Selecione o tom'),
+          backgroundColor: Colors.black,
+          content: CircularKeySelector(
+            initialKey: selectedKey,
+            onSelect: (String key) {
+              setState(() {
+                selectedKey = key;
+              });
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              child:
+                  const Text('CANCELAR', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('SALVAR', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o diálogo
+                _saveToPlaylist(documentId); // Salva a música na playlist
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _updateKeyInPlaylist(
+      int index, String musicDocumentId, String newKey) async {
+    try {
+      DocumentReference cultoRef =
+          _firestore.collection('Cultos').doc(widget.documentId);
+      DocumentSnapshot cultoDoc = await cultoRef.get();
+
+      if (!cultoDoc.exists) {
+        throw Exception('Documento de culto não encontrado');
+      }
+
+      List<dynamic> playlist = cultoDoc['playlist'] ?? [];
+      playlist[index]['key'] = newKey;
+
+      await cultoRef.update({'playlist': playlist});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Color(0xff4465D9),
+          content: Text('Tom atualizado com sucesso'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Erro ao atualizar o tom: $e');
+    }
+  }
+
+  Future<void> _showUpdateKeyDialog(
+      BuildContext context, int index, String currentKey) async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Atualizar tom'),
+          backgroundColor: Colors.black,
+          content: CircularKeySelector(
+            initialKey: currentKey,
+            onSelect: (String newKey) {
+              setState(() {
+                selectedKey = newKey;
+              });
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              child:
+                  const Text('CANCELAR', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('SALVAR', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o diálogo
+                _updateKeyInPlaylist(
+                    index, widget.documentId, selectedKey!); // Atualiza o tom
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _saveToPlaylist(String documentId) async {
+    if (selectedKey != null) {
+      try {
+        DocumentReference cultoRef =
+            _firestore.collection('Cultos').doc(widget.documentId);
+        DocumentSnapshot cultoDoc = await cultoRef.get();
+
+        if (!cultoDoc.exists) {
+          throw Exception('Documento de culto não encontrado');
+        }
+
+        await cultoRef.update({
+          'playlist': FieldValue.arrayUnion([
+            {
+              'music_document': documentId,
+              'key': selectedKey,
+            }
+          ])
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Color(0xff4465D9),
+            content: Text('Música adicionada à playlist com sucesso'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } catch (e) {
+        print('Erro ao adicionar música: $e');
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('Nenhum tom selecionado'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   late bool _isProcessing = false;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -664,9 +810,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                       ['key'] ??
                                                   'key Desconhecido';
 
-                                              final link = playlist[index]
-                                                      ['link'] ??
-                                                  'Link Desconhecido';
+                                              final link =
+                                                  playlist[index]['link'] ?? '';
 
                                               return FutureBuilder<
                                                   DocumentSnapshot>(
@@ -743,7 +888,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                 Colors.white),
                                                       ),
                                                       PopupMenuButton<String>(
-                                                        color: Colors.white,
+                                                        color: Colors.black,
                                                         iconColor: Colors.white,
                                                         onSelected: (String
                                                             value) async {
@@ -753,6 +898,14 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                 context,
                                                                 index,
                                                                 link); // Passa o índice para o método
+                                                          } else if (value ==
+                                                              'delete') {
+                                                            _removeItemFromPlaylist(
+                                                                context,
+                                                                index,
+                                                                widget
+                                                                    .documentId,
+                                                                musicDocumentId);
                                                           }
                                                         },
                                                         itemBuilder:
@@ -765,8 +918,18 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                               'Alterar Link do Vídeo',
                                                               style: TextStyle(
                                                                   color: Colors
-                                                                      .black,
-                                                                  fontSize: 12),
+                                                                      .white,
+                                                                  fontSize: 8),
+                                                            ),
+                                                          ),
+                                                          PopupMenuItem<String>(
+                                                            value: 'delete',
+                                                            child: Text(
+                                                              'Deletar Canção',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 8),
                                                             ),
                                                           ),
                                                         ],
@@ -844,12 +1007,12 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Alterar Link'),
+          title: Text('Link Youtube'),
           content: TextField(
             controller: _linkController,
             decoration: InputDecoration(
-              labelText: 'Novo Link',
-              hintText: 'Insira o novo link aqui',
+              labelText: 'Link',
+              hintText: 'Cole aqui o link do youtube',
             ),
           ),
           actions: [
@@ -913,4 +1076,195 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
       print('Erro ao atualizar o link: $e');
     }
   }
+
+  // Função para remover um item da playlist
+  Future<void> _removeItemFromPlaylist(BuildContext context, int index,
+      String documentId, String musicDocumentId) async {
+    try {
+      // Obtém o documento atual da coleção 'Cultos'
+      DocumentSnapshot cultoSnapshot = await FirebaseFirestore.instance
+          .collection('Cultos')
+          .doc(documentId)
+          .get();
+
+      if (cultoSnapshot.exists) {
+        // Obtém os dados do documento
+        Map<String, dynamic> cultoData =
+            cultoSnapshot.data() as Map<String, dynamic>;
+        List<dynamic> playlist = cultoData['playlist'] ?? [];
+
+        // Remove o item da lista com base no índice
+        playlist.removeAt(index);
+
+        // Atualiza o documento com a nova lista de playlist
+        await FirebaseFirestore.instance
+            .collection('Cultos')
+            .doc(documentId)
+            .update({'playlist': playlist});
+
+        // Atualiza a UI se necessário
+        setState(() {});
+      }
+    } catch (e) {
+      // Lida com erros
+      print('Erro ao remover item da playlist: $e');
+    }
+  }
+}
+
+class CircularKeySelector extends StatefulWidget {
+  final Function(String) onSelect;
+  final String? initialKey;
+
+  const CircularKeySelector({required this.onSelect, this.initialKey, Key? key})
+      : super(key: key);
+
+  @override
+  _CircularKeySelectorState createState() => _CircularKeySelectorState();
+}
+
+class _CircularKeySelectorState extends State<CircularKeySelector> {
+  final List<String> keys = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B'
+  ];
+  String? selectedKey;
+  double currentAngle = 0.0;
+  Offset? currentOffset;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedKey = widget.initialKey;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onPanUpdate: (details) {
+        setState(() {
+          currentOffset = details.localPosition;
+          _updateSelectedKey();
+        });
+      },
+      child: SizedBox(
+        width: 200,
+        height: 200,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CustomPaint(
+              painter: CirclePainter(keys, selectedKey, currentAngle),
+            ),
+            Center(
+              child: Text(
+                selectedKey ?? 'Selecione o tom',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _updateSelectedKey() {
+    if (currentOffset != null) {
+      final center = Offset(100, 100);
+      final dx = currentOffset!.dx - center.dx;
+      final dy = currentOffset!.dy - center.dy;
+      final angle =
+          atan2(dy, dx) + pi / 2; // Ajusta o ângulo para começar no topo
+      final distance = sqrt(dx * dx + dy * dy);
+
+      if (distance < 80) {
+        // Garante que o movimento está dentro do círculo
+        final index = ((angle / (2 * pi) * keys.length).floor() % keys.length);
+        setState(() {
+          selectedKey = keys[index];
+          currentAngle = -angle; // Rotaciona o círculo para a posição do dedo
+        });
+        widget
+            .onSelect(selectedKey!); // Atualiza o tom selecionado no widget pai
+      }
+    }
+  }
+}
+
+class CirclePainter extends CustomPainter {
+  final List<String> keys;
+  final String? selectedKey;
+  final double rotationAngle;
+
+  CirclePainter(this.keys, this.selectedKey, this.rotationAngle);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final Paint selectedPaint = Paint()
+      ..color = Colors.blue
+      ..style = PaintingStyle.fill;
+
+    final double radius = size.width / 2;
+    final double circleRadius = radius - 20;
+    final double centerX = radius;
+    final double centerY = radius;
+
+    canvas.translate(centerX, centerY);
+    canvas.rotate(rotationAngle);
+
+    for (int i = 0; i < keys.length; i++) {
+      final angle = 2 * pi * i / keys.length;
+      final offset = Offset(
+        cos(angle) * circleRadius,
+        sin(angle) * circleRadius,
+      );
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: keys[i],
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      final textOffset = Offset(
+        offset.dx - textPainter.width / 2,
+        offset.dy - textPainter.height / 2,
+      );
+
+      textPainter.paint(canvas, textOffset);
+    }
+
+    if (selectedKey != null) {
+      final selectedIndex = keys.indexOf(selectedKey!);
+      final selectedAngle = 2 * pi * selectedIndex / keys.length;
+      final selectedOffset = Offset(
+        cos(selectedAngle) * circleRadius,
+        sin(selectedAngle) * circleRadius,
+      );
+
+      canvas.drawCircle(selectedOffset, 10, selectedPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
