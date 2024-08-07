@@ -247,7 +247,7 @@ class MusicianSelect extends StatelessWidget {
                                                     child: Text(
                                                       musicos['name'],
                                                       style: TextStyle(
-                                                          color: Colors.red,
+                                                          color: Colors.white,
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           fontSize: 10),
