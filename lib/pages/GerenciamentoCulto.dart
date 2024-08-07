@@ -472,55 +472,110 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  name,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.only(right: 20),
-                                      child: Text(
-                                        instrument,
-                                        style: TextStyle(
-                                            color: Color(0xff558FFF),
-                                            fontSize: 12),
+                                Expanded(
+                                  child: Dismissible(
+                                    key:
+                                        UniqueKey(), // Cada item deve ter uma chave única
+                                    direction: DismissDirection
+                                        .endToStart, // Define a direção do arrasto
+                                    background: Container(
+                                      color: Colors.red,
+                                      alignment: Alignment.centerRight,
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 20),
+                                      child: Icon(Icons.delete,
+                                          color: Colors.white),
+                                    ),
+                                    onDismissed: (direction) async {
+                                      if (_isProcessing || !mounted) return;
+
+                                      setState(() {
+                                        _isProcessing = true;
+                                      });
+
+                                      final musicoToRemove = musicos[index];
+                                      final userId = musicoToRemove['user_id']
+                                              as int? ??
+                                          0; // Garantir que user_id é um inteiro
+                                      final idCulto = widget.documentId;
+
+                                      // Remover o músico da lista local
+                                      setState(() {
+                                        musicos.removeAt(index);
+                                      });
+
+                                      // Remover o músico do Firestore
+                                      await _removeMusician(userId, idCulto);
+
+                                      setState(() {
+                                        _isProcessing = false;
+                                      });
+                                    },
+                                    child: ClipRect(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            name,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Row(
+                                            children: [
+                                              Container(
+                                                margin:
+                                                    EdgeInsets.only(right: 20),
+                                                child: Text(
+                                                  instrument,
+                                                  style: TextStyle(
+                                                    color: Color(0xff558FFF),
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(Icons.delete,
+                                                    color: Colors.red),
+                                                onPressed: () async {
+                                                  if (_isProcessing || !mounted)
+                                                    return;
+
+                                                  setState(() {
+                                                    _isProcessing = true;
+                                                  });
+
+                                                  final musicoToRemove =
+                                                      musicos[index];
+                                                  final userId = musicoToRemove[
+                                                          'user_id'] as int? ??
+                                                      0; // Garantir que user_id é um inteiro
+                                                  final idCulto =
+                                                      widget.documentId;
+
+                                                  // Remover o músico da lista local
+                                                  setState(() {
+                                                    musicos.removeAt(index);
+                                                  });
+
+                                                  // Remover o músico do Firestore
+                                                  await _removeMusician(
+                                                      userId, idCulto);
+
+                                                  setState(() {
+                                                    _isProcessing = false;
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    IconButton(
-                                      icon:
-                                          Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () async {
-                                        if (_isProcessing || !mounted) return;
-
-                                        setState(() {
-                                          _isProcessing = true;
-                                        });
-
-                                        final musicoToRemove = musicos[index];
-                                        final userId = musicoToRemove['user_id']
-                                                as int? ??
-                                            0; // Garantir que user_id é um inteiro
-                                        final idCulto = widget.documentId;
-
-                                        // Remover o músico da lista local
-                                        setState(() {
-                                          musicos.removeAt(index);
-                                        });
-
-                                        // Remover o músico do Firestore
-                                        await _removeMusician(userId, idCulto);
-
-                                        setState(() {
-                                          _isProcessing = false;
-                                        });
-                                      },
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -790,7 +845,6 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
 
                                           final cultoData = cultoSnapshot.data!
                                               .data() as Map<String, dynamic>;
-
                                           final List<dynamic> playlist =
                                               cultoData['playlist'] ?? [];
 
@@ -809,7 +863,6 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                               final key = playlist[index]
                                                       ['key'] ??
                                                   'key Desconhecido';
-
                                               final link =
                                                   playlist[index]['link'] ?? '';
 
@@ -829,7 +882,12 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                   if (musicSnapshot
                                                           .connectionState ==
                                                       ConnectionState.waiting) {
-                                                    return CircularProgressIndicator();
+                                                    return Center(
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                              color:
+                                                                  Colors.white),
+                                                    );
                                                   }
 
                                                   if (musicSnapshot.hasError) {
@@ -855,86 +913,125 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                       musicData['Author'] ??
                                                           'Autor Desconhecido';
 
-                                                  return Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          musica,
-                                                          style: TextStyle(
+                                                  return Dismissible(
+                                                    key:
+                                                        UniqueKey(), // Cada item deve ter uma chave única
+                                                    direction: DismissDirection
+                                                        .endToStart, // Define a direção do arrasto
+                                                    background: Container(
+                                                      color: Colors.red,
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 20),
+                                                      child: Icon(Icons.delete,
+                                                          color: Colors.white),
+                                                    ),
+                                                    onDismissed:
+                                                        (direction) async {
+                                                      // Remove o item da playlist e do Firestore
+                                                      await _removeItemFromPlaylist(
+                                                          context,
+                                                          index,
+                                                          widget.documentId,
+                                                          musicDocumentId);
+                                                    },
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            musica,
+                                                            style: TextStyle(
                                                               color:
                                                                   Colors.white,
                                                               fontSize: 12,
                                                               fontWeight:
                                                                   FontWeight
-                                                                      .bold),
+                                                                      .bold,
+                                                            ),
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
                                                         ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          author,
-                                                          style: TextStyle(
+                                                        Expanded(
+                                                          child: Text(
+                                                            author,
+                                                            style: TextStyle(
                                                               color:
                                                                   Colors.white,
                                                               fontSize: 12,
                                                               fontWeight:
                                                                   FontWeight
-                                                                      .bold),
+                                                                      .bold,
+                                                            ),
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
                                                         ),
-                                                      ),
-                                                      Text(
-                                                        key, // Aqui você pode mostrar o tom da música
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white),
-                                                      ),
-                                                      PopupMenuButton<String>(
-                                                        color: Colors.black,
-                                                        iconColor: Colors.white,
-                                                        onSelected: (String
-                                                            value) async {
-                                                          if (value ==
-                                                              'update') {
-                                                            _showUpdateLinkDialog(
-                                                                context,
-                                                                index,
-                                                                link); // Passa o índice para o método
-                                                          } else if (value ==
-                                                              'delete') {
-                                                            _removeItemFromPlaylist(
-                                                                context,
-                                                                index,
-                                                                widget
-                                                                    .documentId,
-                                                                musicDocumentId);
-                                                          }
-                                                        },
-                                                        itemBuilder:
-                                                            (BuildContext
-                                                                    context) =>
-                                                                [
-                                                          PopupMenuItem<String>(
-                                                            value: 'update',
-                                                            child: Text(
-                                                              'Alterar Link do Vídeo',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontSize: 8),
+                                                        Text(
+                                                          key, // Aqui você pode mostrar o tom da música
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                        PopupMenuButton<String>(
+                                                          color: Colors.black,
+                                                          iconColor:
+                                                              Colors.white,
+                                                          onSelected: (String
+                                                              value) async {
+                                                            if (value ==
+                                                                'update') {
+                                                              _showUpdateLinkDialog(
+                                                                  context,
+                                                                  index,
+                                                                  link); // Passa o índice para o método
+                                                            } else if (value ==
+                                                                'delete') {
+                                                              // Remover item ao clicar na opção "Deletar Canção"
+                                                              await _removeItemFromPlaylist(
+                                                                  context,
+                                                                  index,
+                                                                  widget
+                                                                      .documentId,
+                                                                  musicDocumentId);
+                                                            }
+                                                          },
+                                                          itemBuilder:
+                                                              (BuildContext
+                                                                      context) =>
+                                                                  [
+                                                            PopupMenuItem<
+                                                                String>(
+                                                              value: 'update',
+                                                              child: Text(
+                                                                'Alterar Link do Vídeo',
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        8),
+                                                              ),
                                                             ),
-                                                          ),
-                                                          PopupMenuItem<String>(
-                                                            value: 'delete',
-                                                            child: Text(
-                                                              'Deletar Canção',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontSize: 8),
+                                                            PopupMenuItem<
+                                                                String>(
+                                                              value: 'delete',
+                                                              child: Text(
+                                                                'Deletar Canção',
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        8),
+                                                              ),
                                                             ),
-                                                          ),
-                                                        ],
-                                                      )
-                                                    ],
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
                                                   );
                                                 },
                                               );
@@ -942,7 +1039,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                           );
                                         },
                                       ),
-                                    ),
+                                    )
                                   ]),
                             ),
                             GestureDetector(

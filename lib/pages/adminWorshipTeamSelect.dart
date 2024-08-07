@@ -8,6 +8,15 @@ import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 
+extension StringCasingExtension on String {
+  String toCapitalized() =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
+      .split(' ')
+      .map((str) => str.toCapitalized())
+      .join(' ');
+}
+
 class MusicianSelect extends StatelessWidget {
   final Culto cultoatual;
   final String intrument;
@@ -238,7 +247,7 @@ class MusicianSelect extends StatelessWidget {
                                                     child: Text(
                                                       musicos['name'],
                                                       style: TextStyle(
-                                                          color: Colors.white,
+                                                          color: Colors.red,
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           fontSize: 10),

@@ -2,6 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Importe o pacote intl
 
+extension StringCasingExtension on String {
+  String toCapitalized() =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
+      .split(' ')
+      .map((str) => str.toCapitalized())
+      .join(' ');
+}
+
 class MusicianSelect2 extends StatefulWidget {
   final String document_id;
   final String instrument;
@@ -16,6 +25,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? date;
   String? horario;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -27,6 +37,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
             date = value['data'];
             horario = value['horario'];
           }
+          isLoading = false; // Dados carregados
         });
       }
     });
@@ -127,249 +138,268 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xff010101),
-      body: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Container(
-                margin: EdgeInsets.only(top: 60, bottom: 40),
-                child: GestureDetector(
-                    onTap: () => Navigator.pop(context, false),
-                    child: Icon(
-                      Icons.arrow_back_ios,
-                      color: Colors.white,
-                    )),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Text(
-                widget.instrument,
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                margin: EdgeInsets.only(top: 2),
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Color(0xff171717),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: MediaQuery.of(context).size.height * 0.6,
-                        child: StreamBuilder<DocumentSnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('Cultos')
-                              .doc(widget.document_id)
-                              .snapshots(),
-                          builder: (context, cultoSnapshot) {
-                            if (cultoSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            }
+      body: isLoading
+          ? Center(
+              child:
+                  CircularProgressIndicator()) // Exibe o carregamento até que os dados estejam prontos
+          : Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Container(
+                      margin: EdgeInsets.only(top: 60, bottom: 40),
+                      child: GestureDetector(
+                          onTap: () => Navigator.pop(context, false),
+                          child: Icon(
+                            Icons.arrow_back_ios,
+                            color: Colors.white,
+                          )),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Text(
+                      widget.instrument,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      margin: EdgeInsets.only(top: 2),
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Color(0xff171717),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: MediaQuery.of(context).size.height * 0.6,
+                              child: StreamBuilder<DocumentSnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('Cultos')
+                                    .doc(widget.document_id)
+                                    .snapshots(),
+                                builder: (context, cultoSnapshot) {
+                                  if (cultoSnapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  }
 
-                            if (!cultoSnapshot.hasData ||
-                                !cultoSnapshot.data!.exists) {
-                              return Center(
-                                child: Text(
-                                  'Dados do culto não encontrados',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              );
-                            }
+                                  if (!cultoSnapshot.hasData ||
+                                      !cultoSnapshot.data!.exists) {
+                                    return Center(
+                                      child: Text(
+                                        'Dados do culto não encontrados',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    );
+                                  }
 
-                            var cultoData = cultoSnapshot.data!.data()
-                                as Map<String, dynamic>;
-                            var musicosAtuais = List<Map<String, dynamic>>.from(
-                                cultoData['musicos'] ?? []);
+                                  var cultoData = cultoSnapshot.data!.data()
+                                      as Map<String, dynamic>;
+                                  var musicosAtuais =
+                                      List<Map<String, dynamic>>.from(
+                                          cultoData['musicos'] ?? []);
 
-                            return StreamBuilder<QuerySnapshot>(
-                              stream: FirebaseFirestore.instance
-                                  .collection('musicos')
-                                  .snapshots(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Center(
-                                      child: CircularProgressIndicator());
-                                }
+                                  return StreamBuilder<QuerySnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('musicos')
+                                        .snapshots(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Center(
+                                            child: CircularProgressIndicator());
+                                      }
 
-                                if (!snapshot.hasData ||
-                                    snapshot.data!.docs.isEmpty) {
-                                  return Center(
-                                    child: Text(
-                                      'Nenhum Músico cadastrado',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  );
-                                }
-
-                                var musicosDisponiveis =
-                                    snapshot.data!.docs.where((musicoDoc) {
-                                  var musicoData =
-                                      musicoDoc.data() as Map<String, dynamic>;
-                                  var musicoId = musicoData['user_id'];
-                                  return !musicosAtuais.any((musicoAtual) =>
-                                      musicoAtual['user_id'] == musicoId);
-                                }).toList();
-
-                                return ListView.builder(
-                                  itemCount: musicosDisponiveis.length,
-                                  padding: EdgeInsets.zero,
-                                  itemBuilder: (context, index) {
-                                    var data = musicosDisponiveis[index];
-                                    var musicos =
-                                        data.data() as Map<String, dynamic>;
-                                    var musicoId = musicos['user_id'];
-                                    var nomeMusico = musicos['name'];
-
-                                    return FutureBuilder<bool>(
-                                      future: (date != null && horario != null)
-                                          ? verificaDisponibilidade(date!,
-                                              horario!, musicoId.toString())
-                                          : Future.value(
-                                              false), // or handle the null case appropriately
-                                      builder:
-                                          (context, disponibilidadeSnapshot) {
-                                        if (disponibilidadeSnapshot
-                                                .connectionState ==
-                                            ConnectionState.waiting) {
-                                          return ListTile(
-                                            title: Text(nomeMusico),
-                                            subtitle: Text(
-                                                'Verificando disponibilidade...'),
-                                          );
-                                        }
-
-                                        if (disponibilidadeSnapshot.hasError) {
-                                          return ListTile(
-                                            title: Text(nomeMusico),
-                                            subtitle: Text(
-                                                'Erro ao verificar disponibilidade.'),
-                                          );
-                                        }
-
-                                        bool disponivel =
-                                            disponibilidadeSnapshot.data ??
-                                                false;
-
-                                        return Container(
-                                          padding: EdgeInsets.all(8),
-                                          child: GestureDetector(
-                                            onTap: () async {
-                                              if (!mounted) return;
-
-                                              String mensagem;
-                                              if (disponivel) {
-                                                mensagem =
-                                                    "Quer convidar $nomeMusico para ser o ${widget.instrument}?";
-                                              } else {
-                                                mensagem =
-                                                    "$nomeMusico está indisponível. Quer convidar mesmo assim?";
-                                              }
-
-                                              bool? resposta =
-                                                  await showDialog<bool>(
-                                                context: context,
-                                                builder:
-                                                    (BuildContext context) =>
-                                                        AlertDialog(
-                                                  backgroundColor:
-                                                      Color(0xff171717),
-                                                  title: Text(
-                                                    mensagem,
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 16),
-                                                  ),
-                                                  actions: <Widget>[
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context, true),
-                                                      child: Text(disponivel
-                                                          ? 'OK'
-                                                          : 'Adicionar'),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context, false),
-                                                      child: Text('Cancel'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-
-                                              if (resposta == true) {
-                                                if (!mounted) return;
-
-                                                await adicionarMusico(
-                                                    widget.document_id,
-                                                    musicoId,
-                                                    widget.instrument);
-
-                                                // Aguarda o fechamento do SnackBar
-                                                await Future.delayed(
-                                                    Duration(seconds: 1));
-
-                                                if (!mounted) return;
-
-                                                Navigator.pop(context,
-                                                    true); // Retorna o resultado para a página anterior
-                                              }
-                                            },
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  nomeMusico,
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                Icon(
-                                                  disponivel
-                                                      ? Icons.confirmation_num
-                                                      : Icons.error,
-                                                  color: disponivel
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                ),
-                                              ],
-                                            ),
+                                      if (!snapshot.hasData ||
+                                          snapshot.data!.docs.isEmpty) {
+                                        return Center(
+                                          child: Text(
+                                            'Nenhum Músico cadastrado',
+                                            style:
+                                                TextStyle(color: Colors.white),
                                           ),
                                         );
-                                      },
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
+                                      }
+
+                                      var musicosDisponiveis = snapshot
+                                          .data!.docs
+                                          .where((musicoDoc) {
+                                        var musicoData = musicoDoc.data()
+                                            as Map<String, dynamic>;
+                                        var musicoId = musicoData['user_id'];
+                                        return !musicosAtuais.any(
+                                            (musicoAtual) =>
+                                                musicoAtual['user_id'] ==
+                                                musicoId);
+                                      }).toList();
+
+                                      return ListView.builder(
+                                        itemCount: musicosDisponiveis.length,
+                                        padding: EdgeInsets.zero,
+                                        itemBuilder: (context, index) {
+                                          var data = musicosDisponiveis[index];
+                                          var musicos = data.data()
+                                              as Map<String, dynamic>;
+                                          var musicoId = musicos['user_id'];
+                                          var nomeMusico = musicos['name'];
+
+                                          return FutureBuilder<bool>(
+                                            future: (date != null &&
+                                                    horario != null)
+                                                ? verificaDisponibilidade(
+                                                    date!,
+                                                    horario!,
+                                                    musicoId.toString())
+                                                : Future.value(
+                                                    false), // or handle the null case appropriately
+                                            builder: (context,
+                                                disponibilidadeSnapshot) {
+                                              if (disponibilidadeSnapshot
+                                                      .connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return Container(); // Não exibe nada enquanto verifica disponibilidade
+                                              }
+
+                                              if (disponibilidadeSnapshot
+                                                  .hasError) {
+                                                return ListTile(
+                                                  title: Text(nomeMusico),
+                                                  subtitle: Text(
+                                                      'Erro ao verificar disponibilidade.'),
+                                                );
+                                              }
+
+                                              bool disponivel =
+                                                  disponibilidadeSnapshot
+                                                          .data ??
+                                                      false;
+
+                                              return Container(
+                                                padding: EdgeInsets.all(8),
+                                                child: GestureDetector(
+                                                  onTap: () async {
+                                                    if (!mounted) return;
+
+                                                    String mensagem;
+                                                    if (disponivel) {
+                                                      mensagem =
+                                                          "Quer convidar $nomeMusico para ser o ${widget.instrument}?";
+                                                    } else {
+                                                      mensagem =
+                                                          "$nomeMusico está indisponível. Quer convidar mesmo assim?";
+                                                    }
+
+                                                    bool? resposta =
+                                                        await showDialog<bool>(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                              context) =>
+                                                          AlertDialog(
+                                                        backgroundColor:
+                                                            Color(0xff171717),
+                                                        title: Text(
+                                                          mensagem,
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 16),
+                                                        ),
+                                                        actions: <Widget>[
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    context,
+                                                                    true),
+                                                            child: Text(disponivel
+                                                                ? 'OK'
+                                                                : 'Adicionar'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    context,
+                                                                    false),
+                                                            child:
+                                                                Text('Cancel'),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+
+                                                    if (resposta == true) {
+                                                      if (!mounted) return;
+
+                                                      await adicionarMusico(
+                                                          widget.document_id,
+                                                          musicoId,
+                                                          widget.instrument);
+
+                                                      // Aguarda o fechamento do SnackBar
+                                                      await Future.delayed(
+                                                          Duration(seconds: 1));
+
+                                                      if (!mounted) return;
+
+                                                      Navigator.pop(context,
+                                                          true); // Retorna o resultado para a página anterior
+                                                    }
+                                                  },
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        nomeMusico
+                                                            .toString()
+                                                            .toCapitalized(),
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white),
+                                                      ),
+                                                      Icon(
+                                                        disponivel
+                                                            ? Icons
+                                                                .confirmation_num
+                                                            : Icons.error,
+                                                        color: disponivel
+                                                            ? Colors.green
+                                                            : Colors.red,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            )
+                          ],
                         ),
-                      )
-                    ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
