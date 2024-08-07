@@ -327,17 +327,15 @@ class _VerCifraUserState extends State<VerCifraUser> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Formação do Acorde'),
-          content: Text('Acorde: $chord\nFormação: $chordFormation'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-            Column(
+          backgroundColor: Colors.black,
+          content: Container(
+            height: 300,
+            child: Column(
               children: [
+                Text(
+                  "$chordFormation",
+                  style: TextStyle(color: Colors.white),
+                ),
                 SizedBox(
                   height: altura_brancas,
                   width: 240,
@@ -354,7 +352,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_brancas,
                             height: altura_brancas,
                             decoration: BoxDecoration(
-                              color: notas[0] ? Colors.green : Colors.white,
+                              color: notas[0] ? Colors.blue : Colors.white,
                               borderRadius: BorderRadius.horizontal(
                                 left: Radius.circular(8),
                               ),
@@ -376,7 +374,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_brancas,
                             height: altura_brancas,
                             decoration: BoxDecoration(
-                              color: notas[2] ? Colors.green : Colors.white,
+                              color: notas[2] ? Colors.blue : Colors.white,
                               border: Border.all(color: Colors.black),
                             ),
                           ),
@@ -393,7 +391,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_brancas,
                             height: altura_brancas,
                             decoration: BoxDecoration(
-                                color: notas[4] ? Colors.green : Colors.white,
+                                color: notas[4] ? Colors.blue : Colors.white,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -409,7 +407,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_pretas,
                             height: altura_pretas,
                             decoration: BoxDecoration(
-                                color: notas[3] ? Colors.green : Colors.black,
+                                color: notas[3] ? Colors.blue : Colors.black,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -425,7 +423,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_brancas,
                             height: altura_brancas,
                             decoration: BoxDecoration(
-                                color: notas[5] ? Colors.green : Colors.white,
+                                color: notas[5] ? Colors.blue : Colors.white,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -441,7 +439,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_brancas,
                             height: altura_brancas,
                             decoration: BoxDecoration(
-                                color: notas[7] ? Colors.green : Colors.white,
+                                color: notas[7] ? Colors.blue : Colors.white,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -457,7 +455,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_brancas,
                             height: altura_brancas,
                             decoration: BoxDecoration(
-                                color: notas[9] ? Colors.green : Colors.white,
+                                color: notas[9] ? Colors.blue : Colors.white,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -473,7 +471,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_brancas,
                             height: altura_brancas,
                             decoration: BoxDecoration(
-                                color: notas[11] ? Colors.green : Colors.white,
+                                color: notas[11] ? Colors.blue : Colors.white,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -489,7 +487,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_brancas,
                             height: altura_brancas,
                             decoration: BoxDecoration(
-                                color: notas[12] ? Colors.green : Colors.white,
+                                color: notas[12] ? Colors.blue : Colors.white,
                                 borderRadius: BorderRadius.horizontal(
                                     right: Radius.circular(8)),
                                 border: Border.all(color: Colors.black)),
@@ -507,7 +505,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_pretas,
                             height: altura_pretas,
                             decoration: BoxDecoration(
-                                color: notas[1] ? Colors.green : Colors.black,
+                                color: notas[1] ? Colors.blue : Colors.black,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -523,7 +521,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_pretas,
                             height: altura_pretas,
                             decoration: BoxDecoration(
-                                color: notas[6] ? Colors.green : Colors.black,
+                                color: notas[6] ? Colors.blue : Colors.black,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -539,7 +537,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_pretas,
                             height: altura_pretas,
                             decoration: BoxDecoration(
-                                color: notas[8] ? Colors.green : Colors.black,
+                                color: notas[8] ? Colors.blue : Colors.black,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -555,7 +553,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                             width: largura_pretas,
                             height: altura_pretas,
                             decoration: BoxDecoration(
-                                color: notas[10] ? Colors.green : Colors.black,
+                                color: notas[10] ? Colors.blue : Colors.black,
                                 border: Border.all(color: Colors.black)),
                           ),
                         ),
@@ -564,7 +562,15 @@ class _VerCifraUserState extends State<VerCifraUser> {
                   ),
                 ),
               ],
-            )
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
           ],
         );
       },
