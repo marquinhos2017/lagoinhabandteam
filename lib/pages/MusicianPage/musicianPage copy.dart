@@ -237,6 +237,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
           "My Schedule",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),

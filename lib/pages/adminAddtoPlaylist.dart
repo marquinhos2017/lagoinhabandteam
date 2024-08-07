@@ -193,32 +193,33 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  width: 270,
-                                  child: ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    trailing: GestureDetector(
-                                      onTap: () async {
-                                        await _showKeyDialog(documentId);
-                                      },
-                                      child: Icon(
-                                        Icons.add,
-                                        color: Color(0xff4465D9),
+                                  child: Expanded(
+                                    child: ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      trailing: GestureDetector(
+                                        onTap: () async {
+                                          await _showKeyDialog(documentId);
+                                        },
+                                        child: Icon(
+                                          Icons.add,
+                                          color: Color(0xff4465D9),
+                                        ),
                                       ),
-                                    ),
-                                    title: Text(
-                                      data['Author'] ?? 'No title',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
+                                      title: Text(
+                                        data['Author'] ?? 'No title',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
-                                    subtitle: Text(
-                                      data['Music'] ?? 'No artist',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w200,
+                                      subtitle: Text(
+                                        data['Music'] ?? 'No artist',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w200,
+                                        ),
                                       ),
                                     ),
                                   ),

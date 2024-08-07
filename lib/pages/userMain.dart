@@ -171,6 +171,7 @@ class _userMainPageState extends State<userMainPage> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
           "Lagoinha Music Faro",
           style: TextStyle(
