@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lagoinha_music/pages/MusicianPage/VerCifraUser.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 extension StringCasingExtension on String {
   String toCapitalized() =>
@@ -218,99 +219,106 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
           child: ListView(
             children: musicasAtuais
                 .map((musica) => Container(
-                      margin: EdgeInsets.all(12),
+                      margin: EdgeInsets.symmetric(vertical: 4),
                       color: Color(0xff171717),
-                      child: ExpansionTile(
-                        initiallyExpanded: false,
-                        maintainState: false,
-                        iconColor: Colors.blueAccent,
-                        shape: Border.all(color: Color(0xff171717)),
-                        title: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Padding(
+                        padding: const EdgeInsets.all(0.0),
+                        child: ExpansionTile(
+                          initiallyExpanded: false,
+                          maintainState: false,
+                          iconColor: Colors.blueAccent,
+                          shape: Border.all(color: Color(0xff171717)),
+                          title: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                musica['Music'] ?? 'Título desconhecido',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                              Text(
+                                musica['Author'] ?? 'Autor desconhecido',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                            ],
+                          ),
                           children: [
-                            Text(
-                              musica['Music'] ?? 'Título desconhecido',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            Text(
-                              musica['Author'] ?? 'Autor desconhecido',
-                              style: TextStyle(color: Colors.white),
+                            ListTile(
+                              title: Text(
+                                'Tom: ${musica['key'] ?? 'Desconhecido'}',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              leading: GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text('Link da Música'),
+                                          content: Text(musica['link'] ??
+                                              'Link não disponível'),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('Fechar'),
+                                            ),
+                                            if (musica['link'] != null &&
+                                                musica['link'].isNotEmpty)
+                                              TextButton(
+                                                onPressed: () {
+                                                  void _openLink(
+                                                      String url) async {
+                                                    final Uri uri =
+                                                        Uri.parse(url);
+                                                    if (await canLaunchUrl(
+                                                        uri)) {
+                                                      await launchUrl(uri,
+                                                          mode: LaunchMode
+                                                              .externalApplication);
+                                                    } else {
+                                                      throw 'Não foi possível abrir o URL: $url';
+                                                    }
+                                                  }
+
+                                                  _openLink(musica['link']);
+                                                },
+                                                child:
+                                                    Text('Abrir no Navegador'),
+                                              ),
+                                          ],
+                                        );
+                                      },
+                                    );
+
+                                    print(musica['link']);
+                                  },
+                                  child: Icon(Icons.link)),
+                              trailing: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => VerCifraUser(
+                                        documentId: musica['document_id'],
+                                        isAdmin: false,
+                                        tone: musica['key'],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Icon(
+                                  Icons.library_music_rounded,
+                                  color: Colors.blueAccent,
+                                  size: 24,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        children: [
-                          ListTile(
-                            title: Text(
-                              'Tom: ${musica['key'] ?? 'Desconhecido'}',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            leading: GestureDetector(
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Link da Música'),
-                                        content: Text(musica['link'] ??
-                                            'Link não disponível'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text('Fechar'),
-                                          ),
-                                          if (musica['link'] != null &&
-                                              musica['link'].isNotEmpty)
-                                            TextButton(
-                                              onPressed: () {
-                                                void _openLink(
-                                                    String url) async {
-                                                  final Uri uri =
-                                                      Uri.parse(url);
-                                                  if (await canLaunchUrl(uri)) {
-                                                    await launchUrl(uri,
-                                                        mode: LaunchMode
-                                                            .externalApplication);
-                                                  } else {
-                                                    throw 'Não foi possível abrir o URL: $url';
-                                                  }
-                                                }
-
-                                                _openLink(musica['link']);
-                                              },
-                                              child: Text('Abrir no Navegador'),
-                                            ),
-                                        ],
-                                      );
-                                    },
-                                  );
-
-                                  print(musica['link']);
-                                },
-                                child: Icon(Icons.link)),
-                            trailing: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => VerCifraUser(
-                                      documentId: musica['document_id'],
-                                      isAdmin: false,
-                                      tone: musica['key'],
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Icon(
-                                Icons.library_music_rounded,
-                                color: Colors.blueAccent,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ))
                 .toList(),
@@ -367,7 +375,9 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                 Text(
                                   item['name'].toString().toTitleCase() ??
                                       'Nome desconhecido',
-                                  style: TextStyle(color: Colors.white),
+                                  style: GoogleFonts.montserrat(
+                                      textStyle:
+                                          TextStyle(color: Colors.white)),
                                 ),
                                 Text(
                                   ' ${item['Instrument'] ?? 'Desconhecido'}',
