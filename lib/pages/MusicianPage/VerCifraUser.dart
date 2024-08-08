@@ -24,7 +24,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
   bool _shouldScroll = true; // Flag to control auto-scrolling
   bool _isAutoScrollEnabled = false; // Controle de rolagem automática
   final Duration _scrollDuration =
-      Duration(seconds: 5); // Tempo fixo para rolar do início ao fim
+      Duration(seconds: 120); // Tempo fixo para rolar do início ao fim
 
   final Duration _minScrollDuration = Duration(
       milliseconds: 200); // Duração mínima para evitar animações inválidas
@@ -62,7 +62,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
           ScrollDirection.idle) {
         setState(() {
           _isUserScrolling = false;
-          // _isAutoScrollEnabled = false;
+          _isAutoScrollEnabled = false;
         });
         _scrollTimer?.cancel();
       } else {
@@ -287,8 +287,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                 _isAutoScrollEnabled = !_isAutoScrollEnabled;
                 if (_scrollController.hasClients) {
                   final newOffset = _scrollController.offset -
-                      _scrollController.position
-                          .pixels; // Ajuste o valor conforme necessário
+                      0; // Ajuste o valor conforme necessário
                   _scrollController.animateTo(
                     newOffset.clamp(
                         0.0, _scrollController.position.maxScrollExtent),
@@ -336,7 +335,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
                           'C';
 
                       return Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(30.0),
                         child: GestureDetector(
                           onVerticalDragCancel: () {
                             print(
@@ -362,26 +361,66 @@ class _VerCifraUserState extends State<VerCifraUser> {
             ],
           ),
           // Botões flutuantes
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FloatingActionButton(
-                  heroTag: 'scroll_up_button', // Unique tag for this button
-                  onPressed: _scrollUp,
-                  child: Icon(Icons.arrow_upward),
-                  tooltip: 'Scroll Up',
-                ),
-                SizedBox(height: 8),
-                FloatingActionButton(
-                  heroTag: 'scroll_down_button', // Unique tag for this button
-                  onPressed: _scrollDown,
-                  child: Icon(Icons.arrow_downward),
-                  tooltip: 'Scroll Down',
-                ),
-              ],
+          Visibility(
+            visible: _isAutoScrollEnabled,
+            child: Positioned(
+              bottom: 40,
+              right: 20,
+              //   left: 0,
+              // top: 0,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black, // Cor de fundo do botão
+                      borderRadius:
+                          BorderRadius.circular(16), // Define o raio da borda
+                      border: Border.all(
+                        color: Colors.white, // Cor da borda
+                        width: 0.2, // Largura da borda
+                      ),
+                    ),
+                    child: FloatingActionButton(
+                      heroTag: 'scroll_up_button', // Unique tag for this button
+                      onPressed: _scrollUp,
+                      child: Icon(Icons.arrow_upward),
+                      foregroundColor: Colors.blue,
+
+                      backgroundColor: Colors.black,
+
+                      tooltip: 'Scroll Up',
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black, // Cor de fundo do botão
+                      borderRadius:
+                          BorderRadius.circular(16), // Define o raio da borda
+                      border: Border.all(
+                        color: Colors.white, // Cor da borda
+                        width: 0.2, // Largura da borda
+                      ),
+                    ),
+                    child: FloatingActionButton(
+                      heroTag:
+                          'scroll_down_button', // Unique tag for this button
+                      onPressed: _scrollDown,
+                      child: Icon(
+                        Icons.arrow_downward,
+                        color: Colors.blue,
+                      ),
+                      foregroundColor: Colors.blue,
+
+                      backgroundColor: Colors.black,
+                      tooltip: 'Scroll Down',
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -414,6 +453,8 @@ class _VerCifraUserState extends State<VerCifraUser> {
         curve: Curves.easeInOut,
       );
     }
+    print(
+        "Clicado para baixo: Estao do _IsAutoScroll" + "$_isAutoScrollEnabled");
   }
 
   void _scrollToBottom() {
@@ -442,8 +483,8 @@ class _VerCifraUserState extends State<VerCifraUser> {
 
   void _startAutoScrollTimer() {
     _scrollTimer?.cancel(); // Cancelar temporizador existente
-    _scrollTimer = Timer(Duration(milliseconds: 100), () {
-      if (mounted && !_isUserScrolling && _isAutoScrollEnabled) {
+    _scrollTimer = Timer(Duration(milliseconds: 300), () {
+      if (mounted && !_isUserScrolling) {
         setState(() {
           _isAutoScrollEnabled = true; // Reativar rolagem automática
         });
