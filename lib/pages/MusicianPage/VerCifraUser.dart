@@ -658,7 +658,9 @@ class _VerCifraUserState extends State<VerCifraUser> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.arrow_downward),
+            icon: Icon(
+              _isAutoScrollEnabled ? Icons.stop : Icons.play_arrow,
+            ),
             onPressed: () {
               setState(() {
                 _isAutoScrollEnabled = !_isAutoScrollEnabled;
@@ -759,7 +761,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
           _scrollController.offset - 100; // Ajuste o valor conforme necessário
       _scrollController.animateTo(
         newOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-        duration: Duration(milliseconds: 300),
+        duration: Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
     }
@@ -771,7 +773,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
           _scrollController.offset + 100; // Ajuste o valor conforme necessário
       _scrollController.animateTo(
         newOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-        duration: Duration(milliseconds: 300),
+        duration: Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
     }
@@ -801,7 +803,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
 
   void _startAutoScrollTimer() {
     _scrollTimer?.cancel(); // Cancelar temporizador existente
-    _scrollTimer = Timer(Duration(seconds: 1), () {
+    _scrollTimer = Timer(Duration(milliseconds: 100), () {
       if (mounted && !_isUserScrolling && _isAutoScrollEnabled) {
         _scrollToBottom();
         setState(() {
