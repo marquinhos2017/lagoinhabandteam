@@ -379,10 +379,16 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                       textStyle:
                                           TextStyle(color: Colors.white)),
                                 ),
-                                Text(
-                                  ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                                if (item['Instrument'] == "Guitarra")
+                                  Text(
+                                    ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                if (item['Instrument'] == "Bateria")
+                                  Text(
+                                    ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                    style: TextStyle(color: Colors.yellow),
+                                  ),
                               ],
                             ),
                           ),
