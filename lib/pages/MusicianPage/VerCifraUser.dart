@@ -57,16 +57,20 @@ class _VerCifraUserState extends State<VerCifraUser> {
     _songDetailsFuture = _fetchSongDetails();
 
     _scrollController.addListener(() {
+      print("Is Auto Scroll Enabled ?: $_isAutoScrollEnabled");
+      //_isUserScrolling = true;
       // print(_scrollController.position);
       if (_scrollController.position.userScrollDirection !=
           ScrollDirection.idle) {
         setState(() {
           _isUserScrolling = false;
-          _isAutoScrollEnabled = false;
+          print("Is User Scrolling ? : $_isUserScrolling");
+          // _isAutoScrollEnabled = false;
         });
         _scrollTimer?.cancel();
       } else {
         setState(() {
+          _isUserScrolling = false;
           // ao chegar no final  ele diz que o Scroll
           //_isUserScrolling = false;
         });
@@ -285,6 +289,23 @@ class _VerCifraUserState extends State<VerCifraUser> {
             onPressed: () {
               setState(() {
                 _isAutoScrollEnabled = !_isAutoScrollEnabled;
+                if (_isAutoScrollEnabled) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Color(0xff4465D9),
+                      content: Text('Rolagem Automatica Ativada'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.red,
+                      content: Text('Rolagem Automatica Desativada'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
                 if (_scrollController.hasClients) {
                   final newOffset = _scrollController.offset -
                       0; // Ajuste o valor conforme necessário
