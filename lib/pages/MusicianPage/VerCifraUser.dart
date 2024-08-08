@@ -27,7 +27,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
       Duration(seconds: 120); // Tempo fixo para rolar do início ao fim
 
   final Duration _minScrollDuration = Duration(
-      milliseconds: 200); // Duração mínima para evitar animações inválidas
+      milliseconds: 500); // Duração mínima para evitar animações inválidas
 
   late Future<Map<String, dynamic>?> _songDetailsFuture;
   String _selectedKey = 'C'; // Default key
@@ -455,7 +455,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
           _scrollController.offset - 100; // Ajuste o valor conforme necessário
       _scrollController.animateTo(
         newOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-        duration: Duration(milliseconds: 500),
+        duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     }
@@ -470,7 +470,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
           _scrollController.offset + 100; // Ajuste o valor conforme necessário
       _scrollController.animateTo(
         newOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-        duration: Duration(milliseconds: 500),
+        duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     }
@@ -521,7 +521,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
     _scrollTimer?.cancel(); // Cancelar temporizador existente
 
     // Iniciar um temporizador para reativar a rolagem automática após 3 segundos
-    Timer(Duration(seconds: 1), () {
+    Timer(Duration(milliseconds: 3000), () {
       if (mounted) {
         // Verificar se ainda está montado
         setState(() {
