@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class VerCifraUser extends StatefulWidget {
   final String documentId;
@@ -15,6 +18,17 @@ class VerCifraUser extends StatefulWidget {
 }
 
 class _VerCifraUserState extends State<VerCifraUser> {
+  final ScrollController _scrollController = ScrollController();
+  Timer? _scrollTimer;
+  bool _isUserScrolling = false;
+  bool _shouldScroll = true; // Flag to control auto-scrolling
+  bool _isAutoScrollEnabled = false; // Controle de rolagem automática
+  final Duration _scrollDuration =
+      Duration(seconds: 60); // Tempo fixo para rolar do início ao fim
+
+  final Duration _minScrollDuration = Duration(
+      milliseconds: 200); // Duração mínima para evitar animações inválidas
+
   late Future<Map<String, dynamic>?> _songDetailsFuture;
   String _selectedKey = 'C'; // Default key
   final List<String> _keys = [
@@ -41,6 +55,35 @@ class _VerCifraUserState extends State<VerCifraUser> {
   void initState() {
     super.initState();
     _songDetailsFuture = _fetchSongDetails();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection !=
+          ScrollDirection.idle) {
+        setState(() {
+          _isUserScrolling = true;
+          _isAutoScrollEnabled = false;
+        });
+        _scrollTimer?.cancel();
+      } else {
+        setState(() {
+          _isUserScrolling = false;
+        });
+        _startAutoScrollTimer();
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isAutoScrollEnabled) {
+        _scrollToBottom();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _scrollTimer?.cancel();
+    super.dispose();
   }
 
   Future<Map<String, dynamic>?> _fetchSongDetails() async {
@@ -613,38 +656,176 @@ class _VerCifraUserState extends State<VerCifraUser> {
             }
           },
         ),
-      ),
-      body: FutureBuilder<Map<String, dynamic>?>(
-        future: _songDetailsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(
-                child: Text('Erro ao carregar conteúdo',
-                    style: TextStyle(color: Colors.white)));
-          } else if (!snapshot.hasData) {
-            return Center(
-                child: Text('Música não encontrada',
-                    style: TextStyle(color: Colors.white)));
-          } else {
-            final content = snapshot.data!['content'] ?? '';
-            final originalKey =
-                RegExp(r'Tom: <(.*?)>').firstMatch(content)?.group(1) ?? 'C';
+        actions: [
+          IconButton(
+            icon: Icon(Icons.arrow_downward),
+            onPressed: () {
+              setState(() {
+                _isAutoScrollEnabled = !_isAutoScrollEnabled;
+              });
 
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    buildRichText(content, originalKey),
-                  ],
+              if (_isAutoScrollEnabled) {
+                _scrollToBottom();
+              } else {
+                _scrollTimer?.cancel();
+              }
+
+              print("Print: Auto Controller $_isAutoScrollEnabled");
+            },
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: FutureBuilder<Map<String, dynamic>?>(
+                  future: _songDetailsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(
+                          child: Text('Erro ao carregar conteúdo',
+                              style: TextStyle(color: Colors.white)));
+                    } else if (!snapshot.hasData) {
+                      return Center(
+                          child: Text('Música não encontrada',
+                              style: TextStyle(color: Colors.white)));
+                    } else {
+                      final content = snapshot.data!['content'] ?? '';
+                      final originalKey = RegExp(r'Tom: <(.*?)>')
+                              .firstMatch(content)
+                              ?.group(1) ??
+                          'C';
+
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: GestureDetector(
+                          onVerticalDragCancel: () {
+                            print(_isAutoScrollEnabled);
+                            if (_isAutoScrollEnabled == true) {
+                              _handleTap();
+                            }
+                          },
+                          child: SingleChildScrollView(
+                            controller: _scrollController,
+                            child: Column(
+                              children: [
+                                buildRichText(content, originalKey),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ),
-            );
-          }
-        },
+            ],
+          ),
+          // Botões flutuantes
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton(
+                  heroTag: 'scroll_up_button', // Unique tag for this button
+                  onPressed: _scrollUp,
+                  child: Icon(Icons.arrow_upward),
+                  tooltip: 'Scroll Up',
+                ),
+                SizedBox(height: 8),
+                FloatingActionButton(
+                  heroTag: 'scroll_down_button', // Unique tag for this button
+                  onPressed: _scrollDown,
+                  child: Icon(Icons.arrow_downward),
+                  tooltip: 'Scroll Down',
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  void _scrollUp() {
+    if (_scrollController.hasClients) {
+      final newOffset =
+          _scrollController.offset - 100; // Ajuste o valor conforme necessário
+      _scrollController.animateTo(
+        newOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _scrollDown() {
+    if (_scrollController.hasClients) {
+      final newOffset =
+          _scrollController.offset + 100; // Ajuste o valor conforme necessário
+      _scrollController.animateTo(
+        newOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _scrollToBottom() {
+    print(_isAutoScrollEnabled);
+    if (mounted && _scrollController.hasClients && _isAutoScrollEnabled) {
+      final currentPosition = _scrollController.offset;
+      final maxScrollExtent = _scrollController.position.maxScrollExtent;
+      final distanceToBottom = maxScrollExtent - currentPosition;
+
+      final calculatedDuration =
+          _scrollDuration * (distanceToBottom / maxScrollExtent);
+
+      final scrollDuration = calculatedDuration > _minScrollDuration
+          ? calculatedDuration
+          : _minScrollDuration; // Garantir que a duração não seja menor que o mínimo
+
+      _scrollController.animateTo(
+        maxScrollExtent,
+        duration: scrollDuration,
+        curve: Curves.linear,
+      );
+    }
+  }
+
+  void _startAutoScrollTimer() {
+    _scrollTimer?.cancel(); // Cancelar temporizador existente
+    _scrollTimer = Timer(Duration(seconds: 1), () {
+      if (mounted && !_isUserScrolling && _isAutoScrollEnabled) {
+        _scrollToBottom();
+        setState(() {
+          _isAutoScrollEnabled = true; // Reativar rolagem automática
+        });
+      }
+    });
+  }
+
+  void _handleTap() {
+    setState(() {
+      _isAutoScrollEnabled = false; // Desativar rolagem automática
+    });
+    _scrollTimer?.cancel(); // Cancelar temporizador existente
+
+    // Iniciar um temporizador para reativar a rolagem automática após 3 segundos
+    Timer(Duration(seconds: 1), () {
+      if (mounted) {
+        // Verificar se ainda está montado
+        setState(() {
+          _isAutoScrollEnabled = true;
+        });
+        _scrollToBottom(); // Continuar a rolagem automática a partir da posição atual
+      }
+    });
   }
 }
