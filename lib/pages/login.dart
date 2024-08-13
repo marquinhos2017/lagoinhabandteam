@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/models/culto.dart';
+import 'package:lagoinha_music/pages/MusicianPage/musicianPageNewUI.dart';
 import 'package:lagoinha_music/pages/adminCultoForm.dart';
 import 'package:lagoinha_music/pages/MusicianPage/musicianPage%20copy.dart';
 
@@ -290,7 +291,7 @@ class _LoginStateState extends State<login> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => MusicianPageCopy(
+                                        builder: (context) => MusicianPageNewUI(
                                             id: musicianData['user_id']
                                                 .toString())),
                                   );
