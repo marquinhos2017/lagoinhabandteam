@@ -1,0 +1,784 @@
+   return Scaffold(
+      backgroundColor: Color(0xfff3f3f3),
+      body: SingleChildScrollView(
+        physics: NeverScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            
+            Container(
+              height: 300,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Color(0xffc79e86),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(
+                      40.0), // Define o raio do canto inferior esquerdo
+                  bottomRight: Radius.circular(
+                      40.0), // Define o raio do canto inferior direito
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 50,
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => login()),
+                            ),
+                            child: Icon(
+                              Icons.login,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          "Hello Marcos!",
+                          style: GoogleFonts.montserrat(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            Visibility(
+              visible: !verFormulario,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0, vertical: 24),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "CONFIRMADO ",
+                                style: GoogleFonts.roboto(
+                                    textStyle: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                    color: Color(0xffc79e86),
+                                    borderRadius: BorderRadius.circular(100)),
+                                child: Center(
+                                  child: Text(
+                                    cultosCount.toString(),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 600,
+                    margin: EdgeInsets.only(top: 0),
+                    child: FutureBuilder<QuerySnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection('Cultos')
+                          .orderBy("date")
+                          .where('musicos', arrayContains: {
+                        'user_id': int.parse(widget.id)
+                      }).get(), // Obtendo todos os documentos uma vez
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Erro: ${snapshot.error}'));
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Center(
+                              child: Text('Nenhum culto encontrado.'));
+                        }
+
+                        List<DocumentSnapshot> docs = snapshot.data!.docs;
+
+                        // Lista para armazenar todas as músicas de todos os cultos
+                        List<List<Map<String, dynamic>>> allMusicDataList =
+                            List.generate(docs.length, (_) => []);
+
+                        // Função para carregar as músicas de um culto específico
+                        Future<void> loadMusicsForDocument(int docIndex) async {
+                          final doc = docs[docIndex];
+                          final data = doc.data() as Map<String, dynamic>;
+                          final playlist = data['playlist'] as List<dynamic>?;
+                          print(playlist);
+
+                          if (playlist != null) {
+                            List<Future<DocumentSnapshot>> musicFutures =
+                                playlist.map((song) {
+                              String musicDocumentId =
+                                  song['music_document'] as String;
+                              return FirebaseFirestore.instance
+                                  .collection('music_database')
+                                  .doc(musicDocumentId)
+                                  .get();
+                            }).toList();
+
+                            List<DocumentSnapshot> musicSnapshots =
+                                await Future.wait(musicFutures);
+                            List<Map<String, dynamic>> musicDataList =
+                                musicSnapshots.map((musicSnapshot) {
+                              if (musicSnapshot.exists) {
+                                Map<String, dynamic> musicData = musicSnapshot
+                                    .data() as Map<String, dynamic>;
+                                musicData['document_id'] =
+                                    musicSnapshot.id; // Adiciona o documentId
+
+                                // Encontra o item correspondente no playlist para adicionar a key e link
+                                var song = playlist.firstWhere(
+                                  (song) =>
+                                      song['music_document'] ==
+                                      musicSnapshot.id,
+                                  orElse: () => null,
+                                );
+
+                                if (song != null) {
+                                  musicData['key'] =
+                                      song['key']; // Adiciona o campo key
+                                  musicData['link'] = song['link'] ??
+                                      'Link não disponível'; // Adiciona o campo link
+                                } else {
+                                  // Caso não encontre a música no playlist, define valores padrão para key e link
+                                  musicData['key'] = 'Key Desconhecida';
+                                  musicData['link'] = 'Link não disponível';
+                                }
+
+                                return musicData;
+                              } else {
+                                return {
+                                  'Music': 'Música Desconhecida',
+                                  'Author': 'Autor Desconhecido',
+                                  'key': 'Key Desconhecida',
+                                  'link':
+                                      'Link não disponível', // Adiciona o campo link
+                                  'document_id':
+                                      '', // Adiciona um campo vazio se o documento não existir
+                                };
+                              }
+                            }).toList();
+
+                            allMusicDataList[docIndex] = musicDataList;
+                          }
+                        }
+
+                        // Carregar as músicas para todos os documentos
+                        Future<void> loadAllMusics() async {
+                          for (int i = 0; i < docs.length; i++) {
+                            await loadMusicsForDocument(i);
+                          }
+                        }
+
+                        return FutureBuilder<void>(
+                          future: loadAllMusics(),
+                          builder: (context, musicSnapshot) {
+                            if (musicSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+
+                            if (musicSnapshot.hasError) {
+                              return Center(
+                                  child: Text('Erro ao carregar músicas'));
+                            }
+
+                            return ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: docs.length,
+                              itemBuilder: (context, index) {
+                                Map<String, dynamic> data =
+                                    docs[index].data() as Map<String, dynamic>;
+                                String idDocument = docs[index].id;
+
+                                DateTime? dataDocumento;
+                                try {
+                                  dataDocumento =
+                                      (data['date'] as Timestamp?)?.toDate();
+                                } catch (e) {
+                                  print('Erro ao converter data: $e');
+                                  dataDocumento = null;
+                                }
+
+                                return FutureBuilder<String>(
+                                    future: loadInstrumentForDocument(
+                                        widget.id, idDocument),
+                                    builder: (context, instrumentSnapshot) {
+                                      String instrumentText =
+                                          'Instrumento Desconhecido';
+                                      if (instrumentSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Center(
+                                            child: CircularProgressIndicator());
+                                      }
+
+                                      if (instrumentSnapshot.hasData) {
+                                        instrumentText =
+                                            instrumentSnapshot.data!;
+                                      } else if (instrumentSnapshot.hasError) {
+                                        print(
+                                            'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
+                                      }
+
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ScheduleDetailsMusician(
+                                                documents: docs,
+                                                id: idDocument,
+                                                currentIndex: index,
+                                                musics: allMusicDataList,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 24.0, vertical: 8),
+                                          child: Container(
+                                            margin: EdgeInsets.only(bottom: 15),
+                                            decoration: BoxDecoration(
+                                                /*  border: Border(
+                                                  bottom: BorderSide(
+                                                    color: Colors
+                                                        .black, // Cor da borda
+                                                    width:
+                                                        0.25, // Largura da borda
+                                                  ),
+                                                ),*/
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(25)),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(12.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Container(
+                                                    margin: EdgeInsets.only(
+                                                        top: 7, bottom: 14),
+                                                    child: Row(
+                                                      children: [
+                                                        Container(
+                                                          height: 60,
+                                                          width: 60,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                                  /*       border: Border
+                                                                      .all(
+                                                                    color: Color(
+                                                                        0xff4465D9),
+                                                                    width: 2,
+                                                                  ),*/
+                                                                  color: Color(
+                                                                      0xffc79e86),
+                                                                  shape: BoxShape
+                                                                      .circle),
+                                                        ),
+                                                        SizedBox(
+                                                          width: 20,
+                                                        ),
+                                                        Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              data['nome'],
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .black,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  fontSize: 20),
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                Text(
+                                                                  DateFormat(
+                                                                          'MMM d')
+                                                                      .format(
+                                                                          dataDocumento!),
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .black,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w300,
+                                                                      fontSize:
+                                                                          16),
+                                                                ),
+                                                                Text(
+                                                                    "-" +
+                                                                        data[
+                                                                            'horario'],
+                                                                    style: TextStyle(
+                                                                        color: Color(
+                                                                            0xffc79e86),
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w300,
+                                                                        fontSize:
+                                                                            16))
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  //SizedBox(height: 8),
+                                                  /*   Row(children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              5.0),
+                                                      child: Container(
+                                                        child: Text(
+                                                          instrumentText,
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w300),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ]),
+                                              */ /*Text(
+                                              'Músicas:',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            allMusicDataList[index].isNotEmpty
+                                                ? ListView.builder(
+                                                    shrinkWrap: true,
+                                                    physics:
+                                                        NeverScrollableScrollPhysics(),
+                                                    itemCount:
+                                                        allMusicDataList[index]
+                                                            .length,
+                                                    itemBuilder:
+                                                        (context, playlistIndex) {
+                                                      final song =
+                                                          allMusicDataList[index]
+                                                              [playlistIndex];
+                                                      final musica =
+                                                          song['Music'] ??
+                                                              'Música Desconhecida';
+                                                      final autor =
+                                                          song['Author'] ??
+                                                              'Autor Desconhecido';
+                                                                            
+                                                      return Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(
+                                                              '$musica',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      Colors.white,
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                          Expanded(
+                                                            child: Text(
+                                                              '$autor',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      Colors.white,
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  )
+                                                : Text(
+                                                    'Nenhuma música encontrada',
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12),
+                                                  ),*/
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    });
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ),
+            //  Text(
+            //widget.id, // ID do Usuario
+            // style: TextStyle(color: Colors.white),
+            //  ),
+
+            //Container( Mostra o valor do ver Formulario
+            //child: Text(
+            // '$verFormulario',
+            // style: TextStyle(color: Colors.white),
+            //),
+            //),
+            if (verFormulario)
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: _firestore
+                      .collection('Form_Mes_Cultos')
+                      .where('mes_id', isEqualTo: mesIdEspecifico)
+                      .orderBy(
+                        'data',
+                      )
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Erro: ${snapshot.error}'));
+                    }
+
+                    if (!snapshot.hasData) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+
+                    final cultos = snapshot.data!.docs;
+                    // print(verFormulario);
+
+                    if (cultos.isEmpty) {
+                      return Center(child: Text('Nenhum culto encontrado.'));
+                    }
+
+                    return ListView.builder(
+                      itemCount: cultos.length,
+                      itemBuilder: (context, index) {
+                        var culto = cultos[index];
+
+                        print(culto['data']);
+
+                        String nomeDocumento =
+                            culto?['culto'] ?? 'Nome do Culto Indisponível';
+                        DateTime? dataDocumento;
+                        try {
+                          dataDocumento = culto?['data']?.toDate();
+                        } catch (e) {
+                          print('Erro ao converter data: $e');
+                          dataDocumento = null;
+                        }
+
+                        print("Mostrando" + culto.id);
+
+                        return CheckboxListTile(
+                          title: Text(
+                            'Culto: ${culto['culto']}',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16),
+                          ),
+                          subtitle: dataDocumento != null
+                              ? Text(
+                                  DateFormat('dd/MM/yyyy')
+                                          .format(dataDocumento!) +
+                                      " -  ${culto['horario']}",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 10),
+                                )
+                              : Text(
+                                  'Data Indisponível',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 10),
+                                ),
+                          value: checkedItems[index]?.booleanValue ?? false,
+                          onChanged: (bool? value) {
+                            onCheckboxChanged(index, value ?? false, culto.id);
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              )
+            else
+              /*Center(
+                child: Text('Ver Formulario desativado'),
+              ),*/
+              FutureBuilder<Map<String, dynamic>>(
+                future: fetchData(widget.id),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erro: ${snapshot.error}'));
+                  }
+
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: Text(
+                        'Nenhum dado encontrado',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
+                  final musicianName = snapshot.data!['musicianName'];
+                  final cultos =
+                      snapshot.data!['cultos'] as List<QueryDocumentSnapshot>;
+
+                  // Filtra os cultos para verificar se o músico está escalado
+                  final cultosEscalados = cultos.where((culto) {
+                    final cultoData = culto.data() as Map<String, dynamic>;
+                    final musicos = cultoData['musicos'] != null
+                        ? cultoData['musicos'] as List<dynamic>
+                        : [];
+                    return musicos
+                        .any((musico) => musico['name'] == musicianName);
+                  }).toList();
+
+                  // Verifica se o músico está escalado em algum culto
+                  if (cultosEscalados.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'Você não está escalado para nenhum culto.',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
+                  return SingleChildScrollView(
+                    child: Container(
+                      margin: EdgeInsets.only(top: 0),
+                      padding: EdgeInsets.all(0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(bottom: 0),
+                            child: Text(
+                              "Cultos Escalados",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Container(
+                            height: 300,
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              itemCount: cultosEscalados.length,
+                              itemBuilder: (context, index) {
+                                final culto = cultosEscalados[index].data()
+                                    as Map<String, dynamic>;
+                                return Container(
+                                  margin: EdgeInsets.only(bottom: 10),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(0)),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 30.0, vertical: 0),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              culto['nome'],
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14),
+                                            ),
+                                            Text(
+                                              "19:30 - 21:00",
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w300,
+                                                  fontSize: 10),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+      floatingActionButton: Visibility(
+        visible:
+            verFormulario, // Mostra apenas se shouldShowFab for true e não estiver salvo
+        child: FloatingActionButton(
+          onPressed: () {
+            String musicoId = widget.id; // Substitua pelo ID do músico logado
+            salvarDados(musicoId);
+          },
+          child: Icon(Icons.save),
+        ),
+      ),
+    );
+  
+
+  class BottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const BottomNavBar({
+    Key? key,
+    required this.currentIndex,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.zero,
+      height: 95.0,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
+          AnimatedAlign(
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            alignment: currentIndex == 0
+                ? Alignment.centerLeft
+                : Alignment.centerRight,
+            child: Padding(
+              padding:
+                  const EdgeInsets.only(left: 46.0, right: 50.0, bottom: 6.0),
+              child: Container(
+                width: 80,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+          BottomNavigationBar(
+            currentIndex: currentIndex,
+            onTap: onTap,
+            items: [
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.home), label: '', tooltip: "Home"),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: '',
+              ),
+            ],
+            backgroundColor: Colors.transparent,
+            selectedItemColor: Colors.orange,
+            unselectedItemColor: Colors.grey,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            elevation: 0,
+            enableFeedback: false,
+            type: BottomNavigationBarType.fixed,
+          ),
+        ],
+      ),
+    );
+  }
+}

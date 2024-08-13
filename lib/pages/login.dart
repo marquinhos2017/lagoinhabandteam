@@ -288,12 +288,15 @@ class _LoginStateState extends State<login> {
                                 // Navegue para a página correta com base no tipo de usuário
                                 String musicianType = musicianData['tipo'];
                                 if (musicianType == 'user') {
-                                  Navigator.push(
+                                  Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => MusicianPageNewUI(
                                             id: musicianData['user_id']
                                                 .toString())),
+
+                                    (Route<dynamic> route) =>
+                                        false, // Remove todas as rotas existentes
                                   );
                                 } else {
                                   Navigator.push(

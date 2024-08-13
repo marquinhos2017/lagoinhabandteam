@@ -1241,7 +1241,7 @@ class _userMainPageState extends State<userMainPage> {
                   },
                   child: Icon(
                     Icons.delete_outline,
-                    color: Colors.red,
+                    color: Colors.blue,
                   ),
                 ),
               ),
