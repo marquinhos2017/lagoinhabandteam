@@ -172,6 +172,8 @@ class _VerCifraUserState extends State<VerCifraUser> {
   ];
 
   RichText buildRichText(String content, String originalKey) {
+    final foundChords =
+        <String>{}; // Conjunto para armazenar os acordes encontrados
     final transposedContent =
         _transposeChords(content, originalKey, _selectedKey);
     final lines = transposedContent.split('\n');
@@ -194,6 +196,7 @@ class _VerCifraUserState extends State<VerCifraUser> {
           final start = match.start;
           final end = match.end;
           final chord = match.group(1) ?? '';
+          foundChords.add(chord); // Adiciona o acorde encontrado ao conjunto
 
           if (lastEnd < start) {
             textSpans.add(
@@ -235,6 +238,17 @@ class _VerCifraUserState extends State<VerCifraUser> {
         }
       }
     }
+
+    // Converte o conjunto de acordes encontrados em uma string
+    final foundChordsString = foundChords.join(' ');
+
+    // Adiciona uma linha final mostrando os acordes encontrados
+    textSpans.add(
+      TextSpan(
+        text: '\nAcordes encontrados: $foundChordsString',
+        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+      ),
+    );
 
     return RichText(
       textAlign: TextAlign.start,

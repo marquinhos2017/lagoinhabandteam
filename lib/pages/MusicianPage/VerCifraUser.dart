@@ -18,6 +18,8 @@ class VerCifraUserNewUI extends StatefulWidget {
 }
 
 class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
+  final foundChords =
+      <String>{}; // Conjunto para armazenar os acordes encontrados
   bool _isLoading = true; // Estado para controlar o carregamento
   bool _isContentVisible = false; // Estado para controlar o fade-in
   Timer? _fadeInTimer;
@@ -228,6 +230,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
           final start = match.start;
           final end = match.end;
           final chord = match.group(1) ?? '';
+          foundChords.add(chord); // Adiciona o acorde encontrado ao conjunto
 
           if (lastEnd < start) {
             textSpans.add(
@@ -271,6 +274,17 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
       }
     }
 
+    // Converte o conjunto de acordes encontrados em uma string
+    final foundChordsString = foundChords.join(' ');
+
+    /*// Adiciona uma linha final mostrando os acordes encontrados
+    textSpans.add(
+      TextSpan(
+        text: '\nAcordes encontrados: $foundChordsString',
+        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+      ),
+    );*/
+
     return RichText(
       textAlign: TextAlign.start,
       text: TextSpan(
@@ -286,7 +300,8 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
       backgroundColor: Colors.orange,
       appBar: AppBar(
         foregroundColor: Colors.white,
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text("Cifra"),
         actions: [
           IconButton(
@@ -523,7 +538,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                                             milliseconds: 300),
                                                         curve: Curves.easeInOut,
                                                         height: _isChordsVisible
-                                                            ? 150 // Defina a altura desejada quando visível
+                                                            ? 128 // Defina a altura desejada quando visível
                                                             : 0, // Expande e colapsa a altura
                                                         child: AnimatedOpacity(
                                                           duration: Duration(
@@ -561,15 +576,21 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                                                         ],
                                                                       ),
                                                                       child:
+                                                                          Column(
+                                                                        children: [
                                                                           Text(
-                                                                        'Aqui vão os acordes para violão...',
-                                                                        style:
-                                                                            TextStyle(
-                                                                          color:
-                                                                              Colors.black,
-                                                                          fontSize:
-                                                                              16,
-                                                                        ),
+                                                                              "Acordes Encontrados"),
+                                                                          Container(
+                                                                            child:
+                                                                                Text(
+                                                                              foundChords.join(" ").toString(),
+                                                                              style: TextStyle(
+                                                                                color: Colors.black,
+                                                                                fontSize: 12,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ],
                                                                       ),
                                                                     )
                                                                   : SizedBox
@@ -584,18 +605,22 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                           ],
                                         ),
                                       ),
-                                      Container(
-                                          width:
-                                              MediaQuery.sizeOf(context).width,
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(29))),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(24.0),
-                                            child: buildRichText(
-                                                content, originalKey),
-                                          )),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                            width: MediaQuery.sizeOf(context)
+                                                .width,
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(29))),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(24.0),
+                                              child: buildRichText(
+                                                  content, originalKey),
+                                            )),
+                                      ),
                                     ],
                                   ),
                                 ),
