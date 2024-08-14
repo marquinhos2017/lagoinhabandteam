@@ -302,7 +302,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => VerCifraUser(
+                                      builder: (context) => VerCifraUserNewUI(
                                         documentId: musica['document_id'],
                                         isAdmin: false,
                                         tone: musica['key'],

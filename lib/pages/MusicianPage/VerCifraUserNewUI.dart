@@ -5,19 +5,19 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-class VerCifraUserNewUI extends StatefulWidget {
+class VerCifraUser extends StatefulWidget {
   final String documentId;
   final bool isAdmin;
   final String tone;
 
-  VerCifraUserNewUI(
+  VerCifraUser(
       {required this.documentId, required this.isAdmin, required this.tone});
 
   @override
-  _VerCifraUserNewUIState createState() => _VerCifraUserNewUIState();
+  _VerCifraUserState createState() => _VerCifraUserState();
 }
 
-class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
+class _VerCifraUserState extends State<VerCifraUser> {
   final ScrollController _scrollController = ScrollController();
   Timer? _scrollTimer;
   bool _isUserScrolling = false;
@@ -28,9 +28,8 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
 
   final Duration _minScrollDuration = Duration(
       milliseconds: 500); // Duração mínima para evitar animações inválidas
-  var _isChordsVisible = false;
+
   late Future<Map<String, dynamic>?> _songDetailsFuture;
-  late Future<Map<String, dynamic>?> _informacoesmusicas;
   String _selectedKey = 'C'; // Default key
   final List<String> _keys = [
     'C',
@@ -56,7 +55,6 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
   void initState() {
     super.initState();
     _songDetailsFuture = _fetchSongDetails();
-    _informacoesmusicas = _informacoesmusica();
 
     _scrollController.addListener(() {
       print("Is Auto Scroll Enabled ?: $_isAutoScrollEnabled");
@@ -96,19 +94,6 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
 
     if (querySnapshot.docs.isNotEmpty) {
       return querySnapshot.docs.first.data();
-    } else {
-      return null;
-    }
-  }
-
-  Future<Map<String, dynamic>?> _informacoesmusica() async {
-    final documentSnapshot = await FirebaseFirestore.instance
-        .collection('music_database') // Nome da coleção
-        .doc(widget.documentId) // ID do documento
-        .get();
-
-    if (documentSnapshot.exists) {
-      return documentSnapshot.data();
     } else {
       return null;
     }
@@ -199,7 +184,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
         textSpans.add(
           TextSpan(
             text: line + '\n',
-            style: TextStyle(color: Colors.black),
+            style: TextStyle(color: Colors.white),
           ),
         );
       } else {
@@ -214,7 +199,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
             textSpans.add(
               TextSpan(
                 text: line.substring(lastEnd, start),
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: Colors.white),
               ),
             );
           }
@@ -222,8 +207,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
           textSpans.add(
             TextSpan(
               text: chord,
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
               recognizer: TapGestureRecognizer()
                 ..onTap = () {
                   _showChordAlert(chord);
@@ -264,10 +248,10 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange,
+      backgroundColor: Colors.black,
       appBar: AppBar(
         foregroundColor: Colors.white,
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.black,
         title: FutureBuilder<Map<String, dynamic>?>(
           future: _songDetailsFuture,
           builder: (context, snapshot) {
@@ -280,7 +264,6 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
               return Text('Erro', style: TextStyle(color: Colors.white));
             } else {
               final songTitle = snapshot.data!['title'] ?? 'Sem título';
-              final songAuthor = snapshot.data!['Author'] ?? 'Sem título';
               final content = snapshot.data!['content'] ?? '';
               final originalKeyMatch =
                   RegExp(r'Tom: <(.*?)>').firstMatch(content);
@@ -307,51 +290,21 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
               setState(() {
                 _isAutoScrollEnabled = !_isAutoScrollEnabled;
                 if (_isAutoScrollEnabled) {
-                  final overlay = Overlay.of(context);
-                  final overlayEntry = OverlayEntry(
-                    builder: (context) => Positioned(
-                      top: MediaQuery.of(context).size.height *
-                          0.1, // Posição no topo
-                      left: MediaQuery.of(context).size.width *
-                          0.2, // Posição à esquerda
-                      right: MediaQuery.of(context).size.width *
-                          0.2, // Posição à direita
-                      child: _FloatingMessage(
-                        "Auto Scroll ON",
-                        message: 'Auto Scroll ON',
-                      ),
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Color(0xff4465D9),
+                      content: Text('Rolagem Automatica Ativada'),
+                      duration: Duration(seconds: 1),
                     ),
                   );
-
-                  overlay.insert(overlayEntry);
-
-                  // Remove a mensagem após 2 segundos
-                  Future.delayed(Duration(seconds: 5), () {
-                    overlayEntry.remove();
-                  });
                 } else {
-                  final overlay = Overlay.of(context);
-                  final overlayEntry = OverlayEntry(
-                    builder: (context) => Positioned(
-                      top: MediaQuery.of(context).size.height *
-                          0.1, // Posição no topo
-                      left: MediaQuery.of(context).size.width *
-                          0.2, // Posição à esquerda
-                      right: MediaQuery.of(context).size.width *
-                          0.2, // Posição à direita
-                      child: _FloatingMessage(
-                        "Auto Scroll OFF",
-                        message: 'Auto Scroll OFF',
-                      ),
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.red,
+                      content: Text('Rolagem Automatica Desativada'),
+                      duration: Duration(seconds: 1),
                     ),
                   );
-
-                  overlay.insert(overlayEntry);
-
-                  // Remove a mensagem após 2 segundos
-                  Future.delayed(Duration(seconds: 5), () {
-                    overlayEntry.remove();
-                  });
                 }
                 if (_scrollController.hasClients) {
                   final newOffset = _scrollController.offset -
@@ -402,180 +355,23 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                               ?.group(1) ??
                           'C';
 
-                      return GestureDetector(
-                        onVerticalDragCancel: () {
-                          print(
-                              " Is Auto Scroll, ao Clicar: $_isAutoScrollEnabled");
-                          if (_isAutoScrollEnabled == true) {
-                            _handleTap();
-                          }
-                        },
-                        child: SingleChildScrollView(
-                          controller: _scrollController,
-                          child: Column(
-                            children: [
-                              Container(
-                                child: Column(
-                                  children: [
-                                    FutureBuilder<Map<String, dynamic>?>(
-                                      future: _informacoesmusicas,
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Text(
-                                            'Carregando...',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          );
-                                        } else if (snapshot.hasError ||
-                                            !snapshot.hasData) {
-                                          return Text('Erro',
-                                              style: TextStyle(
-                                                  color: Colors.white));
-                                        } else {
-                                          final songTitle =
-                                              snapshot.data!['Music'] ??
-                                                  'Sem título';
-                                          final songAuthor =
-                                              snapshot.data!['Author'] ??
-                                                  'Sem título';
-
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                songTitle,
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 32),
-                                              ),
-                                              Text(
-                                                songAuthor,
-                                                style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 20),
-                                              ),
-                                              Container(
-                                                margin:
-                                                    EdgeInsets.only(top: 12),
-                                                width: 60,
-                                                height: 70,
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                            Radius.circular(
-                                                                12)),
-                                                    color: Colors.white),
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      ("Tom"),
-                                                      style: TextStyle(
-                                                          color: Colors.black,
-                                                          fontSize: 12),
-                                                    ),
-                                                    Text(
-                                                      (widget.tone),
-                                                      style: TextStyle(
-                                                          color: Colors.orange,
-                                                          fontSize: 32),
-                                                    )
-                                                  ],
-                                                ),
-                                              ),
-                                              IconButton(
-                                                icon: Icon(
-                                                  _isChordsVisible
-                                                      ? Icons.expand_less
-                                                      : Icons.expand_more,
-                                                  color: Colors.white,
-                                                ),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _isChordsVisible =
-                                                        !_isChordsVisible;
-                                                  });
-                                                },
-                                              ),
-                                              AnimatedContainer(
-                                                duration:
-                                                    Duration(milliseconds: 300),
-                                                curve: Curves.easeInOut,
-                                                height: _isChordsVisible
-                                                    ? 150 // Defina a altura desejada quando visível
-                                                    : 0, // Expande e colapsa a altura
-                                                child: AnimatedOpacity(
-                                                  duration: Duration(
-                                                      milliseconds: 300),
-                                                  opacity: _isChordsVisible
-                                                      ? 1
-                                                      : 0, // Controla a opacidade
-                                                  child: _isChordsVisible
-                                                      ? Container(
-                                                          margin:
-                                                              EdgeInsets.only(
-                                                                  top: 8,
-                                                                  bottom: 8),
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  12),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: Colors.white,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        12),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                color: Colors
-                                                                    .black
-                                                                    .withOpacity(
-                                                                        0.1),
-                                                                blurRadius: 8,
-                                                                offset: Offset(
-                                                                    0, 4),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Text(
-                                                            'Aqui vão os acordes para violão...',
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.black,
-                                                              fontSize: 16,
-                                                            ),
-                                                          ),
-                                                        )
-                                                      : SizedBox.shrink(),
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                  width: MediaQuery.sizeOf(context).width,
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(29))),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(24.0),
-                                    child: buildRichText(content, originalKey),
-                                  )),
-                            ],
+                      return Padding(
+                        padding: const EdgeInsets.all(30.0),
+                        child: GestureDetector(
+                          onVerticalDragCancel: () {
+                            print(
+                                " Is Auto Scroll, ao Clicar: $_isAutoScrollEnabled");
+                            if (_isAutoScrollEnabled == true) {
+                              _handleTap();
+                            }
+                          },
+                          child: SingleChildScrollView(
+                            controller: _scrollController,
+                            child: Column(
+                              children: [
+                                buildRichText(content, originalKey),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -600,7 +396,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white, // Cor de fundo do botão
+                      color: Colors.black, // Cor de fundo do botão
                       borderRadius:
                           BorderRadius.circular(16), // Define o raio da borda
                       border: Border.all(
@@ -612,9 +408,9 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                       heroTag: 'scroll_up_button', // Unique tag for this button
                       onPressed: _scrollUp,
                       child: Icon(Icons.arrow_upward),
-                      foregroundColor: Colors.orange,
+                      foregroundColor: Colors.blue,
 
-                      backgroundColor: Colors.white,
+                      backgroundColor: Colors.black,
 
                       tooltip: 'Scroll Up',
                     ),
@@ -622,7 +418,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                   SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white, // Cor de fundo do botão
+                      color: Colors.black, // Cor de fundo do botão
                       borderRadius:
                           BorderRadius.circular(16), // Define o raio da borda
                       border: Border.all(
@@ -636,11 +432,11 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                       onPressed: _scrollDown,
                       child: Icon(
                         Icons.arrow_downward,
-                        color: Colors.orange,
+                        color: Colors.blue,
                       ),
-                      foregroundColor: Colors.orange,
+                      foregroundColor: Colors.blue,
 
-                      backgroundColor: Colors.white,
+                      backgroundColor: Colors.black,
                       tooltip: 'Scroll Down',
                     ),
                   ),
@@ -1108,74 +904,6 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
           ],
         );
       },
-    );
-  }
-}
-
-// Definição do widget de mensagem flutuante com animação de fade-in
-class _FloatingMessage extends StatefulWidget {
-  late String message;
-  _FloatingMessage(String s, {super.key, required this.message});
-
-  @override
-  _FloatingMessageState createState() => _FloatingMessageState();
-}
-
-class _FloatingMessageState extends State<_FloatingMessage>
-    with SingleTickerProviderStateMixin {
-  double _opacity = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-    // Trigger the fade-in effect after the first frame is rendered
-    // Fade-in effect
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        _opacity = 1.0;
-      });
-
-      // Wait for 1 second while fully visible, then trigger fade-out
-      Future.delayed(Duration(seconds: 3), () {
-        setState(() {
-          _opacity = 0.0;
-        });
-      });
-    });
-  }
-
-  @override
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: _opacity,
-      duration: Duration(milliseconds: 500),
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.white, // Fundo branco
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                offset: Offset(0, 4), // Deslocamento da sombra
-                blurRadius: 8, // Raio de desfoque
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              widget.message,
-              style: TextStyle(
-                color: Colors.orange, // Texto laranja
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
