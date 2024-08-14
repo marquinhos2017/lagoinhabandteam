@@ -18,6 +18,9 @@ class VerCifraUserNewUI extends StatefulWidget {
 }
 
 class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
+  bool _isLoading = true; // Estado para controlar o carregamento
+  bool _isContentVisible = false; // Estado para controlar o fade-in
+  Timer? _fadeInTimer;
   final ScrollController _scrollController = ScrollController();
   Timer? _scrollTimer;
   bool _isUserScrolling = false;
@@ -57,6 +60,21 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
     super.initState();
     _songDetailsFuture = _fetchSongDetails();
     _informacoesmusicas = _informacoesmusica();
+    Future<void> _loadData() async {
+      // Simula um carregamento com um atraso de 3 segundos
+      await Future.delayed(Duration(seconds: 1));
+      setState(() {
+        _isLoading = false;
+        // Inicia o fade-in após o carregamento
+        _fadeInTimer = Timer(Duration(milliseconds: 300), () {
+          setState(() {
+            _isContentVisible = true;
+          });
+        });
+      });
+    }
+
+    _loadData();
 
     _scrollController.addListener(() {
       print("Is Auto Scroll Enabled ?: $_isAutoScrollEnabled");
@@ -86,6 +104,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
     _scrollController.dispose();
     _scrollTimer?.cancel();
     super.dispose();
+    _fadeInTimer?.cancel(); // Cancela o timer quando o widget for descartado
   }
 
   Future<Map<String, dynamic>?> _fetchSongDetails() async {
@@ -268,36 +287,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
       appBar: AppBar(
         foregroundColor: Colors.white,
         backgroundColor: Colors.orange,
-        title: FutureBuilder<Map<String, dynamic>?>(
-          future: _songDetailsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text(
-                'Carregando...',
-                style: TextStyle(color: Colors.white),
-              );
-            } else if (snapshot.hasError || !snapshot.hasData) {
-              return Text('Erro', style: TextStyle(color: Colors.white));
-            } else {
-              final songTitle = snapshot.data!['title'] ?? 'Sem título';
-              final songAuthor = snapshot.data!['Author'] ?? 'Sem título';
-              final content = snapshot.data!['content'] ?? '';
-              final originalKeyMatch =
-                  RegExp(r'Tom: <(.*?)>').firstMatch(content);
-              final originalKey = originalKeyMatch?.group(1) ?? 'C';
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    songTitle,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              );
-            }
-          },
-        ),
+        title: Text("Cifra"),
         actions: [
           IconButton(
             icon: Icon(
@@ -379,211 +369,243 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
       ),
       body: Stack(
         children: [
-          Column(
-            children: [
-              Expanded(
-                child: FutureBuilder<Map<String, dynamic>?>(
-                  future: _songDetailsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(
-                          child: Text('Erro ao carregar conteúdo',
-                              style: TextStyle(color: Colors.white)));
-                    } else if (!snapshot.hasData) {
-                      return Center(
-                          child: Text('Música não encontrada',
-                              style: TextStyle(color: Colors.white)));
-                    } else {
-                      final content = snapshot.data!['content'] ?? '';
-                      final originalKey = RegExp(r'Tom: <(.*?)>')
-                              .firstMatch(content)
-                              ?.group(1) ??
-                          'C';
+          // Widget de carregamento
+          Visibility(
+            visible: _isLoading,
+            child: LoadingWidget(),
+          ),
+          // Conteúdo com fade-in
+          AnimatedOpacity(
+            opacity: _isContentVisible ? 1.0 : 0.0,
+            duration: Duration(milliseconds: 500),
+            child: _isLoading
+                ? SizedBox
+                    .shrink() // Mantém o espaço quando o conteúdo não está visível
+                : Column(
+                    children: [
+                      Expanded(
+                        child: FutureBuilder<Map<String, dynamic>?>(
+                          future: _songDetailsFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Erro ao carregar conteúdo',
+                                      style: TextStyle(color: Colors.white)));
+                            } else if (!snapshot.hasData) {
+                              return Center(
+                                  child: Text('Música não encontrada',
+                                      style: TextStyle(color: Colors.white)));
+                            } else {
+                              final content = snapshot.data!['content'] ?? '';
+                              final originalKey = RegExp(r'Tom: <(.*?)>')
+                                      .firstMatch(content)
+                                      ?.group(1) ??
+                                  'C';
 
-                      return GestureDetector(
-                        onVerticalDragCancel: () {
-                          print(
-                              " Is Auto Scroll, ao Clicar: $_isAutoScrollEnabled");
-                          if (_isAutoScrollEnabled == true) {
-                            _handleTap();
-                          }
-                        },
-                        child: SingleChildScrollView(
-                          controller: _scrollController,
-                          child: Column(
-                            children: [
-                              Container(
-                                child: Column(
-                                  children: [
-                                    FutureBuilder<Map<String, dynamic>?>(
-                                      future: _informacoesmusicas,
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Text(
-                                            'Carregando...',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          );
-                                        } else if (snapshot.hasError ||
-                                            !snapshot.hasData) {
-                                          return Text('Erro',
-                                              style: TextStyle(
-                                                  color: Colors.white));
-                                        } else {
-                                          final songTitle =
-                                              snapshot.data!['Music'] ??
-                                                  'Sem título';
-                                          final songAuthor =
-                                              snapshot.data!['Author'] ??
-                                                  'Sem título';
+                              return GestureDetector(
+                                onVerticalDragCancel: () {
+                                  print(
+                                      " Is Auto Scroll, ao Clicar: $_isAutoScrollEnabled");
+                                  if (_isAutoScrollEnabled == true) {
+                                    _handleTap();
+                                  }
+                                },
+                                child: SingleChildScrollView(
+                                  controller: _scrollController,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        child: Column(
+                                          children: [
+                                            FutureBuilder<
+                                                Map<String, dynamic>?>(
+                                              future: _informacoesmusicas,
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return Text(
+                                                    'Carregando...',
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  );
+                                                } else if (snapshot.hasError ||
+                                                    !snapshot.hasData) {
+                                                  return Text('Erro',
+                                                      style: TextStyle(
+                                                          color: Colors.white));
+                                                } else {
+                                                  final songTitle =
+                                                      snapshot.data!['Music'] ??
+                                                          'Sem título';
+                                                  final songAuthor = snapshot
+                                                          .data!['Author'] ??
+                                                      'Sem título';
 
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                songTitle,
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 32),
-                                              ),
-                                              Text(
-                                                songAuthor,
-                                                style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 20),
-                                              ),
-                                              Container(
-                                                margin:
-                                                    EdgeInsets.only(top: 12),
-                                                width: 60,
-                                                height: 70,
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                            Radius.circular(
-                                                                12)),
-                                                    color: Colors.white),
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      ("Tom"),
-                                                      style: TextStyle(
-                                                          color: Colors.black,
-                                                          fontSize: 12),
-                                                    ),
-                                                    Text(
-                                                      (widget.tone),
-                                                      style: TextStyle(
-                                                          color: Colors.orange,
-                                                          fontSize: 32),
-                                                    )
-                                                  ],
-                                                ),
-                                              ),
-                                              IconButton(
-                                                icon: Icon(
-                                                  _isChordsVisible
-                                                      ? Icons.expand_less
-                                                      : Icons.expand_more,
-                                                  color: Colors.white,
-                                                ),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _isChordsVisible =
-                                                        !_isChordsVisible;
-                                                  });
-                                                },
-                                              ),
-                                              AnimatedContainer(
-                                                duration:
-                                                    Duration(milliseconds: 300),
-                                                curve: Curves.easeInOut,
-                                                height: _isChordsVisible
-                                                    ? 150 // Defina a altura desejada quando visível
-                                                    : 0, // Expande e colapsa a altura
-                                                child: AnimatedOpacity(
-                                                  duration: Duration(
-                                                      milliseconds: 300),
-                                                  opacity: _isChordsVisible
-                                                      ? 1
-                                                      : 0, // Controla a opacidade
-                                                  child: _isChordsVisible
-                                                      ? Container(
-                                                          margin:
-                                                              EdgeInsets.only(
-                                                                  top: 8,
-                                                                  bottom: 8),
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  12),
-                                                          decoration:
-                                                              BoxDecoration(
+                                                  return Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Text(
+                                                        songTitle,
+                                                        style: TextStyle(
                                                             color: Colors.white,
+                                                            fontSize: 32),
+                                                      ),
+                                                      Text(
+                                                        songAuthor,
+                                                        style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 20),
+                                                      ),
+                                                      Container(
+                                                        margin: EdgeInsets.only(
+                                                            top: 12),
+                                                        width: 60,
+                                                        height: 70,
+                                                        decoration: BoxDecoration(
                                                             borderRadius:
                                                                 BorderRadius
-                                                                    .circular(
-                                                                        12),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                color: Colors
-                                                                    .black
-                                                                    .withOpacity(
-                                                                        0.1),
-                                                                blurRadius: 8,
-                                                                offset: Offset(
-                                                                    0, 4),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Text(
-                                                            'Aqui vão os acordes para violão...',
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.black,
-                                                              fontSize: 16,
+                                                                    .all(Radius
+                                                                        .circular(
+                                                                            12)),
+                                                            color:
+                                                                Colors.white),
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Text(
+                                                              ("Tom"),
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .black,
+                                                                  fontSize: 12),
                                                             ),
-                                                          ),
-                                                        )
-                                                      : SizedBox.shrink(),
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ],
+                                                            Text(
+                                                              (widget.tone),
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .orange,
+                                                                  fontSize: 32),
+                                                            )
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      IconButton(
+                                                        icon: Icon(
+                                                          _isChordsVisible
+                                                              ? Icons
+                                                                  .expand_less
+                                                              : Icons
+                                                                  .expand_more,
+                                                          color: Colors.white,
+                                                        ),
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            _isChordsVisible =
+                                                                !_isChordsVisible;
+                                                          });
+                                                        },
+                                                      ),
+                                                      AnimatedContainer(
+                                                        duration: Duration(
+                                                            milliseconds: 300),
+                                                        curve: Curves.easeInOut,
+                                                        height: _isChordsVisible
+                                                            ? 150 // Defina a altura desejada quando visível
+                                                            : 0, // Expande e colapsa a altura
+                                                        child: AnimatedOpacity(
+                                                          duration: Duration(
+                                                              milliseconds:
+                                                                  300),
+                                                          opacity: _isChordsVisible
+                                                              ? 1
+                                                              : 0, // Controla a opacidade
+                                                          child:
+                                                              _isChordsVisible
+                                                                  ? Container(
+                                                                      margin: EdgeInsets.only(
+                                                                          top:
+                                                                              8,
+                                                                          bottom:
+                                                                              8),
+                                                                      padding:
+                                                                          EdgeInsets.all(
+                                                                              12),
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(12),
+                                                                        boxShadow: [
+                                                                          BoxShadow(
+                                                                            color:
+                                                                                Colors.black.withOpacity(0.1),
+                                                                            blurRadius:
+                                                                                8,
+                                                                            offset:
+                                                                                Offset(0, 4),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      child:
+                                                                          Text(
+                                                                        'Aqui vão os acordes para violão...',
+                                                                        style:
+                                                                            TextStyle(
+                                                                          color:
+                                                                              Colors.black,
+                                                                          fontSize:
+                                                                              16,
+                                                                        ),
+                                                                      ),
+                                                                    )
+                                                                  : SizedBox
+                                                                      .shrink(),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                          width:
+                                              MediaQuery.sizeOf(context).width,
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(29))),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(24.0),
+                                            child: buildRichText(
+                                                content, originalKey),
+                                          )),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Container(
-                                  width: MediaQuery.sizeOf(context).width,
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(29))),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(24.0),
-                                    child: buildRichText(content, originalKey),
-                                  )),
-                            ],
-                          ),
+                              );
+                            }
+                          },
                         ),
-                      );
-                    }
-                  },
-                ),
-              ),
-            ],
+                      ),
+                    ],
+                  ),
           ),
           // Botões flutuantes
           Visibility(
@@ -1176,6 +1198,15 @@ class _FloatingMessageState extends State<_FloatingMessage>
           ),
         ),
       ),
+    );
+  }
+}
+
+class LoadingWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: CircularProgressIndicator(), // Indicador de carregamento circular
     );
   }
 }
