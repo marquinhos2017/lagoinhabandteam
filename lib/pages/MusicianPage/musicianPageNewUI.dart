@@ -355,8 +355,11 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Color(
-                                                0x80FF7A19), // Sombra alaranjada com 50% de opacidade
+                                            color: const Color.fromARGB(
+                                                60,
+                                                0,
+                                                0,
+                                                0), // Sombra alaranjada com 50% de opacidade
                                             blurRadius: 15,
                                             offset: Offset(0,
                                                 10), // Deslocamento da sombra

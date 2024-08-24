@@ -471,12 +471,15 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                                         songTitle,
                                                         style: TextStyle(
                                                             color: Colors.white,
-                                                            fontSize: 32),
+                                                            fontSize: 24,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
                                                       ),
                                                       Text(
                                                         songAuthor,
                                                         style: TextStyle(
-                                                            color: Colors.black,
+                                                            color: Colors.white,
                                                             fontSize: 20),
                                                       ),
                                                       Container(
@@ -512,7 +515,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                                               style: TextStyle(
                                                                   color: Colors
                                                                       .black,
-                                                                  fontSize: 32),
+                                                                  fontSize: 24),
                                                             )
                                                           ],
                                                         ),
@@ -606,7 +609,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                         ),
                                       ),
                                       Padding(
-                                        padding: const EdgeInsets.all(8.0),
+                                        padding: const EdgeInsets.all(1.0),
                                         child: Container(
                                             width: MediaQuery.sizeOf(context)
                                                 .width,
