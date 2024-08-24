@@ -29,10 +29,10 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
   bool _shouldScroll = true; // Flag to control auto-scrolling
   bool _isAutoScrollEnabled = false; // Controle de rolagem automática
   final Duration _scrollDuration =
-      Duration(seconds: 120); // Tempo fixo para rolar do início ao fim
+      Duration(seconds: 300); // Tempo fixo para rolar do início ao fim
 
   final Duration _minScrollDuration = Duration(
-      milliseconds: 500); // Duração mínima para evitar animações inválidas
+      milliseconds: 300); // Duração mínima para evitar animações inválidas
   var _isChordsVisible = false;
   late Future<Map<String, dynamic>?> _songDetailsFuture;
   late Future<Map<String, dynamic>?> _informacoesmusicas;
@@ -245,7 +245,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
             TextSpan(
               text: chord,
               style:
-                  TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
               recognizer: TapGestureRecognizer()
                 ..onTap = () {
                   _showChordAlert(chord);
@@ -297,7 +297,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange,
+      backgroundColor: Colors.black,
       appBar: AppBar(
         foregroundColor: Colors.white,
         backgroundColor: Colors.transparent,
@@ -511,7 +511,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                                               (widget.tone),
                                                               style: TextStyle(
                                                                   color: Colors
-                                                                      .orange,
+                                                                      .black,
                                                                   fontSize: 32),
                                                             )
                                                           ],
@@ -659,7 +659,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                       heroTag: 'scroll_up_button', // Unique tag for this button
                       onPressed: _scrollUp,
                       child: Icon(Icons.arrow_upward),
-                      foregroundColor: Colors.orange,
+                      foregroundColor: Colors.black,
 
                       backgroundColor: Colors.white,
 
@@ -683,9 +683,9 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                       onPressed: _scrollDown,
                       child: Icon(
                         Icons.arrow_downward,
-                        color: Colors.orange,
+                        color: Colors.black,
                       ),
-                      foregroundColor: Colors.orange,
+                      foregroundColor: Colors.black,
 
                       backgroundColor: Colors.white,
                       tooltip: 'Scroll Down',
@@ -1216,7 +1216,7 @@ class _FloatingMessageState extends State<_FloatingMessage>
             child: Text(
               widget.message,
               style: TextStyle(
-                color: Colors.orange, // Texto laranja
+                color: Colors.black, // Texto laranja
                 fontSize: 16,
               ),
             ),

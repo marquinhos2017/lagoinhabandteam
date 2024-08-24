@@ -1,0 +1,184 @@
+FutureBuilder<QuerySnapshot>(
+                                  future: FirebaseFirestore.instance
+                                      .collection('Cultos')
+                                      .orderBy("date")
+                                      .where('musicos', arrayContains: {
+                                    'user_id': int.parse(widget.id)
+                                  }).get(), // Obtendo todos os documentos uma vez
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                          child: CircularProgressIndicator());
+                                    }
+
+                                    if (snapshot.hasError) {
+                                      return Center(
+                                          child:
+                                              Text('Erro: ${snapshot.error}'));
+                                    }
+
+                                    if (!snapshot.hasData ||
+                                        snapshot.data!.docs.isEmpty) {
+                                      return Center(
+                                          child:
+                                              Text('Nenhum culto encontrado.'));
+                                    }
+
+                                    List<DocumentSnapshot> docs =
+                                        snapshot.data!.docs;
+
+                                    // Lista para armazenar todas as músicas de todos os cultos
+                                    List<List<Map<String, dynamic>>>
+                                        allMusicDataList =
+                                        List.generate(docs.length, (_) => []);
+
+                                    // Função para carregar as músicas de um culto específico
+                                    Future<void> loadMusicsForDocument(
+                                        int docIndex) async {
+                                      final doc = docs[docIndex];
+                                      final data =
+                                          doc.data() as Map<String, dynamic>;
+                                      final playlist =
+                                          data['playlist'] as List<dynamic>?;
+                                      print(playlist);
+
+                                      if (playlist != null) {
+                                        List<Future<DocumentSnapshot>>
+                                            musicFutures = playlist.map((song) {
+                                          String musicDocumentId =
+                                              song['music_document'] as String;
+                                          return FirebaseFirestore.instance
+                                              .collection('music_database')
+                                              .doc(musicDocumentId)
+                                              .get();
+                                        }).toList();
+
+                                        List<DocumentSnapshot> musicSnapshots =
+                                            await Future.wait(musicFutures);
+                                        List<Map<String, dynamic>>
+                                            musicDataList =
+                                            musicSnapshots.map((musicSnapshot) {
+                                          if (musicSnapshot.exists) {
+                                            Map<String, dynamic> musicData =
+                                                musicSnapshot.data()
+                                                    as Map<String, dynamic>;
+                                            musicData['document_id'] =
+                                                musicSnapshot
+                                                    .id; // Adiciona o documentId
+
+                                            // Encontra o item correspondente no playlist para adicionar a key e link
+                                            var song = playlist.firstWhere(
+                                              (song) =>
+                                                  song['music_document'] ==
+                                                  musicSnapshot.id,
+                                              orElse: () => null,
+                                            );
+
+                                            if (song != null) {
+                                              musicData['key'] = song[
+                                                  'key']; // Adiciona o campo key
+                                              musicData['link'] = song[
+                                                      'link'] ??
+                                                  'Link não disponível'; // Adiciona o campo link
+                                            } else {
+                                              // Caso não encontre a música no playlist, define valores padrão para key e link
+                                              musicData['key'] =
+                                                  'Key Desconhecida';
+                                              musicData['link'] =
+                                                  'Link não disponível';
+                                            }
+
+                                            return musicData;
+                                          } else {
+                                            return {
+                                              'Music': 'Música Desconhecida',
+                                              'Author': 'Autor Desconhecido',
+                                              'key': 'Key Desconhecida',
+                                              'link':
+                                                  'Link não disponível', // Adiciona o campo link
+                                              'document_id':
+                                                  '', // Adiciona um campo vazio se o documento não existir
+                                            };
+                                          }
+                                        }).toList();
+
+                                        allMusicDataList[docIndex] =
+                                            musicDataList;
+                                      }
+                                    }
+
+                                    // Carregar as músicas para todos os documentos
+                                    Future<void> loadAllMusics() async {
+                                      for (int i = 0; i < docs.length; i++) {
+                                        await loadMusicsForDocument(i);
+                                      }
+                                    }
+
+                                    return FutureBuilder<void>(
+                                      future: loadAllMusics(),
+                                      builder: (context, musicSnapshot) {
+                                        if (musicSnapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        }
+
+                                        if (musicSnapshot.hasError) {
+                                          return Center(
+                                              child: Text(
+                                                  'Erro ao carregar músicas'));
+                                        }
+
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 120),
+                                          child: ListView.builder(
+                                            padding: EdgeInsets.zero,
+                                            itemCount: docs.length,
+                                            itemBuilder: (context, index) {
+                                              Map<String, dynamic> data =
+                                                  docs[index].data()
+                                                      as Map<String, dynamic>;
+                                              String idDocument =
+                                                  docs[index].id;
+
+                                              DateTime? dataDocumento;
+                                              try {
+                                                dataDocumento =
+                                                    (data['date'] as Timestamp?)
+                                                        ?.toDate();
+                                              } catch (e) {
+                                                print(
+                                                    'Erro ao converter data: $e');
+                                                dataDocumento = null;
+                                              }
+
+                                              return FutureBuilder<String>(
+                                                  future:
+                                                      loadInstrumentForDocument(
+                                                          widget.id,
+                                                          idDocument),
+                                                  builder: (context,
+                                                      instrumentSnapshot) {
+                                                    String instrumentText =
+                                                        'Instrumento Desconhecido';
+                                                    if (instrumentSnapshot
+                                                            .connectionState ==
+                                                        ConnectionState
+                                                            .waiting) {
+                                                      return Center(
+                                                          child:
+                                                              CircularProgressIndicator());
+                                                    }
+
+                                                    if (instrumentSnapshot
+                                                        .hasData) {
+                                                      instrumentText =
+                                                          instrumentSnapshot
+                                                              .data!;
+                                                    } else if (instrumentSnapshot
+                                                        .hasError) {
+                                                      print(
+                                                          'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
+                                                    }

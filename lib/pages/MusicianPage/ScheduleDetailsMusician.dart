@@ -215,18 +215,19 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
         List<Map<String, dynamic>> musicasAtuais = widget.musics[currentIndex];
 
         return Container(
-          color: Colors.black,
+          color: Colors.white,
           child: ListView(
             children: musicasAtuais
                 .map((musica) => Container(
                       margin: EdgeInsets.symmetric(vertical: 4),
-                      color: Color(0xff171717),
+                      color: Colors.white,
                       child: Padding(
-                        padding: const EdgeInsets.all(0.0),
+                        padding: const EdgeInsets.only(
+                            left: 24.0, right: 24, top: 8),
                         child: ExpansionTile(
                           initiallyExpanded: false,
                           maintainState: false,
-                          iconColor: Colors.blueAccent,
+                          iconColor: Colors.white,
                           shape: Border.all(color: Color(0xff171717)),
                           title: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -235,12 +236,12 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                               Text(
                                 musica['Music'] ?? 'Título desconhecido',
                                 style: TextStyle(
-                                    color: Colors.white, fontSize: 12),
+                                    color: Colors.black, fontSize: 12),
                               ),
                               Text(
                                 musica['Author'] ?? 'Autor desconhecido',
                                 style: TextStyle(
-                                    color: Colors.white, fontSize: 12),
+                                    color: Colors.black, fontSize: 12),
                               ),
                             ],
                           ),
@@ -248,7 +249,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                             ListTile(
                               title: Text(
                                 'Tom: ${musica['key'] ?? 'Desconhecido'}',
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(color: Colors.black),
                               ),
                               leading: GestureDetector(
                                   onTap: () {
@@ -312,7 +313,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                 },
                                 child: Icon(
                                   Icons.library_music_rounded,
-                                  color: Colors.blueAccent,
+                                  color: Colors.orange,
                                   size: 24,
                                 ),
                               ),
@@ -327,7 +328,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       case 'Teams':
         if (isLoading) {
           return Container(
-            color: Colors.black,
+            color: Colors.white,
             child: Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
@@ -341,7 +342,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Container(
-                color: Colors.black,
+                color: Colors.white,
                 child: Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
@@ -359,7 +360,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
             }
 
             return Container(
-              color: Colors.black,
+              color: Colors.white,
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: snapshot.data!
@@ -427,88 +428,121 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
 
     return Scaffold(
       appBar: AppBar(
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
         title: Text(
           "Service Details",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: double.infinity,
-            decoration: BoxDecoration(color: Color(0xff171717)),
+            decoration: BoxDecoration(color: Colors.white),
             padding: EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 70),
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment
+                        .spaceBetween, // Distribui o espaço entre os elementos
+                    children: [
+                      // O Expanded empurra o conteúdo restante para ocupar o espaço disponível
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            IconButton(
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black,
+                              ),
+                              icon: Icon(Icons.arrow_left, color: Colors.white),
+                              onPressed: () {
+                                if (currentIndex > 0) {
+                                  _navigateToDocument(currentIndex - 1);
+                                } else {
+                                  print("Não há documento anterior.");
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Centraliza o texto
+                      Text(
+                        documentsAll[currentIndex]['nome'] ??
+                            'Nome desconhecido',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      // O Spacer vai empurrar o próximo Expanded para o extremo direito
+
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black,
+                              ),
+                              icon:
+                                  Icon(Icons.arrow_right, color: Colors.white),
+                              onPressed: () {
+                                if (currentIndex <
+                                    widget.documents.length - 1) {
+                                  _navigateToDocument(currentIndex + 1);
+                                } else {
+                                  print("Não há documento seguinte.");
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                /*
+                */
+                /*
                 Text(
                   "Lagoinha Faro",
                   style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 15,
                       fontWeight: FontWeight.bold),
                 ),
                 Text(
                   documentsAll[currentIndex]['nome'] ?? 'Nome desconhecido',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 24,
                       fontWeight: FontWeight.bold),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      style: IconButton.styleFrom(
-                        backgroundColor: Color(0xff4465D9),
-                      ),
-                      icon: Icon(Icons.arrow_left, color: Colors.white),
-                      onPressed: () {
-                        if (currentIndex > 0) {
-                          _navigateToDocument(currentIndex - 1);
-                        } else {
-                          print("Não há documento anterior.");
-                        }
-                      },
-                    ),
-                    IconButton(
-                      style: IconButton.styleFrom(
-                          backgroundColor: Color(0xff4465D9)),
-                      icon: Icon(Icons.arrow_right, color: Colors.white),
-                      onPressed: () {
-                        if (currentIndex < widget.documents.length - 1) {
-                          _navigateToDocument(currentIndex + 1);
-                        } else {
-                          print("Não há documento seguinte.");
-                        }
-                      },
-                    ),
-                    SizedBox(
-                      width: 20,
-                    ),
-                    Text(
-                      documentsAll[currentIndex]['date'] != null
-                          ? DateFormat('dd/MM/yyyy').format(
-                              (documentsAll[currentIndex]['date'] as Timestamp)
-                                  .toDate())
-                          : 'Data desconhecida',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+                Text(
+                  documentsAll[currentIndex]['date'] != null
+                      ? DateFormat('dd/MM/yyyy').format(
+                          (documentsAll[currentIndex]['date'] as Timestamp)
+                              .toDate())
+                      : 'Data desconhecida',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
+                ),*/
               ],
             ),
           ),
           Container(
-            color: Colors.black,
+            color: Colors.white,
             child: Container(
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildMenuButton('Musicas'),
                   _buildMenuButton('Teams'),
@@ -516,6 +550,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
               ),
             ),
           ),
+          SizedBox(height: 12),
           Expanded(child: _buildContent()),
         ],
       ),
@@ -536,29 +571,26 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
         child: Column(
           children: [
             Container(
+              width: 160,
+              height: 40,
               margin: EdgeInsets.only(top: 10),
-              child: Text(
-                menu,
-                style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white,
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.black : Colors.white,
+                border: Border.all(width: isSelected ? 1.00 : 0),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              child: Center(
+                child: Text(
+                  menu,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
                     fontWeight: FontWeight.bold,
-                    fontSize: 20),
+                    fontSize: 16,
+                  ),
+                ),
               ),
             ),
-            if (isSelected)
-              Container(
-                margin: EdgeInsets.only(top: 4),
-                height: 2,
-                width: 60,
-                color: Color(0xff4465D9),
-              ),
-            if (!isSelected)
-              Container(
-                margin: EdgeInsets.only(top: 4),
-                height: 2,
-                width: 60,
-                color: Colors.transparent,
-              ),
           ],
         ),
       ),

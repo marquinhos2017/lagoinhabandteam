@@ -1,0 +1,64 @@
+return GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedIndex = isSelected
+                                                    ? -1
+                                                    : index; // Alterna a seleção
+                                              });
+                                            },
+                                            child: AnimatedContainer(
+                                              duration:
+                                                  Duration(milliseconds: 300),
+                                              margin: EdgeInsets.symmetric(
+                                                  horizontal: 16.0),
+                                              width: 300,
+
+                                              height:
+                                                  200, // Ajusta a altura se selecionado
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Color.fromARGB(
+                                                        255, 231, 115, 33),
+                                                    Color(0xFFFF7A19),
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Color(0x80FF7A19),
+                                                    blurRadius: 24,
+                                                    offset: Offset(24, 18),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Center(
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      data['nome'] ?? 'Culto',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      DateFormat('MMM d, EEEE')
+                                                          .format(cultoDate),
+                                                      style: TextStyle(
+                                                        color: Colors.white70,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );

@@ -375,7 +375,8 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.all(24.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24.0),
                               child: Text(
                                 "NESSA SEMANA ",
                                 style: TextStyle(
@@ -385,8 +386,8 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               ),
                             ),
                             Container(
-                              height: 260,
-                              margin: EdgeInsets.only(top: 0),
+                              height: 200,
+                              margin: EdgeInsets.only(top: 20),
                               child: FutureBuilder<QuerySnapshot>(
                                 future: FirebaseFirestore.instance
                                     .collection('Cultos')
@@ -646,7 +647,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                       width:
                                                           300, // Ajusta a largura se selecionado
                                                       height:
-                                                          200, // Ajusta a altura se selecionado
+                                                          160, // Ajusta a altura se selecionado
                                                       decoration: BoxDecoration(
                                                         borderRadius:
                                                             BorderRadius
@@ -654,9 +655,9 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                         gradient:
                                                             LinearGradient(
                                                           colors: [
-                                                            Color.fromARGB(255,
-                                                                231, 115, 33),
-                                                            Color(0xFFFF7A19),
+                                                            Color.fromARGB(
+                                                                255, 0, 0, 0),
+                                                            Color(0xff000000),
                                                           ],
                                                           begin:
                                                               Alignment.topLeft,
@@ -666,10 +667,10 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                         boxShadow: [
                                                           BoxShadow(
                                                             color: Color(
-                                                                0x80FF7A19),
+                                                                0xff000000),
                                                             blurRadius: 24,
                                                             offset:
-                                                                Offset(24, 18),
+                                                                Offset(16, 8),
                                                           ),
                                                         ],
                                                       ),
@@ -721,6 +722,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                             ),
                                                             Text(
                                                               Horario +
+                                                                  " " +
                                                                   DateFormat(
                                                                           'MMM d, EEEE')
                                                                       .format(
@@ -750,7 +752,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 24.0, vertical: 12),
+                                  horizontal: 24.0, vertical: 0),
                               child: Container(
                                 margin: EdgeInsets.symmetric(vertical: 0),
                                 child: Row(
@@ -770,7 +772,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                           width: 30,
                                           height: 30,
                                           decoration: BoxDecoration(
-                                              color: Colors.orange,
+                                              color: Color(0xff000000),
                                               borderRadius:
                                                   BorderRadius.circular(100)),
                                           child: Center(
@@ -1054,6 +1056,21 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                                     margin: EdgeInsets.only(
                                                                         right:
                                                                             12),
+                                                                    child:
+                                                                        ClipRRect(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              12),
+                                                                      child: Image
+                                                                          .asset(
+                                                                        data['nome'] ==
+                                                                                "Culto da Fé"
+                                                                            ? "assets/hq720.jpg"
+                                                                            : "assets/hq720 (1).jpg", // URL da imagem
+                                                                        fit: BoxFit
+                                                                            .cover, // Ajusta a imagem para cobrir o container
+                                                                      ),
+                                                                    ),
                                                                   ),
                                                                   Column(
                                                                     mainAxisAlignment:
@@ -1075,14 +1092,14 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                                                 TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                                                           ),
                                                                           Text(
-                                                                            "Guitarra",
+                                                                            instrumentText,
                                                                             style:
                                                                                 TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                                                                           ),
                                                                         ],
                                                                       ),
                                                                       Text(
-                                                                        "Noite, July 23rd, 09:00  " +
+                                                                        "Noite, " +
                                                                             DateFormat('MMM d').format(dataDocumento!),
                                                                         style: TextStyle(
                                                                             fontSize:
@@ -1333,7 +1350,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
               ),
             ],
           ),
-          Align(
+          /*Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -1342,7 +1359,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                 onTap: onNavBarTapped,
               ),
             ),
-          ),
+          ),*/
         ],
       ),
       floatingActionButton: Visibility(
@@ -1402,7 +1419,7 @@ class BottomNavBar extends StatelessWidget {
                 width: 80,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: Colors.orange,
+                  color: Color(0xff000000),
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
@@ -1419,7 +1436,7 @@ class BottomNavBar extends StatelessWidget {
               ),
             ],
             backgroundColor: Colors.transparent,
-            selectedItemColor: Colors.orange,
+            selectedItemColor: Color(0xff000000),
             unselectedItemColor: Colors.grey,
             showSelectedLabels: false,
             showUnselectedLabels: false,
