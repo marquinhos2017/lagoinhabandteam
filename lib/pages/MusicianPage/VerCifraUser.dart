@@ -331,7 +331,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                   overlay.insert(overlayEntry);
 
                   // Remove a mensagem após 2 segundos
-                  Future.delayed(Duration(seconds: 5), () {
+                  Future.delayed(Duration(seconds: 3), () {
                     overlayEntry.remove();
                   });
                 } else {
@@ -354,7 +354,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                   overlay.insert(overlayEntry);
 
                   // Remove a mensagem após 2 segundos
-                  Future.delayed(Duration(seconds: 5), () {
+                  Future.delayed(Duration(seconds: 3), () {
                     overlayEntry.remove();
                   });
                 }
@@ -541,7 +541,7 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                                             milliseconds: 300),
                                                         curve: Curves.easeInOut,
                                                         height: _isChordsVisible
-                                                            ? 128 // Defina a altura desejada quando visível
+                                                            ? 120 // Defina a altura desejada quando visível
                                                             : 0, // Expande e colapsa a altura
                                                         child: AnimatedOpacity(
                                                           duration: Duration(
@@ -550,54 +550,58 @@ class _VerCifraUserNewUIState extends State<VerCifraUserNewUI> {
                                                           opacity: _isChordsVisible
                                                               ? 1
                                                               : 0, // Controla a opacidade
-                                                          child:
-                                                              _isChordsVisible
-                                                                  ? Container(
-                                                                      margin: EdgeInsets.only(
-                                                                          top:
-                                                                              8,
-                                                                          bottom:
-                                                                              8),
-                                                                      padding:
-                                                                          EdgeInsets.all(
+                                                          child: _isChordsVisible
+                                                              ? SingleChildScrollView(
+                                                                  child:
+                                                                      Container(
+                                                                    margin: EdgeInsets.only(
+                                                                        top: 8,
+                                                                        bottom:
+                                                                            8),
+                                                                    padding:
+                                                                        EdgeInsets.all(
+                                                                            12),
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
                                                                               12),
-                                                                      decoration:
-                                                                          BoxDecoration(
-                                                                        color: Colors
-                                                                            .white,
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(12),
-                                                                        boxShadow: [
-                                                                          BoxShadow(
-                                                                            color:
-                                                                                Colors.black.withOpacity(0.1),
-                                                                            blurRadius:
-                                                                                8,
-                                                                            offset:
-                                                                                Offset(0, 4),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      child:
-                                                                          Column(
-                                                                        children: [
-                                                                          Text(
-                                                                              "Acordes Encontrados"),
-                                                                          Container(
-                                                                            child:
-                                                                                Text(
-                                                                              foundChords.join(" ").toString(),
-                                                                              style: TextStyle(
-                                                                                color: Colors.black,
-                                                                                fontSize: 12,
-                                                                              ),
+                                                                      boxShadow: [
+                                                                        BoxShadow(
+                                                                          color: Colors
+                                                                              .black
+                                                                              .withOpacity(0.1),
+                                                                          blurRadius:
+                                                                              8,
+                                                                          offset: Offset(
+                                                                              0,
+                                                                              4),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    child:
+                                                                        Column(
+                                                                      children: [
+                                                                        Text(
+                                                                            "Acordes Encontrados"),
+                                                                        Container(
+                                                                          child:
+                                                                              Text(
+                                                                            foundChords.join(" ").toString(),
+                                                                            style:
+                                                                                TextStyle(
+                                                                              color: Colors.black,
+                                                                              fontSize: 14,
                                                                             ),
                                                                           ),
-                                                                        ],
-                                                                      ),
-                                                                    )
-                                                                  : SizedBox
-                                                                      .shrink(),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                )
+                                                              : SizedBox.shrink(),
                                                         ),
                                                       ),
                                                     ],

@@ -60,8 +60,13 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
   late int count;
 
+  String? musicianName;
+  bool isLoading = true;
+  String? errorMessage;
+
   @override
   void initState() {
+    print(widget.id);
     super.initState();
     print("ID do usuario");
     _pageController = PageController(initialPage: _currentIndex);
@@ -81,6 +86,39 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
     contarCultosDoUsuario();
 
     verificarVerFormulario();
+    _fetchMusicianByUsrId();
+  }
+
+  Future<void> _fetchMusicianByUsrId() async {
+    try {
+      // Busca o documento do músico no Firestore onde o campo usr_id é igual ao widget.id
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('musicos')
+          .where('user_id', isEqualTo: int.parse(widget.id))
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        // Tratamento de erro caso nenhum documento seja encontrado
+        setState(() {
+          errorMessage =
+              'Nenhum músico com usr_id ${widget.id} foi encontrado.';
+          isLoading = false;
+        });
+      } else {
+        // Extrai o campo "nome" do primeiro documento encontrado
+        setState(() {
+          musicianName = querySnapshot.docs.first['name'];
+          print(musicianName);
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      // Tratamento de erros de exceções
+      setState(() {
+        errorMessage = 'Erro ao buscar os dados: $e';
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> encontrarDocumentos(String userID) async {
@@ -107,6 +145,36 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
     try {
       // Espera pelo menos 2 segundos antes de retornar os dados
       await Future.delayed(Duration(seconds: 1));
+      Future<void> _fetchMusicianByUsrId() async {
+        try {
+          // Busca o documento do músico no Firestore onde o campo usr_id é igual ao widget.id
+          QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+              .collection('musicos')
+              .where('usr_id', isEqualTo: widget.id)
+              .get();
+
+          if (querySnapshot.docs.isEmpty) {
+            // Tratamento de erro caso nenhum documento seja encontrado
+            setState(() {
+              errorMessage =
+                  'Nenhum músico com usr_id ${widget.id} foi encontrado.';
+              isLoading = false;
+            });
+          } else {
+            // Extrai o campo "nome" do primeiro documento encontrado
+            setState(() {
+              musicianName = querySnapshot.docs.first['nome'];
+              isLoading = false;
+            });
+          }
+        } catch (e) {
+          // Tratamento de erros de exceções
+          setState(() {
+            errorMessage = 'Erro ao buscar os dados: $e';
+            isLoading = false;
+          });
+        }
+      }
 
       // Busca os cultos
       QuerySnapshot cultosSnapshot =
@@ -157,6 +225,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
       if (querySnapshot.docs.isNotEmpty) {
         // Se encontrou um documento com o user_id especificado
         setState(() {
+          print("Juan");
           verFormulario = querySnapshot.docs.first['ver_formulario'] ?? false;
           mesIdEspecifico = querySnapshot.docs.first['doc_formulario'];
           print("Formulario Ativo " + mesIdEspecifico);
@@ -307,10 +376,15 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                             color: Color(0xffD9D9D9),
                                             fontWeight: FontWeight.w500),
                                       ),
-                                      Text('Bom dia, Nicole!',
-                                          style: TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w500)),
+                                      Text(
+                                        isLoading
+                                            ? 'Carregando...' // Exibe enquanto carrega
+                                            : errorMessage ??
+                                                'Bom dia, ${musicianName ?? 'Músico'}!',
+                                        style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w500),
+                                      ),
                                     ],
                                   ),
                                   GestureDetector(

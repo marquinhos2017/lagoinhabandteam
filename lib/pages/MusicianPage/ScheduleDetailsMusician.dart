@@ -228,7 +228,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                           initiallyExpanded: false,
                           maintainState: false,
                           iconColor: Colors.black,
-                          shape: Border.all(color: Color(0xff171717)),
+                          shape: Border.all(color: Colors.black),
+                          dense: false,
                           title: Row(
                             children: [
                               Text("1"),
@@ -242,7 +243,9 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                   Text(
                                     musica['Music'] ?? 'Título desconhecido',
                                     style: TextStyle(
-                                        color: Colors.black, fontSize: 12),
+                                        color: Colors.black,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w400),
                                   ),
                                   Text(
                                     musica['Author'] ?? 'Autor desconhecido',
@@ -260,9 +263,19 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    'Tom: ${musica['key'] ?? 'Desconhecido'}',
-                                    style: TextStyle(color: Colors.black),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius:
+                                            BorderRadius.circular(25)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      child: Text(
+                                        'Tom: ${musica['key'] ?? 'Desconhecido'}',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
                                   ),
                                   Row(
                                     children: [
@@ -319,7 +332,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
 
                                             print(musica['link']);
                                           },
-                                          child: Icon(Icons.link)),
+                                          child: Icon(Icons.music_video)),
                                       SizedBox(
                                         width: 24,
                                       ),
@@ -397,9 +410,9 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                 children: snapshot.data!
                     .map((item) => Container(
                           margin: EdgeInsets.all(12),
-                          color: Color(0xff171717),
                           child: Padding(
-                            padding: const EdgeInsets.all(24.0),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 24.0),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -409,22 +422,52 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                       'Nome desconhecido',
                                   style: GoogleFonts.montserrat(
                                       textStyle:
-                                          TextStyle(color: Colors.white)),
+                                          TextStyle(color: Colors.black)),
                                 ),
                                 if (item['Instrument'] == "Guitarra")
-                                  Text(
-                                    ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                    style: TextStyle(color: Colors.red),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius:
+                                            BorderRadius.circular(25)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12),
+                                      ),
+                                    ),
                                   ),
                                 if (item['Instrument'] == "Bateria")
-                                  Text(
-                                    ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                    style: TextStyle(color: Colors.yellow),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius:
+                                            BorderRadius.circular(25)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12),
+                                      ),
+                                    ),
                                   ),
                                 if (item['Instrument'] == "Piano")
-                                  Text(
-                                    ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                    style: TextStyle(color: Colors.yellow),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius:
+                                            BorderRadius.circular(25)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12),
+                                      ),
+                                    ),
                                   ),
                               ],
                             ),
@@ -509,13 +552,41 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                         ),
                       ),
                       // Centraliza o texto
-                      Text(
-                        documentsAll[currentIndex]['nome'] ??
-                            'Nome desconhecido',
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold),
+                      Column(
+                        children: [
+                          Text(
+                            documentsAll[currentIndex]['nome'] ??
+                                'Nome desconhecido',
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                DateFormat('dd/MM/yyyy').format(
+                                        (documentsAll[currentIndex]['date']
+                                                as Timestamp)
+                                            .toDate()) ??
+                                    'Nome desconhecido',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(" - "),
+                              Text(
+                                documentsAll[currentIndex]['horario'] ??
+                                    'Nome desconhecido',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       // O Spacer vai empurrar o próximo Expanded para o extremo direito
 

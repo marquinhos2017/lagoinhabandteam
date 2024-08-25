@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lagoinha_music/pages/login.dart';
+import 'dart:math';
 
 class AddtoPlaylist extends StatefulWidget {
   final String document_id;
@@ -34,22 +35,18 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
   }
 
   Future<void> _showKeyDialog(String documentId) async {
-    // Reset to default key "C" every time the dialog opens
-    setState(() {
-      selectedKey = 'C'; // Set default key to "C"
-    });
-
+    // Exibe o diálogo e aguarda o fechamento
     await showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Selecione o tom'),
           backgroundColor: Colors.black,
-          content: KeySelectorGrid(
+          content: CircularKeySelector(
             initialKey: selectedKey,
             onSelect: (String key) {
               setState(() {
-                selectedKey = key; // Update selected key
+                selectedKey = key; // Atualiza o tom selecionado
               });
             },
           ),
@@ -64,9 +61,9 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
             TextButton(
               child: const Text('SALVAR', style: TextStyle(color: Colors.blue)),
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Fecha o diálogo
                 _saveToPlaylist(documentId);
-                Navigator.of(context).pop(); // Save the song to the playlist
+                Navigator.of(context).pop(); // Salva a música na playlist
               },
             ),
           ],
@@ -244,84 +241,178 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
   }
 }
 
-// Novo Widget para Seleção de Tons com Botões Quadrados
-class KeySelectorGrid extends StatefulWidget {
+class CircularKeySelector extends StatefulWidget {
   final Function(String) onSelect;
   final String? initialKey;
 
-  const KeySelectorGrid({required this.onSelect, this.initialKey, Key? key})
+  const CircularKeySelector({required this.onSelect, this.initialKey, Key? key})
       : super(key: key);
 
   @override
-  _KeySelectorGridState createState() => _KeySelectorGridState();
+  _CircularKeySelectorState createState() => _CircularKeySelectorState();
 }
 
-class _KeySelectorGridState extends State<KeySelectorGrid> {
-  late String selectedKey; // Make it late to initialize in initState
+class _CircularKeySelectorState extends State<CircularKeySelector> {
+  final List<String> keys = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B'
+  ];
+  String? selectedKey;
+  double currentAngle = 0.0;
+  Offset? currentOffset;
 
   @override
   void initState() {
     super.initState();
-    selectedKey = widget.initialKey ?? 'C'; // Set default to "C"
+    selectedKey = widget.initialKey;
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<String> keys = [
-      'C',
-      'C#',
-      'D',
-      'D#',
-      'E',
-      'F',
-      'F#',
-      'G',
-      'G#',
-      'A',
-      'A#',
-      'B'
-    ];
-
-    return SizedBox(
-      width: 200, // Specify a width for the grid
-      height: 200, // Specify a height for the grid
-      child: GridView.builder(
-        shrinkWrap: true, // Allow the grid to be as small as possible
-        physics: NeverScrollableScrollPhysics(), // Disable scrolling
-        itemCount: keys.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, // Number of columns in the grid
-          mainAxisSpacing: 10.0,
-          crossAxisSpacing: 10.0,
-        ),
-        itemBuilder: (context, index) {
-          final key = keys[index];
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedKey = key; // Update the selected key
-              });
-              widget.onSelect(key);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: key == selectedKey ? Colors.blue : Colors.grey[800],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Center(
-                child: Text(
-                  key,
-                  style: TextStyle(
-                    color: Colors.white,
+    return GestureDetector(
+      onPanUpdate: (details) {
+        setState(() {
+          currentOffset = details.localPosition;
+          _updateSelectedKey();
+        });
+      },
+      child: SizedBox(
+        width: 200,
+        height: 200,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CustomPaint(
+              painter: CirclePainter(keys, selectedKey, currentAngle),
+            ),
+            Center(
+              child: Text(
+                selectedKey ?? 'Selecione o tom',
+                style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                  ),
-                ),
+                    color: Colors.white),
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
+
+  void _updateSelectedKey() {
+    if (currentOffset != null) {
+      final center = Offset(100, 100);
+      final dx = currentOffset!.dx - center.dx;
+      final dy = currentOffset!.dy - center.dy;
+      final angle =
+          atan2(dy, dx) + pi / 2; // Ajusta o ângulo para começar no topo
+      final distance = sqrt(dx * dx + dy * dy);
+
+      if (distance < 80) {
+        // Garante que o movimento está dentro do círculo
+        final index = ((angle / (2 * pi) * keys.length).floor() % keys.length);
+        setState(() {
+          selectedKey = keys[index];
+          currentAngle = -angle; // Rotaciona o círculo para a posição do dedo
+        });
+        widget
+            .onSelect(selectedKey!); // Atualiza o tom selecionado no widget pai
+      }
+    }
+  }
+}
+
+class CirclePainter extends CustomPainter {
+  final List<String> keys;
+  final String? selectedKey;
+  final double rotationAngle;
+
+  CirclePainter(this.keys, this.selectedKey, this.rotationAngle);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final Paint selectedPaint = Paint()
+      ..color = Colors.blue
+      ..style = PaintingStyle.fill;
+
+    final double radius = size.width / 2;
+    final double circleRadius = radius - 20;
+    final double centerX = radius;
+    final double centerY = radius;
+
+    canvas.translate(centerX, centerY);
+    canvas.rotate(rotationAngle);
+
+    for (int i = 0; i < keys.length; i++) {
+      final angle = 2 * pi * i / keys.length;
+      final offset = Offset(
+        cos(angle) * circleRadius,
+        sin(angle) * circleRadius,
+      );
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: keys[i],
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      final textOffset = Offset(
+        offset.dx - textPainter.width / 2,
+        offset.dy - textPainter.height / 2,
+      );
+
+      final double buttonRadius = 30;
+      final Paint buttonPaint = Paint()
+        ..color = Color(0xff444444)
+        ..style = PaintingStyle.fill;
+
+      canvas.drawCircle(
+          textOffset + Offset(textPainter.width / 2, textPainter.height / 2),
+          buttonRadius,
+          buttonPaint);
+      canvas.save();
+      canvas.translate(textOffset.dx + textPainter.width / 2,
+          textOffset.dy + textPainter.height / 2);
+      canvas.rotate(-rotationAngle); // Desfaz a rotação do canvas
+      textPainter.paint(
+          canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
+      canvas.restore();
+    }
+
+    if (selectedKey != null) {
+      final selectedIndex = keys.indexOf(selectedKey!);
+      final selectedAngle = 2 * pi * selectedIndex / keys.length;
+      final selectedOffset = Offset(
+        cos(selectedAngle) * circleRadius,
+        sin(selectedAngle) * circleRadius,
+      );
+
+      canvas.drawCircle(selectedOffset, 10, selectedPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

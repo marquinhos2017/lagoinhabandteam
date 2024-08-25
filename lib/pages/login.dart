@@ -33,20 +33,26 @@ class _LoginStateState extends State<login> {
     print(exists);
     print(index);
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           "",
           style: TextStyle(color: Colors.white),
         ),
         foregroundColor: Colors.black,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Image.asset(
+                "assets/logo.jpg", // URL da imagem
+                fit: BoxFit.cover, // Ajusta a imagem para cobrir o container
+              ),
+            ),
             /*     StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('Cultos').where(
                   'musicos',
@@ -159,29 +165,29 @@ class _LoginStateState extends State<login> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 16),
                           child: TextFormField(
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: Colors.black),
                             controller: emailController,
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Colors.white), // Borda branca
+                                      color: Colors.black), // Borda branca
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   borderSide: BorderSide(
-                                      color: Color.fromRGBO(255, 255, 255,
-                                          0.498)), // Borda branca quando o campo está habilitado
+                                      color: Colors
+                                          .black), // Borda branca quando o campo está habilitado
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   borderSide: BorderSide(
-                                      color: Color.fromRGBO(68, 101, 217,
-                                          0.5)), // Borda branca quando o campo está focado
+                                      color: Colors
+                                          .black), // Borda branca quando o campo está focado
                                 ),
                                 labelText: "Usuario",
-                                labelStyle: TextStyle(color: Colors.white)),
+                                labelStyle: TextStyle(color: Colors.black)),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor insira seu usuario';
@@ -194,30 +200,30 @@ class _LoginStateState extends State<login> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 16),
                           child: TextFormField(
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: Colors.black),
                             controller: passwordController,
                             obscureText: true,
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Colors.white), // Borda branca
+                                      color: Colors.black), // Borda branca
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   borderSide: BorderSide(
-                                      color: Color.fromRGBO(255, 255, 255,
-                                          0.5)), // Borda branca quando o campo está habilitado
+                                      color: Colors
+                                          .black), // Borda branca quando o campo está habilitado
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
                                   borderSide: BorderSide(
-                                      color: Color.fromRGBO(68, 101, 217,
-                                          0.5)), // Borda branca quando o campo está focado
+                                      color: Colors
+                                          .black), // Borda branca quando o campo está focado
                                 ),
                                 labelText: "Senha",
-                                labelStyle: TextStyle(color: Colors.white)),
+                                labelStyle: TextStyle(color: Colors.black)),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your password';
@@ -252,7 +258,7 @@ class _LoginStateState extends State<login> {
                             Color(0xff558FFF),
                           ],
                         ),*/
-                        color: Color(0xff4465D9),
+                        color: Colors.black,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: ElevatedButton(
