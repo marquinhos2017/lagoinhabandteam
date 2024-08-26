@@ -256,11 +256,17 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('Cultos')
-          .where('musicos',
-              arrayContains: {'user_id': int.parse(widget.id)}).get();
+          .get(); // Obtém todos os documentos da coleção Cultos
+
+      // Filtra os documentos localmente
+      int count = querySnapshot.docs.where((doc) {
+        List<dynamic> musicos = doc['musicos'];
+        return musicos
+            .any((musico) => musico['user_id'] == int.parse(widget.id));
+      }).length;
 
       setState(() {
-        cultosCount = querySnapshot.size; // Armazena a contagem de cultos
+        cultosCount = count; // Armazena a contagem de cultos
       });
     } catch (e) {
       print('Erro ao contar cultos: $e');
@@ -388,7 +394,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                         isLoading
                                             ? 'Carregando...' // Exibe enquanto carrega
                                             : errorMessage ??
-                                                'Bom dia, ${musicianName ?? 'Músico'}!',
+                                                'Bom dia, ${musicianName?.toCapitalized() ?? 'Músico'}',
                                         style: TextStyle(
                                             fontSize: 24,
                                             fontWeight: FontWeight.w500),
@@ -465,8 +471,11 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                       ),
                                       child: CircleAvatar(
                                         // Pode adicionar uma imagem ou ícone dentro do CircleAvatar
-                                        backgroundImage: AssetImage(
-                                            'assets/profile.png'), // Substitua pelo caminho da sua imagem
+                                        // backgroundImage: AssetImage(
+                                        //        'assets/profile.png'), // Substitua pelo caminho da sua imagem
+
+                                        backgroundImage: NetworkImage(
+                                            "https://static.vecteezy.com/system/resources/previews/002/700/586/original/woman-singing-avatar-character-icons-free-vector.jpg"),
                                         // Ou use um ícone ao invés de uma imagem
                                       ),
                                     ),
@@ -486,15 +495,13 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               ),
                             ),
                             Container(
-                              height: 200,
+                              height: 220,
                               margin: EdgeInsets.only(top: 20),
                               child: FutureBuilder<QuerySnapshot>(
                                 future: FirebaseFirestore.instance
                                     .collection('Cultos')
                                     .orderBy("date")
-                                    .where('musicos', arrayContains: {
-                                  'user_id': int.parse(widget.id)
-                                }).get(),
+                                    .get(), // Obtendo todos os documentos
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
@@ -514,6 +521,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                             Text('Nenhum culto encontrado.'));
                                   }
 
+                                  // Obtém todos os documentos
                                   List<DocumentSnapshot> docs =
                                       snapshot.data!.docs;
 
@@ -588,8 +596,8 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                           );
 
                                           if (song != null) {
-                                            musicData['key'] = song[
-                                                'key']; // Adiciona o campo key
+                                            musicData['key'] = song['key'] ??
+                                                'Key Desconhecida'; // Adiciona o campo key
                                             musicData['link'] = song['link'] ??
                                                 'Link não disponível'; // Adiciona o campo link
                                           } else {
@@ -645,204 +653,212 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
                                       return SingleChildScrollView(
                                         scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: List.generate(
-                                              weeklyDocs.length, (index) {
-                                            bool isSelected =
-                                                _selectedIndex == index;
-                                            DocumentSnapshot doc =
-                                                weeklyDocs[index];
-                                            Map<String, dynamic> data = doc
-                                                .data() as Map<String, dynamic>;
-                                            DateTime cultoDate =
-                                                (data['date'] as Timestamp)
-                                                    .toDate();
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 24.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: List.generate(
+                                                weeklyDocs.length, (index) {
+                                              bool isSelected =
+                                                  _selectedIndex == index;
+                                              DocumentSnapshot doc =
+                                                  weeklyDocs[index];
+                                              Map<String, dynamic> data =
+                                                  doc.data()
+                                                      as Map<String, dynamic>;
+                                              DateTime cultoDate =
+                                                  (data['date'] as Timestamp)
+                                                      .toDate();
 
-                                            String Horario = (data['horario']);
+                                              String Horario =
+                                                  (data['horario']);
 
-                                            return FutureBuilder<String>(
-                                                future:
-                                                    loadInstrumentForDocument(
-                                                        widget.id, doc.id),
-                                                builder: (context,
-                                                    instrumentSnapshot) {
-                                                  String instrumentText =
-                                                      'Instrumento Desconhecido';
-                                                  if (instrumentSnapshot
-                                                          .connectionState ==
-                                                      ConnectionState.waiting) {
-                                                    return Center(
-                                                        child:
-                                                            CircularProgressIndicator());
-                                                  }
+                                              return FutureBuilder<String>(
+                                                  future:
+                                                      loadInstrumentForDocument(
+                                                          widget.id, doc.id),
+                                                  builder: (context,
+                                                      instrumentSnapshot) {
+                                                    String instrumentText =
+                                                        'Instrumento Desconhecido';
+                                                    if (instrumentSnapshot
+                                                            .connectionState ==
+                                                        ConnectionState
+                                                            .waiting) {
+                                                      return Center(
+                                                          child:
+                                                              CircularProgressIndicator());
+                                                    }
 
-                                                  if (instrumentSnapshot
-                                                      .hasData) {
-                                                    instrumentText =
-                                                        instrumentSnapshot
-                                                            .data!;
-                                                  } else if (instrumentSnapshot
-                                                      .hasError) {
-                                                    print(
-                                                        'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
-                                                  }
+                                                    if (instrumentSnapshot
+                                                        .hasData) {
+                                                      instrumentText =
+                                                          instrumentSnapshot
+                                                              .data!;
+                                                    } else if (instrumentSnapshot
+                                                        .hasError) {
+                                                      print(
+                                                          'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
+                                                    }
 
-                                                  return GestureDetector(
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        PageRouteBuilder(
-                                                          pageBuilder: (context,
-                                                                  animation,
-                                                                  secondaryAnimation) =>
-                                                              ScheduleDetailsMusician(
-                                                            documents:
-                                                                weeklyDocs,
-                                                            id: doc.id,
-                                                            currentIndex: index,
-                                                            musics:
-                                                                allMusicDataList,
-                                                          ),
-                                                          transitionsBuilder:
-                                                              (context,
-                                                                  animation,
-                                                                  secondaryAnimation,
-                                                                  child) {
-                                                            const begin = Offset(
-                                                                1.0,
-                                                                0.0); // Início do movimento (fora da tela, à direita)
-                                                            const end = Offset
-                                                                .zero; // Fim do movimento (posição final)
-                                                            const curve = Curves
-                                                                .easeInOut;
-
-                                                            var tween = Tween(
-                                                                    begin:
-                                                                        begin,
-                                                                    end: end)
-                                                                .chain(CurveTween(
-                                                                    curve:
-                                                                        curve));
-                                                            var offsetAnimation =
-                                                                animation.drive(
-                                                                    tween);
-
-                                                            return SlideTransition(
-                                                              position:
-                                                                  offsetAnimation,
-                                                              child: child,
-                                                            );
-                                                          },
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: Container(
-                                                      margin:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 24.0),
-                                                      width:
-                                                          300, // Ajusta a largura se selecionado
-                                                      height:
-                                                          160, // Ajusta a altura se selecionado
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                        gradient:
-                                                            LinearGradient(
-                                                          colors: [
-                                                            Color.fromARGB(
-                                                                255, 0, 0, 0),
-                                                            Color(0xff000000),
-                                                          ],
-                                                          begin:
-                                                              Alignment.topLeft,
-                                                          end: Alignment
-                                                              .bottomRight,
-                                                        ),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: Color(
-                                                                0xff000000),
-                                                            blurRadius: 24,
-                                                            offset:
-                                                                Offset(16, 8),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(24.0),
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .spaceBetween,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Column(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .start,
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
-                                                              children: [
-                                                                Text(
-                                                                  data['nome'] ??
-                                                                      'Culto',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        20,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                  ),
-                                                                ),
-                                                                Text(
-                                                                  instrumentText,
-                                                                  style:
-                                                                      TextStyle(
-                                                                    color: Colors
-                                                                        .white70,
-                                                                    fontSize:
-                                                                        10,
-                                                                  ),
-                                                                ),
-                                                              ],
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          PageRouteBuilder(
+                                                            pageBuilder: (context,
+                                                                    animation,
+                                                                    secondaryAnimation) =>
+                                                                ScheduleDetailsMusician(
+                                                              documents:
+                                                                  weeklyDocs,
+                                                              id: doc.id,
+                                                              currentIndex:
+                                                                  index,
+                                                              musics:
+                                                                  allMusicDataList,
                                                             ),
-                                                            Text(
-                                                              Horario +
-                                                                  " " +
-                                                                  DateFormat(
-                                                                          'MMM d, EEEE')
-                                                                      .format(
-                                                                          cultoDate),
-                                                              style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 10,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
+                                                            transitionsBuilder:
+                                                                (context,
+                                                                    animation,
+                                                                    secondaryAnimation,
+                                                                    child) {
+                                                              const begin = Offset(
+                                                                  1.0,
+                                                                  0.0); // Início do movimento (fora da tela, à direita)
+                                                              const end = Offset
+                                                                  .zero; // Fim do movimento (posição final)
+                                                              const curve =
+                                                                  Curves
+                                                                      .easeInOut;
+
+                                                              var tween = Tween(
+                                                                      begin:
+                                                                          begin,
+                                                                      end: end)
+                                                                  .chain(CurveTween(
+                                                                      curve:
+                                                                          curve));
+                                                              var offsetAnimation =
+                                                                  animation
+                                                                      .drive(
+                                                                          tween);
+
+                                                              return SlideTransition(
+                                                                position:
+                                                                    offsetAnimation,
+                                                                child: child,
+                                                              );
+                                                            },
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Container(
+                                                        margin: EdgeInsets
+                                                            .symmetric(
+                                                                horizontal:
+                                                                    24.0),
+                                                        width:
+                                                            300, // Ajusta a largura se selecionado
+                                                        height:
+                                                            160, // Ajusta a altura se selecionado
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          gradient:
+                                                              LinearGradient(
+                                                            colors: [
+                                                              Color.fromARGB(
+                                                                  255, 0, 0, 0),
+                                                              Color(0xff000000),
+                                                            ],
+                                                            begin: Alignment
+                                                                .topLeft,
+                                                            end: Alignment
+                                                                .bottomRight,
+                                                          ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Color(
+                                                                  0xff000000),
+                                                              blurRadius: 24,
+                                                              offset:
+                                                                  Offset(16, 8),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(24.0),
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceBetween,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Column(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .start,
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Text(
+                                                                    data['nome'] ??
+                                                                        'Culto',
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontSize:
+                                                                          20,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                    ),
+                                                                  ),
+                                                                  Text(
+                                                                    instrumentText,
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color: Colors
+                                                                          .white70,
+                                                                      fontSize:
+                                                                          10,
+                                                                    ),
+                                                                  ),
+                                                                ],
                                                               ),
-                                                            ),
-                                                          ],
+                                                              Text(
+                                                                '$Horario ${DateFormat('MMM d, EEEE').format(cultoDate)}',
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 10,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  );
-                                                });
-                                          }),
+                                                    );
+                                                  });
+                                            }),
+                                          ),
                                         ),
                                       );
                                     },
@@ -899,10 +915,9 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                 child: FutureBuilder<QuerySnapshot>(
                                   future: FirebaseFirestore.instance
                                       .collection('Cultos')
-                                      .orderBy("date")
-                                      .where('musicos', arrayContains: {
-                                    'user_id': int.parse(widget.id)
-                                  }).get(), // Obtendo todos os documentos uma vez
+                                      .orderBy(
+                                          "date") // Ordena por data se necessário
+                                      .get(), // Obtém todos os documentos
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.waiting) {
@@ -926,20 +941,38 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                     List<DocumentSnapshot> docs =
                                         snapshot.data!.docs;
 
+                                    // Filtra os documentos para encontrar aqueles que contêm o user_id específico
+                                    List<DocumentSnapshot> filteredDocs =
+                                        docs.where((doc) {
+                                      final musicos =
+                                          (doc['musicos'] as List<dynamic>?) ??
+                                              [];
+                                      return musicos.any((musico) {
+                                        return (musico as Map<String, dynamic>)[
+                                                'user_id'] ==
+                                            int.parse(widget.id);
+                                      });
+                                    }).toList();
+
+                                    if (filteredDocs.isEmpty) {
+                                      return Center(
+                                          child: Text(
+                                              'Nenhum culto encontrado para o usuário.'));
+                                    }
+
                                     // Lista para armazenar todas as músicas de todos os cultos
                                     List<List<Map<String, dynamic>>>
-                                        allMusicDataList =
-                                        List.generate(docs.length, (_) => []);
+                                        allMusicDataList = List.generate(
+                                            filteredDocs.length, (_) => []);
 
                                     // Função para carregar as músicas de um culto específico
                                     Future<void> loadMusicsForDocument(
                                         int docIndex) async {
-                                      final doc = docs[docIndex];
+                                      final doc = filteredDocs[docIndex];
                                       final data =
                                           doc.data() as Map<String, dynamic>;
                                       final playlist =
                                           data['playlist'] as List<dynamic>?;
-                                      print(playlist);
 
                                       if (playlist != null) {
                                         List<Future<DocumentSnapshot>>
@@ -965,6 +998,12 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                 musicSnapshot
                                                     .id; // Adiciona o documentId
 
+                                            // Adiciona o campo 'bpm' se estiver disponível no documento
+                                            musicData['bpm'] =
+                                                musicData.containsKey('bpm')
+                                                    ? musicData['bpm']
+                                                    : ' Desconhecido';
+
                                             // Encontra o item correspondente no playlist para adicionar a key e link
                                             var song = playlist.firstWhere(
                                               (song) =>
@@ -973,11 +1012,16 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                               orElse: () => null,
                                             );
 
+                                            print("asdasd" + musicData['bpm']);
+
                                             if (song != null) {
-                                              musicData['key'] = song[
-                                                  'key']; // Adiciona o campo key
+                                              musicData['key'] = song['key'] ??
+                                                  'Key Desconhecida'; // Adiciona o campo key
                                               musicData['link'] = song[
                                                       'link'] ??
+                                                  'Link não disponível'; // Adiciona o campo link
+                                              musicData['bpm'] = musicData[
+                                                      'bpm'] ??
                                                   'Link não disponível'; // Adiciona o campo link
                                             } else {
                                               // Caso não encontre a música no playlist, define valores padrão para key e link
@@ -1008,7 +1052,9 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
                                     // Carregar as músicas para todos os documentos
                                     Future<void> loadAllMusics() async {
-                                      for (int i = 0; i < docs.length; i++) {
+                                      for (int i = 0;
+                                          i < filteredDocs.length;
+                                          i++) {
                                         await loadMusicsForDocument(i);
                                       }
                                     }
@@ -1033,13 +1079,13 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                           margin: EdgeInsets.only(bottom: 120),
                                           child: ListView.builder(
                                             padding: EdgeInsets.zero,
-                                            itemCount: docs.length,
+                                            itemCount: filteredDocs.length,
                                             itemBuilder: (context, index) {
                                               Map<String, dynamic> data =
-                                                  docs[index].data()
+                                                  filteredDocs[index].data()
                                                       as Map<String, dynamic>;
                                               String idDocument =
-                                                  docs[index].id;
+                                                  filteredDocs[index].id;
 
                                               DateTime? dataDocumento;
                                               try {
@@ -1053,170 +1099,174 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                               }
 
                                               return FutureBuilder<String>(
-                                                  future:
-                                                      loadInstrumentForDocument(
-                                                          widget.id,
-                                                          idDocument),
-                                                  builder: (context,
-                                                      instrumentSnapshot) {
-                                                    String instrumentText =
-                                                        'Instrumento Desconhecido';
-                                                    if (instrumentSnapshot
-                                                            .connectionState ==
-                                                        ConnectionState
-                                                            .waiting) {
-                                                      return Center(
-                                                          child:
-                                                              CircularProgressIndicator());
-                                                    }
+                                                future:
+                                                    loadInstrumentForDocument(
+                                                        widget.id, idDocument),
+                                                builder: (context,
+                                                    instrumentSnapshot) {
+                                                  String instrumentText =
+                                                      'Instrumento Desconhecido';
+                                                  if (instrumentSnapshot
+                                                          .connectionState ==
+                                                      ConnectionState.waiting) {
+                                                    return Center(
+                                                        child:
+                                                            CircularProgressIndicator());
+                                                  }
 
-                                                    if (instrumentSnapshot
-                                                        .hasData) {
-                                                      instrumentText =
-                                                          instrumentSnapshot
-                                                              .data!;
-                                                    } else if (instrumentSnapshot
-                                                        .hasError) {
-                                                      print(
-                                                          'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
-                                                    }
+                                                  if (instrumentSnapshot
+                                                      .hasData) {
+                                                    instrumentText =
+                                                        instrumentSnapshot
+                                                            .data!;
+                                                  } else if (instrumentSnapshot
+                                                      .hasError) {
+                                                    print(
+                                                        'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
+                                                  }
 
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          PageRouteBuilder(
-                                                            pageBuilder: (context,
-                                                                    animation,
-                                                                    secondaryAnimation) =>
-                                                                ScheduleDetailsMusician(
-                                                              documents: docs,
-                                                              id: idDocument,
-                                                              currentIndex:
-                                                                  index,
-                                                              musics:
-                                                                  allMusicDataList,
-                                                            ),
-                                                            transitionsBuilder:
-                                                                (context,
-                                                                    animation,
-                                                                    secondaryAnimation,
-                                                                    child) {
-                                                              const begin = Offset(
-                                                                  1.0,
-                                                                  0.0); // Início do movimento (fora da tela, à direita)
-                                                              const end = Offset
-                                                                  .zero; // Fim do movimento (posição final)
-                                                              const curve =
-                                                                  Curves
-                                                                      .easeInOut;
-
-                                                              var tween = Tween(
-                                                                      begin:
-                                                                          begin,
-                                                                      end: end)
-                                                                  .chain(CurveTween(
-                                                                      curve:
-                                                                          curve));
-                                                              var offsetAnimation =
-                                                                  animation
-                                                                      .drive(
-                                                                          tween);
-
-                                                              return SlideTransition(
-                                                                position:
-                                                                    offsetAnimation,
-                                                                child: child,
-                                                              );
-                                                            },
+                                                  return GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        PageRouteBuilder(
+                                                          pageBuilder: (context,
+                                                                  animation,
+                                                                  secondaryAnimation) =>
+                                                              ScheduleDetailsMusician(
+                                                            documents:
+                                                                filteredDocs,
+                                                            id: idDocument,
+                                                            currentIndex: index,
+                                                            musics:
+                                                                allMusicDataList,
                                                           ),
-                                                        );
-                                                      },
-                                                      child: Column(
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(8.0),
-                                                            child: Container(
-                                                              margin: EdgeInsets
-                                                                  .only(
-                                                                      bottom:
-                                                                          12),
-                                                              child: Row(
-                                                                children: [
-                                                                  Container(
-                                                                    height: 78,
-                                                                    width: 72,
-                                                                    decoration: BoxDecoration(
-                                                                        color: Colors
-                                                                            .black,
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(12)),
-                                                                    margin: EdgeInsets.only(
-                                                                        right:
-                                                                            12),
-                                                                    child:
-                                                                        ClipRRect(
+                                                          transitionsBuilder:
+                                                              (context,
+                                                                  animation,
+                                                                  secondaryAnimation,
+                                                                  child) {
+                                                            const begin = Offset(
+                                                                1.0,
+                                                                0.0); // Início do movimento (fora da tela, à direita)
+                                                            const end = Offset
+                                                                .zero; // Fim do movimento (posição final)
+                                                            const curve = Curves
+                                                                .easeInOut;
+
+                                                            var tween = Tween(
+                                                                    begin:
+                                                                        begin,
+                                                                    end: end)
+                                                                .chain(CurveTween(
+                                                                    curve:
+                                                                        curve));
+                                                            var offsetAnimation =
+                                                                animation.drive(
+                                                                    tween);
+
+                                                            return SlideTransition(
+                                                              position:
+                                                                  offsetAnimation,
+                                                              child: child,
+                                                            );
+                                                          },
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Column(
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: Container(
+                                                            margin:
+                                                                EdgeInsets.only(
+                                                                    bottom: 12),
+                                                            child: Row(
+                                                              children: [
+                                                                Container(
+                                                                  height: 78,
+                                                                  width: 72,
+                                                                  decoration: BoxDecoration(
+                                                                      color: Colors
+                                                                          .black,
                                                                       borderRadius:
                                                                           BorderRadius.circular(
+                                                                              12)),
+                                                                  margin: EdgeInsets
+                                                                      .only(
+                                                                          right:
                                                                               12),
-                                                                      child: Image
-                                                                          .asset(
-                                                                        data['nome'] ==
-                                                                                "Culto da Fé"
-                                                                            ? "assets/hq720.jpg"
-                                                                            : "assets/hq720 (1).jpg", // URL da imagem
-                                                                        fit: BoxFit
-                                                                            .cover, // Ajusta a imagem para cobrir o container
-                                                                      ),
+                                                                  child:
+                                                                      ClipRRect(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            12),
+                                                                    child: Image
+                                                                        .asset(
+                                                                      data['nome'] ==
+                                                                              "Culto da Fé"
+                                                                          ? "assets/hq720.jpg"
+                                                                          : "assets/hq720 (1).jpg", // URL da imagem
+                                                                      fit: BoxFit
+                                                                          .cover, // Ajusta a imagem para cobrir o container
                                                                     ),
                                                                   ),
-                                                                  Column(
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .spaceAround,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      Column(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.start,
-                                                                        crossAxisAlignment:
-                                                                            CrossAxisAlignment.start,
-                                                                        children: [
-                                                                          Text(
-                                                                            data['nome'],
-                                                                            style:
-                                                                                TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                                                          ),
-                                                                          Text(
-                                                                            instrumentText,
-                                                                            style:
-                                                                                TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      Text(
-                                                                        "Noite, " +
-                                                                            DateFormat('MMM d').format(dataDocumento!),
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                10,
-                                                                            fontWeight:
-                                                                                FontWeight.bold),
-                                                                      ),
-                                                                    ],
-                                                                  )
-                                                                ],
-                                                              ),
+                                                                ),
+                                                                Column(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceAround,
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    Column(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .start,
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        Text(
+                                                                          data[
+                                                                              'nome'],
+                                                                          style: TextStyle(
+                                                                              fontSize: 13,
+                                                                              fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                        Text(
+                                                                          instrumentText,
+                                                                          style: TextStyle(
+                                                                              fontSize: 10,
+                                                                              fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    Text(
+                                                                      "Noite, " +
+                                                                          DateFormat('MMM d')
+                                                                              .format(dataDocumento!),
+                                                                      style: TextStyle(
+                                                                          fontSize:
+                                                                              10,
+                                                                          fontWeight:
+                                                                              FontWeight.bold),
+                                                                    ),
+                                                                  ],
+                                                                )
+                                                              ],
                                                             ),
                                                           ),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  });
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              );
                                             },
                                           ),
                                         );
@@ -1225,7 +1275,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                   },
                                 ),
                               ),
-                            ),
+                            )
                           ],
                         ),
                       ),

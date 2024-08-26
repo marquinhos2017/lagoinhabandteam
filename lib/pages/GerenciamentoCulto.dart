@@ -18,6 +18,12 @@ class GerenciamentoCulto extends StatefulWidget {
 }
 
 class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
+  @override
+  void initState() {
+    super.initState();
+    _fetchMusicianNames();
+  }
+
   String? selectedKey; // Armazena o tom selecionado
   Future<void> _showKeyDialog(String documentId) async {
     await showDialog<void>(
@@ -181,45 +187,53 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchMusiciansData(
-      List<Map<String, dynamic>> musicians) async {
-    return Future.wait(
-      musicians.map((musician) async {
-        final userId = musician['user_id'];
-        final idCulto = widget.documentId;
+  Future<List<Map<String, dynamic>>> _fetchMusiciansData() async {
+    try {
+      // Passo 1: Buscar todos os documentos da coleção 'user_culto_instrument'
+      final idCulto = widget.documentId;
+      final userCultoSnapshot = await _firestore
+          .collection('user_culto_instrument')
+          .where('idCulto', isEqualTo: idCulto)
+          .get();
 
-        final results = await Future.wait([
-          _firestore
-              .collection('musicos')
-              .where('user_id', isEqualTo: userId)
-              .get()
-              .then(
-                (snapshot) => snapshot.docs.isNotEmpty
-                    ? snapshot.docs.first.data() as Map<String, dynamic>
-                    : {},
-              ),
-          _firestore
-              .collection('user_culto_instrument')
-              .where('idUser', isEqualTo: userId)
-              .where('idCulto', isEqualTo: idCulto)
-              .get()
-              .then(
-                (snapshot) => snapshot.docs.isNotEmpty
-                    ? snapshot.docs.first.data() as Map<String, dynamic>
-                    : {},
-              ),
-        ]);
+      // Lista para armazenar os futuros resultados
+      final List<Future<Map<String, dynamic>>> futureList =
+          userCultoSnapshot.docs.map((userCultoDoc) async {
+        final userId = userCultoDoc['idUser'];
+
+        // Passo 2: Buscar o nome do usuário na coleção 'musicos'
+        final musicianSnapshot = await _firestore
+            .collection('musicos')
+            .where('user_id', isEqualTo: userId)
+            .limit(1)
+            .get();
+
+        final name = musicianSnapshot.docs.isNotEmpty
+            ? musicianSnapshot.docs.first.data()['name'] ??
+                'Nome não encontrado'
+            : 'Nome não encontrado';
+
+        // Passo 3: Obter o instrumento do documento 'user_culto_instrument'
+        final instrument =
+            userCultoDoc.data()['Instrument'] ?? 'Instrumento não encontrado';
 
         return {
-          'name': results[0]['name'] ?? 'Nome não encontrado',
-          'instrument':
-              results[1]['Instrument'] ?? 'Instrumento não encontrado',
+          'name': name,
+          'instrument': instrument,
+          'item': userCultoDoc.id,
         };
-      }).toList(),
-    );
+      }).toList();
+
+      // Passo 4: Aguardar todos os futuros e retornar os resultados
+      return Future.wait(futureList);
+    } catch (e) {
+      // Em caso de erro, retornar uma lista vazia ou lançar a exceção
+      print('Erro ao buscar dados: $e');
+      return [];
+    }
   }
 
-  Future<void> _removeMusician(int userId, String idCulto) async {
+  Future<void> _removeMusician(int userId, String idCulto, String id) async {
     try {
       await _firestore.collection('Cultos').doc(idCulto).update({
         'musicos': FieldValue.arrayRemove([
@@ -227,15 +241,11 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
         ])
       });
 
-      final userCultoQuery = await _firestore
-          .collection('user_culto_instrument')
-          .where('idUser', isEqualTo: userId)
-          .where('idCulto', isEqualTo: idCulto)
-          .get();
+      final documentRef =
+          _firestore.collection('user_culto_instrument').doc(id);
 
-      if (userCultoQuery.docs.isNotEmpty) {
-        await userCultoQuery.docs.first.reference.delete();
-      }
+      // Apaga o documento
+      await documentRef.delete();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -269,9 +279,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             .where('idCulto', isEqualTo: widget.documentId)
             .get();
 
-        if (userInstrumentSnapshot.docs.isNotEmpty) {
-          final instrument =
-              userInstrumentSnapshot.docs.first.data()['Instrument'] as String;
+        for (var doc in userInstrumentSnapshot.docs) {
+          final instrument = doc.data()['Instrument'] as String;
           instruments.add(instrument);
         }
       }
@@ -280,6 +289,68 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
     } catch (e) {
       print('Erro ao buscar instrumentos: $e');
       return [];
+    }
+  }
+
+  List<String> _musicianNames = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  Future<void> _fetchMusicianNames() async {
+    try {
+      // Passo 1: Obter todos os documentos de user_culto_instrument
+      final userCultoSnapshot =
+          await _firestore.collection('user_culto_instrument').get();
+
+      if (userCultoSnapshot.docs.isEmpty) {
+        setState(() {
+          _musicianNames = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Passo 2: Criar uma lista de user_id a partir dos documentos
+      final userIds =
+          userCultoSnapshot.docs.map((doc) => doc['user_id'] as int).toSet();
+      print(userIds);
+
+      if (userIds.isEmpty) {
+        setState(() {
+          _musicianNames = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Passo 3: Buscar os nomes dos músicos usando os user_id
+      final musicianSnapshots = await Future.wait(userIds.map((userId) =>
+          _firestore
+              .collection('musicos')
+              .where('user_id', isEqualTo: userId)
+              .get()));
+
+      // Extrair nomes dos músicos
+      final musicianNames = <String>{};
+      for (final snapshot in musicianSnapshots) {
+        for (final doc in snapshot.docs) {
+          final name = doc['name'] as String?;
+          if (name != null) {
+            musicianNames.add(name);
+          }
+        }
+      }
+
+      // Atualizar o estado com os nomes dos músicos
+      setState(() {
+        _musicianNames = musicianNames.toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao buscar dados: $e';
+        _isLoading = false;
+      });
     }
   }
 
@@ -323,22 +394,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
               );
             }
 
-            if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildInstrumentButton(context, "Piano"),
-                    _buildInstrumentButton(context, "Guitarra"),
-                    _buildInstrumentButton(context, "Bateria"),
-                    _buildInstrumentButton(context, "Violão"),
-                    _buildInstrumentButton(context, "Baixo"),
-                  ],
-                ),
-              );
-            }
-
-            final instruments = futureSnapshot.data!;
+            final instruments = futureSnapshot.data ?? [];
 
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -354,6 +410,16 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                     _buildInstrumentButton(context, "Violão"),
                   if (!instruments.contains('Baixo'))
                     _buildInstrumentButton(context, "Baixo"),
+                  if (!instruments.contains('MD'))
+                    _buildInstrumentButton(context, "MD"),
+                  if (!instruments.contains('Ministro'))
+                    _buildInstrumentButton(context, "Ministro"),
+                  if (!instruments.contains('BV 1'))
+                    _buildInstrumentButton(context, "BV 1"),
+                  if (!instruments.contains('BV 2'))
+                    _buildInstrumentButton(context, "BV 2"),
+                  if (!instruments.contains('BV 3'))
+                    _buildInstrumentButton(context, "BV 3"),
                 ],
               ),
             );
@@ -424,7 +490,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             List<Map<String, dynamic>>.from(cultoData['musicos'] ?? []);
 
         return FutureBuilder<List<Map<String, dynamic>>>(
-          future: _fetchMusiciansData(musicos),
+          future: _fetchMusiciansData(),
           builder: (context, futureSnapshot) {
             if (futureSnapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
@@ -456,135 +522,147 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24.0, vertical: 2),
                 child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: musicoList.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    final musico = musicoList[index];
-                    final name = musico['name'] ?? 'Nome não disponível';
-                    final instrument =
-                        musico['instrument'] ?? 'Instrumento não disponível';
+                    padding: EdgeInsets.zero,
+                    itemCount: musicoList.length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      if (index >= musicoList.length) {
+                        return SizedBox(); // Or another widget to handle empty cases
+                      }
 
-                    return Container(
-                      child: Column(
-                        children: [
-                          GestureDetector(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Dismissible(
-                                    key:
-                                        UniqueKey(), // Cada item deve ter uma chave única
-                                    direction: DismissDirection
-                                        .endToStart, // Define a direção do arrasto
-                                    background: Container(
-                                      color: Colors.red,
-                                      alignment: Alignment.centerRight,
-                                      padding:
-                                          EdgeInsets.symmetric(horizontal: 20),
-                                      child: Icon(Icons.delete,
-                                          color: Colors.white),
-                                    ),
-                                    onDismissed: (direction) async {
-                                      if (_isProcessing || !mounted) return;
+                      final musico = musicoList[index];
+                      final name = musico['name'] ?? 'Nome não disponível';
+                      final instrument =
+                          musico['instrument'] ?? 'Instrumento não disponível';
+                      final id = musico['item'] ?? 'Instrumento não disponível';
 
-                                      setState(() {
-                                        _isProcessing = true;
-                                      });
+                      return Container(
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Dismissible(
+                                      key: UniqueKey(), // Ensure a unique key
+                                      direction: DismissDirection.endToStart,
+                                      background: Container(
+                                        color: Colors.red,
+                                        alignment: Alignment.centerRight,
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 20),
+                                        child: Icon(Icons.delete,
+                                            color: Colors.white),
+                                      ),
+                                      onDismissed: (direction) async {
+                                        if (_isProcessing || !mounted) return;
 
-                                      final musicoToRemove = musicos[index];
-                                      final userId = musicoToRemove['user_id']
-                                              as int? ??
-                                          0; // Garantir que user_id é um inteiro
-                                      final idCulto = widget.documentId;
+                                        setState(() {
+                                          _isProcessing = true;
+                                        });
 
-                                      // Remover o músico da lista local
-                                      setState(() {
-                                        musicos.removeAt(index);
-                                      });
+                                        // Ensure we're working with the correct list
+                                        final musicoToRemove =
+                                            musicoList[index];
+                                        final userId =
+                                            musicoToRemove['user_id'] as int? ??
+                                                0;
+                                        final idCulto = widget.documentId;
 
-                                      // Remover o músico do Firestore
-                                      await _removeMusician(userId, idCulto);
+                                        // Perform removal operation
+                                        print("Removing $id");
 
-                                      setState(() {
-                                        _isProcessing = false;
-                                      });
-                                    },
-                                    child: ClipRect(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            name,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
+                                        // Assuming you want to also remove the item from the list
+                                        // (You should do this only after successfully removing from the database)
+                                        // setState(() {
+                                        //   musicoList.removeAt(index);
+                                        // });
+
+                                        // Remove from Firestore
+                                        // await _removeMusician(userId, id);
+
+                                        setState(() {
+                                          _isProcessing = false;
+                                        });
+                                      },
+                                      child: ClipRect(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              name,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Container(
-                                                margin:
-                                                    EdgeInsets.only(right: 20),
-                                                child: Text(
-                                                  instrument,
-                                                  style: TextStyle(
-                                                    color: Color(0xff558FFF),
-                                                    fontSize: 12,
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                      right: 20),
+                                                  child: Text(
+                                                    instrument,
+                                                    style: TextStyle(
+                                                      color: Color(0xff558FFF),
+                                                      fontSize: 12,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              IconButton(
-                                                icon: Icon(Icons.delete,
-                                                    color: Colors.red),
-                                                onPressed: () async {
-                                                  if (_isProcessing || !mounted)
-                                                    return;
+                                                IconButton(
+                                                  icon: Icon(Icons.delete,
+                                                      color: Colors.red),
+                                                  onPressed: () async {
+                                                    if (_isProcessing ||
+                                                        !mounted) return;
 
-                                                  setState(() {
-                                                    _isProcessing = true;
-                                                  });
+                                                    setState(() {
+                                                      _isProcessing = true;
+                                                    });
 
-                                                  final musicoToRemove =
-                                                      musicos[index];
-                                                  final userId = musicoToRemove[
-                                                          'user_id'] as int? ??
-                                                      0; // Garantir que user_id é um inteiro
-                                                  final idCulto =
-                                                      widget.documentId;
+                                                    final musicoToRemove =
+                                                        musicoList[index];
+                                                    final userId =
+                                                        musicoToRemove[
+                                                                    'user_id']
+                                                                as int? ??
+                                                            0;
+                                                    final idCulto =
+                                                        widget.documentId;
 
-                                                  // Remover o músico da lista local
-                                                  setState(() {
-                                                    musicos.removeAt(index);
-                                                  });
+                                                    // Perform removal operation
+                                                    print("Removing $id");
 
-                                                  // Remover o músico do Firestore
-                                                  await _removeMusician(
-                                                      userId, idCulto);
+                                                    // Remove from Firestore
+                                                    await _removeMusician(
+                                                        userId, idCulto, id);
 
-                                                  setState(() {
-                                                    _isProcessing = false;
-                                                  });
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                                    // Update local list after successful Firestore operation
+                                                    setState(() {
+                                                      musicoList
+                                                          .removeAt(index);
+                                                      _isProcessing = false;
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                          ],
+                        ),
+                      );
+                    }),
               ),
             );
           },

@@ -53,10 +53,26 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
         throw Exception('Documento de culto não encontrado');
       }
 
+      // Cria uma identificação única para cada entrada no array
+      final entryId = DateTime.now()
+          .millisecondsSinceEpoch
+          .toString(); // Exemplo de ID único usando timestamp
+
+      // Adiciona a nova entrada ao array de músicos
       await cultoRef.update({
         'musicos': FieldValue.arrayUnion([
-          {'user_id': userId}
+          {
+            'id': entryId, // Identificador único
+            'user_id': userId,
+            'instrument':
+                instrument // Se você quer armazenar o instrumento aqui também
+          }
         ])
+      }).then((_) {
+        print('Músico adicionado com sucesso ao culto.');
+      }).catchError((error) {
+        print('Erro ao adicionar músico ao culto: $error');
+        throw Exception('Erro ao adicionar músico ao culto.');
       });
 
       CollectionReference userCultoInstrument =
@@ -79,6 +95,14 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
       Navigator.pop(context, true); // Indica que algo mudou
     } catch (e) {
       print('Erro ao adicionar músico: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao adicionar músico: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -240,8 +264,16 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                         var musicoData = musicoDoc.data()
                                             as Map<String, dynamic>;
                                         var musicoId = musicoData['user_id'];
-                                        return !musicosAtuais.any(
-                                            (musicoAtual) =>
+
+                                        // Verifica se o músico é "md" ou está na lista de IDs específicos
+                                        var isMd = musicoData['role'] == 'md';
+                                        var alwaysIncludedIds = [100, 102];
+                                        var isAlwaysIncluded = alwaysIncludedIds
+                                            .contains(musicoId);
+
+                                        return isMd ||
+                                            isAlwaysIncluded ||
+                                            !musicosAtuais.any((musicoAtual) =>
                                                 musicoAtual['user_id'] ==
                                                 musicoId);
                                       }).toList();
@@ -255,6 +287,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                               as Map<String, dynamic>;
                                           var musicoId = musicos['user_id'];
                                           var nomeMusico = musicos['name'];
+                                          var isMd = musicos['role'] == 'md';
 
                                           return FutureBuilder<bool>(
                                             future: (date != null &&
@@ -294,7 +327,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                     if (!mounted) return;
 
                                                     String mensagem;
-                                                    if (disponivel) {
+                                                    if (disponivel || isMd) {
                                                       mensagem =
                                                           "Quer convidar $nomeMusico para ser o ${widget.instrument}?";
                                                     } else {

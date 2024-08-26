@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:lagoinha_music/pages/MusicianPage/VerCifraUser.dart';
 import 'package:lagoinha_music/pages/MusicianPage/VerLetra.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart'; // Pacote para reproduzir som (adicionar no pubspec.yaml)
 
 extension StringCasingExtension on String {
   String toCapitalized() =>
@@ -138,6 +140,80 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       print('Erro ao buscar dados da coleção user_culto_instrument: $e');
       throw e;
     }
+  }
+
+  int bpm = 145;
+  void showBlurBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor:
+          Colors.transparent, // Faz o fundo do Bottom Sheet transparente
+      builder: (BuildContext context) {
+        return ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+          child: BackdropFilter(
+            filter:
+                ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Aplica o desfoque
+            child: Container(
+              color:
+                  Colors.black.withOpacity(1), // Fundo branco semi-transparente
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Metronome Controls',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            if (bpm > 1)
+                              bpm--; // Decrementa o BPM com limite inferior
+                          });
+                        },
+                        child: Text(
+                          '- Diminuir',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      Text(
+                        '$bpm BPM',
+                        style: TextStyle(fontSize: 20, color: Colors.white),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            bpm++; // Incrementa o BPM
+                          });
+                        },
+                        child: Text('+ Aumentar'),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Ação do botão Play
+                      Navigator.pop(context); // Fecha o Bottom Sheet
+                      print('Metrônomo iniciado em $bpm BPM');
+                    },
+                    child: Text('Play'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<Map<String, dynamic>> _getCultoData(String cultoId) async {
@@ -278,6 +354,16 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                       ),
                                     ),
                                   ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      showBlurBottomSheet(context);
+                                    },
+                                    child: Text(
+                                      'BPM: ${musica['bpm'] ?? ''}',
+                                      style: TextStyle(
+                                          color: Colors.black, fontSize: 10),
+                                    ),
+                                  ),
                                   Row(
                                     children: [
                                       GestureDetector(
@@ -335,7 +421,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                           },
                                           child: Icon(Icons.music_video)),
                                       SizedBox(
-                                        width: 24,
+                                        width: 16,
                                       ),
                                       GestureDetector(
                                         onTap: () {
@@ -359,7 +445,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                         ),
                                       ),
                                       SizedBox(
-                                        width: 24,
+                                        width: 16,
                                       ),
                                       GestureDetector(
                                         onTap: () {
@@ -447,48 +533,173 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                       textStyle:
                                           TextStyle(color: Colors.black)),
                                 ),
-                                if (item['Instrument'] == "Guitarra")
+                                if (item['Instrument'] == "Piano")
                                   Container(
                                     decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius:
-                                            BorderRadius.circular(25)),
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
                                         ' ${item['Instrument'] ?? 'Desconhecido'}',
                                         style: TextStyle(
-                                            color: Colors.white, fontSize: 12),
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (item['Instrument'] == "Guitarra")
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 if (item['Instrument'] == "Bateria")
                                   Container(
                                     decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius:
-                                            BorderRadius.circular(25)),
+                                      color: Colors.red,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
                                         ' ${item['Instrument'] ?? 'Desconhecido'}',
                                         style: TextStyle(
-                                            color: Colors.white, fontSize: 12),
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                if (item['Instrument'] == "Piano")
+                                if (item['Instrument'] == "Violão")
                                   Container(
                                     decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius:
-                                            BorderRadius.circular(25)),
+                                      color: Colors.brown,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
                                         ' ${item['Instrument'] ?? 'Desconhecido'}',
                                         style: TextStyle(
-                                            color: Colors.white, fontSize: 12),
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (item['Instrument'] == "Baixo")
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (item['Instrument'] == "MD")
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.purple,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (item['Instrument'] == "Ministro")
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (item['Instrument'] == "BV 1")
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.cyan,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (item['Instrument'] == "BV 2")
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (item['Instrument'] == "BV 3")
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.teal,
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ),
                                   ),

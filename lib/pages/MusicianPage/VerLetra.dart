@@ -199,25 +199,31 @@ class _VerCifraUserState extends State<Verletra> {
             final letra = songDetails['letra']?.replaceAll('\\n', '\n') ??
                 'Letra não disponível';
 
-            return GestureDetector(
-              onVerticalDragCancel: () {
-                print(" Is Auto Scroll, ao Clicar: $_isAutoScrollEnabled");
-                if (_isAutoScrollEnabled == true) {
-                  HandleTab();
-                }
-              },
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                child: Padding(
-                  padding: const EdgeInsets.all(30.0),
-                  child: Text(
-                    letra,
-                    style: TextStyle(fontSize: 16, color: Colors.black),
-                    textAlign: TextAlign.left,
+            if (letra != "Letra não disponível") {
+              return GestureDetector(
+                onVerticalDragCancel: () {
+                  print(" Is Auto Scroll, ao Clicar: $_isAutoScrollEnabled");
+                  if (_isAutoScrollEnabled == true) {
+                    HandleTab();
+                  }
+                },
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Padding(
+                    padding: const EdgeInsets.all(30.0),
+                    child: Text(
+                      letra,
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      textAlign: TextAlign.left,
+                    ),
                   ),
                 ),
-              ),
-            );
+              );
+            } else {
+              return Center(
+                child: Text("Letra não disponível"),
+              );
+            }
           }
         },
       ),
