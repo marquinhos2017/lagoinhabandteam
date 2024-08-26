@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lagoinha_music/pages/MusicianPage/VerCifraUser.dart';
+import 'package:lagoinha_music/pages/MusicianPage/VerLetra.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -353,6 +354,28 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                         },
                                         child: Icon(
                                           Icons.library_music_rounded,
+                                          color: Colors.black,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 24,
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => Verletra(
+                                                documentId:
+                                                    musica['document_id'],
+                                                isAdmin: false,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Icon(
+                                          Icons.lyrics,
                                           color: Colors.black,
                                           size: 24,
                                         ),

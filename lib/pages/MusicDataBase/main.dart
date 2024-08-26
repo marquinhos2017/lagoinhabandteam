@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lagoinha_music/pages/AddLetraPage.dart';
 import 'package:lagoinha_music/pages/AddSongPage.dart';
+import 'package:lagoinha_music/pages/MusicianPage/VerLetra.dart';
 import 'package:lagoinha_music/pages/VerCifra.dart';
 
 class MainMusicDataBase extends StatefulWidget {
@@ -19,6 +21,25 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
         .where('SongId', isEqualTo: documentId)
         .get();
     return querySnapshot.docs.isNotEmpty;
+  }
+
+  Future<bool> _checkIfLetraExists(String documentId) async {
+    try {
+      // Obter o documento usando o documentId
+      final docSnapshot =
+          await _firestore.collection('music_database').doc(documentId).get();
+
+      // Verificar se o documento existe e se o campo 'letra' não está vazio
+      if (docSnapshot.exists &&
+          docSnapshot.data()!.containsKey('letra') &&
+          docSnapshot['letra'].isNotEmpty) {
+        return true;
+      }
+    } catch (e) {
+      print("Erro ao verificar se a letra existe: $e");
+    }
+
+    return false;
   }
 
   @override
@@ -89,6 +110,8 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                 onPressed: () async {
                                   bool chordExists =
                                       await _checkIfChordExists(document.id);
+                                  bool letraExists =
+                                      await _checkIfLetraExists(document.id);
                                   showModalBottomSheet(
                                     context: context,
                                     builder: (BuildContext context) {
@@ -130,6 +153,45 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                                         title: data['Music'],
                                                         document_id:
                                                             document.id,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            if (!letraExists)
+                                              ListTile(
+                                                leading: Icon(Icons.add),
+                                                title: Text('Adicionar Letra'),
+                                                onTap: () {
+                                                  print(document.id);
+                                                  Navigator.pop(context);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          AddLetraPage(
+                                                        title: data['Music'],
+                                                        document_id:
+                                                            document.id,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            else
+                                              ListTile(
+                                                leading: Icon(Icons.add),
+                                                title: Text('Ver Letra'),
+                                                onTap: () {
+                                                  print(document.id);
+                                                  Navigator.pop(context);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          Verletra(
+                                                        isAdmin: false,
+                                                        documentId: document.id,
                                                       ),
                                                     ),
                                                   );
