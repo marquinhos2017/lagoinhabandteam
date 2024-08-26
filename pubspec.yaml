@@ -42,6 +42,11 @@ dependencies:
   url_launcher: ^6.3.0
   google_fonts: ^6.2.1
 
+  pitch_detector_dart: ^0.0.2
+  pitchupdart: ^0.0.2
+  flutter_audio_capture: ^1.1.4
+  permission_handler: ^10.1.0
+
 
 dev_dependencies:
   flutter_test:

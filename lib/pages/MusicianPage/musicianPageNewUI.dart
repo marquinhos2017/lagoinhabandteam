@@ -1,9 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/pages/MusicianPage/ScheduleDetailsMusician.dart';
+import 'package:lagoinha_music/pages/MusicianPage/afinador.dart';
 import 'package:lagoinha_music/pages/login.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_audio_capture/flutter_audio_capture.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:pitch_detector_dart/pitch_detector.dart';
+import 'package:pitchupdart/instrument_type.dart';
+import 'package:pitchupdart/pitch_handler.dart';
 
 class BoolStringPair {
   bool booleanValue;
@@ -402,6 +410,21 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                   // Ação para Opção 1
 
                                                   Navigator.pop(context);
+                                                },
+                                              ),
+                                              ListTile(
+                                                leading: Icon(Icons.abc),
+                                                title: Text('Afinador'),
+                                                onTap: () {
+                                                  // Ação para Opção 1
+
+                                                  Navigator.pop(context);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            Afinador()),
+                                                  );
                                                 },
                                               ),
                                               ListTile(
@@ -1427,7 +1450,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
               ),
             ],
           ),
-          /*Align(
+          Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -1436,7 +1459,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                 onTap: onNavBarTapped,
               ),
             ),
-          ),*/
+          ),
         ],
       ),
       floatingActionButton: Visibility(
