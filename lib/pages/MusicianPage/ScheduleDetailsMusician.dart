@@ -16,8 +16,11 @@ class AudioPlayerBottomSheet extends StatefulWidget {
   final String music;
   final String author;
 
-  AudioPlayerBottomSheet(
-      {required this.audioUrl, required this.music, required this.author});
+  AudioPlayerBottomSheet({
+    required this.audioUrl,
+    required this.music,
+    required this.author,
+  });
 
   @override
   _AudioPlayerBottomSheetState createState() => _AudioPlayerBottomSheetState();
@@ -81,6 +84,21 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
     }
   }
 
+  void seekAudio(Duration newPosition) async {
+    try {
+      await audioPlayer.seek(newPosition);
+    } catch (e) {
+      print('Error seeking audio: $e');
+    }
+  }
+
+  void _onSeekBarTap(TapDownDetails details, BoxConstraints constraints) {
+    final double relativeX = details.localPosition.dx;
+    final double width = constraints.maxWidth;
+    final double newPosition = (relativeX / width) * duration.inSeconds;
+    seekAudio(Duration(seconds: newPosition.toInt()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -89,13 +107,30 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           height: 400,
-          color: Colors.black.withOpacity(0.8),
+          color: Colors.black.withOpacity(0.5),
           padding: EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Text(
+                widget.music,
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+              Text(
+                widget.author,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.white),
+              ),
+              SizedBox(
+                height: 45,
+              ),
               Container(
                 decoration: BoxDecoration(color: Colors.white),
                 height: 12,
@@ -106,6 +141,43 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
                   backgroundColor: Colors.grey[600],
                   color: Colors.white,
                 ),
+              ),
+              SizedBox(height: 5),
+              // Custom seek bar using GestureDetector and Container
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return GestureDetector(
+                    onTapDown: (details) => _onSeekBarTap(details, constraints),
+                    onHorizontalDragUpdate: (details) =>
+                        _onSeekBarTap(details as TapDownDetails, constraints),
+                    child: Container(
+                      height: 10,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[600],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: FractionallySizedBox(
+                              widthFactor: duration.inSeconds > 0
+                                  ? position.inSeconds / duration.inSeconds
+                                  : 0.0,
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
               SizedBox(height: 5),
               Row(
@@ -128,20 +200,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
                 ],
               ),
               SizedBox(height: 5),
-              Text(
-                widget.music,
-                style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              Text(
-                widget.author,
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.white),
-              ),
+
               SizedBox(height: 33),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -192,6 +251,8 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
 void showPlayerBlurBottomSheet(
     BuildContext context, String audioUrl, String musica, String Author) {
   showModalBottomSheet(
+    showDragHandle: true,
+    useSafeArea: true,
     context: context,
     backgroundColor: Colors.transparent,
     builder: (BuildContext context) {
@@ -619,7 +680,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                             children: [
                               Text("1"),
                               SizedBox(
-                                width: 24,
+                                width: 12,
                               ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Verletra extends StatefulWidget {
   final String documentId;
@@ -212,9 +213,11 @@ class _VerCifraUserState extends State<Verletra> {
                   child: Padding(
                     padding: const EdgeInsets.all(30.0),
                     child: Text(
-                      letra,
-                      style: TextStyle(fontSize: 16, color: Colors.black),
                       textAlign: TextAlign.left,
+                      letra,
+                      style: GoogleFonts.montserrat(
+                          textStyle:
+                              TextStyle(color: Colors.black, fontSize: 16)),
                     ),
                   ),
                 ),

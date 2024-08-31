@@ -1002,7 +1002,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                             musicData['bpm'] =
                                                 musicData.containsKey('bpm')
                                                     ? musicData['bpm']
-                                                    : ' Desconhecido';
+                                                    : ' Unkown';
 
                                             musicData['link_audio'] = musicData
                                                     .containsKey('link_audio')
