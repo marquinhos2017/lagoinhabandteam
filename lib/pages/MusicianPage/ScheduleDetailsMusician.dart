@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -9,6 +10,385 @@ import 'package:lagoinha_music/pages/MusicianPage/VerLetra.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart'; // Pacote para reproduzir som (adicionar no pubspec.yaml)
+
+class AudioPlayerBottomSheet extends StatefulWidget {
+  final String audioUrl;
+  final String music;
+  final String author;
+
+  AudioPlayerBottomSheet(
+      {required this.audioUrl, required this.music, required this.author});
+
+  @override
+  _AudioPlayerBottomSheetState createState() => _AudioPlayerBottomSheetState();
+}
+
+class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
+  late AudioPlayer audioPlayer;
+  bool isPlaying = false;
+  Duration duration = Duration.zero;
+  Duration position = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    audioPlayer = AudioPlayer();
+
+    audioPlayer.onDurationChanged.listen((Duration newDuration) {
+      setState(() {
+        duration = newDuration;
+      });
+    });
+
+    audioPlayer.onPositionChanged.listen((Duration newPosition) {
+      setState(() {
+        position = newPosition;
+      });
+    });
+
+    audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
+      setState(() {
+        isPlaying = state == PlayerState.playing;
+      });
+    });
+
+    playAudio();
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
+  }
+
+  void playAudio() async {
+    try {
+      if (isPlaying) {
+        await audioPlayer.pause();
+      } else {
+        await audioPlayer.play(UrlSource(widget.audioUrl));
+      }
+    } catch (e) {
+      print('Error playing audio: $e');
+    }
+  }
+
+  void stopAudio() async {
+    try {
+      await audioPlayer.stop();
+    } catch (e) {
+      print('Error stopping audio: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          height: 400,
+          color: Colors.black.withOpacity(0.8),
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(color: Colors.white),
+                height: 12,
+                child: LinearProgressIndicator(
+                  value: duration.inSeconds > 0
+                      ? position.inSeconds / duration.inSeconds
+                      : 0.0,
+                  backgroundColor: Colors.grey[600],
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${position.inMinutes}:${(position.inSeconds % 60).toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.white),
+                  ),
+                  Text(
+                    '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.white),
+                  ),
+                ],
+              ),
+              SizedBox(height: 5),
+              Text(
+                widget.music,
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+              Text(
+                widget.author,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.white),
+              ),
+              SizedBox(height: 33),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      // Function to rewind or change BPM
+                    },
+                    child: Icon(
+                      Icons.skip_previous,
+                      color: Colors.white,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: playAudio,
+                    child: Icon(
+                      isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      // Function to fast forward or change BPM
+                    },
+                    child: Icon(
+                      Icons.skip_next,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  stopAudio(); // Stop the audio
+                  Navigator.pop(context); // Close the Bottom Sheet
+                },
+                child: Text('Stop'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void showPlayerBlurBottomSheet(
+    BuildContext context, String audioUrl, String musica, String Author) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (BuildContext context) {
+      return AudioPlayerBottomSheet(
+        audioUrl: audioUrl,
+        music: musica,
+        author: Author,
+      );
+    },
+  );
+}
+
+class BPMBottomSheet extends StatefulWidget {
+  int bpm;
+
+  BPMBottomSheet({required this.bpm});
+
+  @override
+  _BPMBottomSheetState createState() => _BPMBottomSheetState();
+}
+
+class _BPMBottomSheetState extends State<BPMBottomSheet> {
+  late AudioPlayer audioPlayer;
+  bool isPlaying = false;
+  Duration duration = Duration.zero;
+  Duration position = Duration.zero;
+
+  Timer? _timer;
+  int _bpm = 0; // Inicialize sem um valor padrão aqui
+  AudioPlayer _audioPlayer = AudioPlayer();
+  Function()? onTick;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicialize o BPM a partir do valor passado pelo widget
+    _bpm = widget.bpm;
+
+    audioPlayer = AudioPlayer();
+
+    audioPlayer.onDurationChanged.listen((Duration newDuration) {
+      setState(() {
+        duration = newDuration;
+      });
+    });
+
+    audioPlayer.onPositionChanged.listen((Duration newPosition) {
+      setState(() {
+        position = newPosition;
+      });
+    });
+
+    audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
+      setState(() {
+        isPlaying = state == PlayerState.playing;
+      });
+    });
+  }
+
+  void start(int bpm) {
+    print("Selecionado: " + bpm.toString());
+    _bpm = bpm;
+    final interval = Duration(milliseconds: (60000 / bpm).toInt());
+
+    _timer?.cancel(); // Cancela qualquer temporizador existente
+    _timer = Timer.periodic(interval, (timer) async {
+      if (onTick != null) onTick!();
+      await _playClickSound(); // Toca o som do metrônomo
+      print("tocando");
+      print("Intervalo " + interval.inMilliseconds.toString());
+    });
+  }
+
+  void stop() {
+    _timer?.cancel();
+  }
+
+  void setBpm(int bpm) {
+    _bpm = bpm;
+    start(_bpm); // Restart the timer with the new BPM
+  }
+
+  Future<void> _playClickSound() async {
+    try {
+      await _audioPlayer.stop(); // Para o som atual antes de tocar novamente
+      await _audioPlayer
+          .play(AssetSource('click.mp3')); // Reinicia o som do início
+    } catch (e) {
+      print('Error playing click sound: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    _timer
+        ?.cancel(); // Certifique-se de parar o timer quando o widget for destruído
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print('BPM atual: $_bpm');
+    return ClipRRect(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Apply blur
+        child: Container(
+          color: Colors.black.withOpacity(0.8), // Semi-transparent background
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Metronomo',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if (_bpm > 1) {
+                        setState(() {
+                          _bpm--; // Decrement BPM with lower limit
+                          setBpm(_bpm);
+                        });
+                      }
+                    },
+                    child: Text(
+                      '- Decrease',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  Text(
+                    '$_bpm BPM',
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _bpm++; // Increment BPM
+                        setBpm(_bpm);
+                      });
+                    },
+                    child: Text(
+                      '+ Increase',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              GestureDetector(
+                onTap: () {
+                  if (_timer == null || !_timer!.isActive) {
+                    start(_bpm); // Start metronome
+                    print('Metronome started at $_bpm BPM');
+                  } else {
+                    stop(); // Stop metronome
+                    print('Metronome stopped');
+                  }
+                },
+                child: Text('Play/Pause'),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  stop(); // Stop the metronome
+                  Navigator.pop(context); // Close the Bottom Sheet
+                },
+                child: Text('Stop'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void openMetronome(BuildContext context, int bpm) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (BuildContext context) {
+      return BPMBottomSheet(
+        bpm: bpm,
+      );
+    },
+  );
+}
 
 extension StringCasingExtension on String {
   String toCapitalized() =>
@@ -143,78 +523,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   }
 
   int bpm = 145;
-  void showBlurBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor:
-          Colors.transparent, // Faz o fundo do Bottom Sheet transparente
-      builder: (BuildContext context) {
-        return ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-          child: BackdropFilter(
-            filter:
-                ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Aplica o desfoque
-            child: Container(
-              color:
-                  Colors.black.withOpacity(1), // Fundo branco semi-transparente
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Metronome Controls',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            if (bpm > 1)
-                              bpm--; // Decrementa o BPM com limite inferior
-                          });
-                        },
-                        child: Text(
-                          '- Diminuir',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      Text(
-                        '$bpm BPM',
-                        style: TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            bpm++; // Incrementa o BPM
-                          });
-                        },
-                        child: Text('+ Aumentar'),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Ação do botão Play
-                      Navigator.pop(context); // Fecha o Bottom Sheet
-                      print('Metrônomo iniciado em $bpm BPM');
-                    },
-                    child: Text('Play'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   Future<Map<String, dynamic>> _getCultoData(String cultoId) async {
     try {
@@ -356,7 +664,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      showBlurBottomSheet(context);
+                                      openMetronome(
+                                          context, int.parse(musica['bpm']));
                                     },
                                     child: Text(
                                       'BPM: ${musica['bpm'] ?? ''}',
@@ -421,7 +730,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                           },
                                           child: Icon(Icons.music_video)),
                                       SizedBox(
-                                        width: 16,
+                                        width: 12,
                                       ),
                                       GestureDetector(
                                         onTap: () {
@@ -445,7 +754,21 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                         ),
                                       ),
                                       SizedBox(
-                                        width: 16,
+                                        width: 12,
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          showPlayerBlurBottomSheet(
+                                              context,
+                                              musica['link_audio'].toString(),
+                                              musica['Music'],
+                                              musica['Author']);
+                                        },
+                                        child: Icon(
+                                          Icons.play_circle,
+                                          color: Colors.black,
+                                          size: 24,
+                                        ),
                                       ),
                                       GestureDetector(
                                         onTap: () {

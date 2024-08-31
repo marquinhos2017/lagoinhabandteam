@@ -1004,6 +1004,11 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                     ? musicData['bpm']
                                                     : ' Desconhecido';
 
+                                            musicData['link_audio'] = musicData
+                                                    .containsKey('link_audio')
+                                                ? musicData['link_audio']
+                                                : ' Desconhecido';
+
                                             // Encontra o item correspondente no playlist para adicionar a key e link
                                             var song = playlist.firstWhere(
                                               (song) =>
@@ -1022,6 +1027,11 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                   'Link não disponível'; // Adiciona o campo link
                                               musicData['bpm'] = musicData[
                                                       'bpm'] ??
+                                                  'Link não disponível'; // Adiciona o campo link
+
+                                              musicData[
+                                                  'link_audio'] = musicData[
+                                                      'link_audio'] ??
                                                   'Link não disponível'; // Adiciona o campo link
                                             } else {
                                               // Caso não encontre a música no playlist, define valores padrão para key e link
