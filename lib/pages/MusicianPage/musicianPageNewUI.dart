@@ -1004,6 +1004,12 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                     ? musicData['bpm']
                                                     : ' Unkown';
 
+                                            // Adiciona o campo 'bpm' se estiver disponível no documento
+                                            musicData['letra'] =
+                                                musicData.containsKey('letra')
+                                                    ? musicData['letra']
+                                                    : ' Unkown';
+
                                             musicData['link_audio'] = musicData
                                                     .containsKey('link_audio')
                                                 ? musicData['link_audio']
@@ -1028,6 +1034,10 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                               musicData['bpm'] = musicData[
                                                       'bpm'] ??
                                                   'Link não disponível'; // Adiciona o campo link
+
+                                              musicData['letra'] = musicData[
+                                                      'letra'] ??
+                                                  'letra não disponível'; // Adiciona o campo link
 
                                               musicData[
                                                   'link_audio'] = musicData[

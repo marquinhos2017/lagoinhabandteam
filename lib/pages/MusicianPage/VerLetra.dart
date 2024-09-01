@@ -17,15 +17,15 @@ class Verletra extends StatefulWidget {
 class _VerCifraUserState extends State<Verletra> {
   final ScrollController _scrollController = ScrollController();
   Timer? _scrollTimer;
-  Timer? _userScrollTimer; // Timer to handle user inactivity
-  bool _isAutoScrollEnabled = false; // Controle de rolagem automática
-  final Duration _scrollDuration =
-      Duration(seconds: 120); // Tempo fixo para rolar do início ao fim
-  final Duration _minScrollDuration = Duration(
-      milliseconds: 500); // Duração mínima para evitar animações inválidas
-  final Duration _userInactivityDuration =
-      Duration(seconds: 3); // Tempo de inatividade do usuário
+  Timer? _userScrollTimer;
+  bool _isAutoScrollEnabled = false;
+  bool _isDarkMode = false; // Variable to control dark mode
+  final Duration _scrollDuration = Duration(seconds: 120);
+  final Duration _minScrollDuration = Duration(milliseconds: 500);
+  final Duration _userInactivityDuration = Duration(seconds: 3);
   late Future<Map<String, dynamic>?> _songDetailsFuture;
+
+  double _fontSize = 16.0;
 
   @override
   void initState() {
@@ -35,12 +35,10 @@ class _VerCifraUserState extends State<Verletra> {
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection !=
           ScrollDirection.idle) {
-        // Se o usuário estiver rolando manualmente, cancelar a rolagem automática e iniciar o temporizador de inatividade
         _scrollTimer?.cancel();
         _userScrollTimer?.cancel();
         _isAutoScrollEnabled = false;
       } else if (_isAutoScrollEnabled) {
-        // Reiniciar o temporizador de rolagem automática se estiver habilitado
         _startAutoScrollTimer();
       }
     });
@@ -56,17 +54,16 @@ class _VerCifraUserState extends State<Verletra> {
 
   void HandleTab() {
     setState(() {
-      _isAutoScrollEnabled = false; // Desativar rolagem automática
+      _isAutoScrollEnabled = false;
     });
-    _scrollTimer?.cancel(); // Cancelar temporizador existente
+    _scrollTimer?.cancel();
 
-    // Iniciar um temporizador para reativar a rolagem automática após 3 segundos
     Timer(Duration(milliseconds: 3000), () {
       if (mounted) {
         setState(() {
           _isAutoScrollEnabled = true;
         });
-        _scrollToBottom(); // Continuar a rolagem automática a partir da posição atual
+        _scrollToBottom();
       }
     });
   }
@@ -105,7 +102,6 @@ class _VerCifraUserState extends State<Verletra> {
             duration: Duration(seconds: 1),
           ),
         );
-        // Parar a rolagem instantaneamente
         _scrollController.jumpTo(_scrollController.offset);
       }
     });
@@ -122,9 +118,7 @@ class _VerCifraUserState extends State<Verletra> {
       final scrollDuration = (calculatedDuration.inMilliseconds <
               _minScrollDuration.inMilliseconds)
           ? _minScrollDuration
-          : Duration(
-              milliseconds: calculatedDuration
-                  .inMilliseconds); // Garantir que a duração não seja menor que o mínimo
+          : Duration(milliseconds: calculatedDuration.inMilliseconds);
 
       _scrollController.animateTo(
         maxScrollExtent,
@@ -153,25 +147,47 @@ class _VerCifraUserState extends State<Verletra> {
     });
   }
 
+  void _increaseFontSize() {
+    setState(() {
+      _fontSize += 2.0;
+    });
+  }
+
+  void _decreaseFontSize() {
+    setState(() {
+      if (_fontSize > 10) _fontSize -= 2.0;
+    });
+  }
+
+  void _toggleDarkMode(bool value) {
+    setState(() {
+      _isDarkMode = value;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _isDarkMode ? Colors.black : Colors.white,
       appBar: AppBar(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
+        foregroundColor: _isDarkMode ? Colors.white : Colors.white,
+        backgroundColor: _isDarkMode ? Colors.grey[900] : Colors.black,
         title: FutureBuilder<Map<String, dynamic>?>(
           future: _songDetailsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Text('Carregando...',
-                  style: TextStyle(color: Colors.white));
+                  style: TextStyle(
+                      color: _isDarkMode ? Colors.white : Colors.white));
             } else if (snapshot.hasError || !snapshot.hasData) {
-              return Text('Erro', style: TextStyle(color: Colors.white));
+              return Text('Erro',
+                  style: TextStyle(
+                      color: _isDarkMode ? Colors.white : Colors.black));
             } else {
               final songTitle = snapshot.data!['Music'] ?? 'Sem título';
               return Text("Lyrics: " + songTitle,
-                  style: TextStyle(color: Colors.white));
+                  style: TextStyle(
+                      color: _isDarkMode ? Colors.white : Colors.white));
             }
           },
         ),
@@ -179,6 +195,14 @@ class _VerCifraUserState extends State<Verletra> {
           IconButton(
             icon: Icon(_isAutoScrollEnabled ? Icons.stop : Icons.play_arrow),
             onPressed: _toggleAutoScroll,
+          ),
+          Switch(
+            value: _isDarkMode,
+            onChanged: _toggleDarkMode,
+            activeColor: Colors.white,
+            inactiveThumbColor: Colors.white,
+            inactiveTrackColor: Colors.grey,
+            activeTrackColor: Colors.black,
           ),
         ],
       ),
@@ -190,11 +214,13 @@ class _VerCifraUserState extends State<Verletra> {
           } else if (snapshot.hasError) {
             return Center(
                 child: Text('Erro ao carregar conteúdo',
-                    style: TextStyle(color: Colors.black)));
+                    style: TextStyle(
+                        color: _isDarkMode ? Colors.white : Colors.black)));
           } else if (!snapshot.hasData || snapshot.data == null) {
             return Center(
                 child: Text('Música não encontrada',
-                    style: TextStyle(color: Colors.black)));
+                    style: TextStyle(
+                        color: _isDarkMode ? Colors.white : Colors.black)));
           } else {
             final songDetails = snapshot.data!;
             final letra = songDetails['letra']?.replaceAll('\\n', '\n') ??
@@ -203,7 +229,6 @@ class _VerCifraUserState extends State<Verletra> {
             if (letra != "Letra não disponível") {
               return GestureDetector(
                 onVerticalDragCancel: () {
-                  print(" Is Auto Scroll, ao Clicar: $_isAutoScrollEnabled");
                   if (_isAutoScrollEnabled == true) {
                     HandleTab();
                   }
@@ -216,19 +241,40 @@ class _VerCifraUserState extends State<Verletra> {
                       textAlign: TextAlign.left,
                       letra,
                       style: GoogleFonts.montserrat(
-                          textStyle:
-                              TextStyle(color: Colors.black, fontSize: 16)),
+                          textStyle: TextStyle(
+                              color: _isDarkMode ? Colors.white : Colors.black,
+                              fontSize: _fontSize)),
                     ),
                   ),
                 ),
               );
             } else {
               return Center(
-                child: Text("Letra não disponível"),
+                child: Text("Letra não disponível",
+                    style: TextStyle(
+                        color: _isDarkMode ? Colors.white : Colors.black)),
               );
             }
           }
         },
+      ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: _increaseFontSize,
+            backgroundColor: _isDarkMode ? Colors.white : Colors.black,
+            child: Icon(Icons.add,
+                color: _isDarkMode ? Colors.black : Colors.white),
+          ),
+          SizedBox(height: 12),
+          FloatingActionButton(
+            onPressed: _decreaseFontSize,
+            backgroundColor: _isDarkMode ? Colors.white : Colors.black,
+            child: Icon(Icons.remove,
+                color: _isDarkMode ? Colors.black : Colors.white),
+          ),
+        ],
       ),
     );
   }

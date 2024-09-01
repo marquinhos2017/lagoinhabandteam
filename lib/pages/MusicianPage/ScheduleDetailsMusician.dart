@@ -15,52 +15,77 @@ class AudioPlayerBottomSheet extends StatefulWidget {
   final String audioUrl;
   final String music;
   final String author;
+  final String lyrics;
 
   AudioPlayerBottomSheet({
     required this.audioUrl,
     required this.music,
     required this.author,
+    required this.lyrics,
   });
 
   @override
   _AudioPlayerBottomSheetState createState() => _AudioPlayerBottomSheetState();
 }
 
-class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
+class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
+    with SingleTickerProviderStateMixin {
   late AudioPlayer audioPlayer;
   bool isPlaying = false;
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
+  late TabController _tabController;
+  bool showTimeline = false; // New state to control timeline visibility
+  double playbackSpeed = 1.0; // Variable to track playback speed
 
   @override
   void initState() {
     super.initState();
     audioPlayer = AudioPlayer();
+    _tabController = TabController(length: 2, vsync: this);
 
     audioPlayer.onDurationChanged.listen((Duration newDuration) {
-      setState(() {
-        duration = newDuration;
-      });
+      if (mounted) {
+        setState(() {
+          duration = newDuration;
+        });
+      }
     });
 
     audioPlayer.onPositionChanged.listen((Duration newPosition) {
-      setState(() {
-        position = newPosition;
-      });
+      if (mounted) {
+        setState(() {
+          position = newPosition;
+        });
+      }
     });
 
     audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
-      setState(() {
-        isPlaying = state == PlayerState.playing;
-      });
+      if (mounted) {
+        setState(() {
+          isPlaying = state == PlayerState.playing;
+        });
+      }
     });
 
     playAudio();
+
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        if (mounted) {
+          setState(() {
+            showTimeline =
+                _tabController.index == 1; // Show timeline only on Lyrics tab
+          });
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
     audioPlayer.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -70,6 +95,8 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
         await audioPlayer.pause();
       } else {
         await audioPlayer.play(UrlSource(widget.audioUrl));
+        await audioPlayer
+            .setPlaybackRate(playbackSpeed); // Set initial playback speed
       }
     } catch (e) {
       print('Error playing audio: $e');
@@ -99,6 +126,34 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
     seekAudio(Duration(seconds: newPosition.toInt()));
   }
 
+  // Function to increase playback speed
+  void increasePlaybackSpeed() {
+    setState(() {
+      if (playbackSpeed < 2.0) {
+        playbackSpeed += 0.25;
+        audioPlayer.setPlaybackRate(playbackSpeed);
+      }
+    });
+  }
+
+  // Function to decrease playback speed
+  void decreasePlaybackSpeed() {
+    setState(() {
+      if (playbackSpeed > 0.5) {
+        playbackSpeed -= 0.25;
+        audioPlayer.setPlaybackRate(playbackSpeed);
+      }
+    });
+  }
+
+  // Function to reset playback speed to normal
+  void resetPlaybackSpeed() {
+    setState(() {
+      playbackSpeed = 1.0;
+      audioPlayer.setPlaybackRate(playbackSpeed);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -106,139 +161,263 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          height: 400,
           color: Colors.black.withOpacity(0.5),
-          padding: EdgeInsets.all(16.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                widget.music,
-                style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
+              TabBar(
+                controller: _tabController,
+                tabs: [
+                  Tab(text: 'Player'),
+                  Tab(text: 'Lyrics'),
+                ],
+                indicatorColor: Colors.white,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.grey[400],
               ),
-              Text(
-                widget.author,
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.white),
-              ),
-              SizedBox(
-                height: 45,
-              ),
-              Container(
-                decoration: BoxDecoration(color: Colors.white),
-                height: 12,
-                child: LinearProgressIndicator(
-                  value: duration.inSeconds > 0
-                      ? position.inSeconds / duration.inSeconds
-                      : 0.0,
-                  backgroundColor: Colors.grey[600],
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 5),
-              // Custom seek bar using GestureDetector and Container
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return GestureDetector(
-                    onTapDown: (details) => _onSeekBarTap(details, constraints),
-                    onHorizontalDragUpdate: (details) =>
-                        _onSeekBarTap(details as TapDownDetails, constraints),
-                    child: Container(
-                      height: 10,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[600],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: FractionallySizedBox(
-                              widthFactor: duration.inSeconds > 0
-                                  ? position.inSeconds / duration.inSeconds
-                                  : 0.0,
-                              alignment: Alignment.centerLeft,
-                              child: Container(
-                                decoration: BoxDecoration(
+              Expanded(
+                child: Stack(
+                  children: [
+                    TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // Player Tab
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                widget.music,
+                                style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
+                              Text(
+                                widget.author,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.white),
+                              ),
+                              SizedBox(height: 45),
+                              Container(
+                                decoration: BoxDecoration(color: Colors.white),
+                                height: 12,
+                                child: LinearProgressIndicator(
+                                  value: duration.inSeconds > 0
+                                      ? position.inSeconds / duration.inSeconds
+                                      : 0.0,
+                                  backgroundColor: Colors.grey[600],
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                            ),
+                              SizedBox(height: 5),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return GestureDetector(
+                                    onTapDown: (details) =>
+                                        _onSeekBarTap(details, constraints),
+                                    onHorizontalDragUpdate: (details) =>
+                                        _onSeekBarTap(details as TapDownDetails,
+                                            constraints),
+                                    child: Container(
+                                      height: 10,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[600],
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Positioned.fill(
+                                            child: FractionallySizedBox(
+                                              widthFactor:
+                                                  duration.inSeconds > 0
+                                                      ? position.inSeconds /
+                                                          duration.inSeconds
+                                                      : 0.0,
+                                              alignment: Alignment.centerLeft,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              SizedBox(height: 5),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${position.inMinutes}:${(position.inSeconds % 60).toString().padLeft(2, '0')}',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.white),
+                                  ),
+                                  Text(
+                                    '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 5),
+                              SizedBox(height: 33),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      // Function to rewind or change BPM
+                                    },
+                                    child: Icon(
+                                      Icons.skip_previous,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: playAudio,
+                                    child: Icon(
+                                      isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      // Function to fast forward or change BPM
+                                    },
+                                    child: Icon(
+                                      Icons.skip_next,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 20),
+                              // Playback speed controls
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: decreasePlaybackSpeed,
+                                    child: Text('-0.25x'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: resetPlaybackSpeed,
+                                    child: Text('Normal'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: increasePlaybackSpeed,
+                                    child: Text('+0.25x'),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 20),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        // Lyrics Tab
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Stack(
+                            children: [
+                              SingleChildScrollView(
+                                child: Text(
+                                  widget.lyrics,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              if (showTimeline)
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: AnimatedOpacity(
+                                    opacity: showTimeline ? 1.0 : 0.0,
+                                    duration: Duration(milliseconds: 3000),
+                                    child: Container(
+                                      color: Colors.black.withOpacity(0.7),
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 8),
+                                      child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          return GestureDetector(
+                                            onTapDown: (details) =>
+                                                _onSeekBarTap(
+                                                    details, constraints),
+                                            onHorizontalDragUpdate: (details) =>
+                                                _onSeekBarTap(
+                                                    details as TapDownDetails,
+                                                    constraints),
+                                            child: Container(
+                                              height: 10,
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[600],
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: Stack(
+                                                children: [
+                                                  Positioned.fill(
+                                                    child: FractionallySizedBox(
+                                                      widthFactor: duration
+                                                                  .inSeconds >
+                                                              0
+                                                          ? position.inSeconds /
+                                                              duration.inSeconds
+                                                          : 0.0,
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
-              SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${position.inMinutes}:${(position.inSeconds % 60).toString().padLeft(2, '0')}',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.white),
-                  ),
-                  Text(
-                    '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.white),
-                  ),
-                ],
-              ),
-              SizedBox(height: 5),
-
-              SizedBox(height: 33),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      // Function to rewind or change BPM
-                    },
-                    child: Icon(
-                      Icons.skip_previous,
-                      color: Colors.white,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: playAudio,
-                    child: Icon(
-                      isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      // Function to fast forward or change BPM
-                    },
-                    child: Icon(
-                      Icons.skip_next,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  stopAudio(); // Stop the audio
-                  Navigator.pop(context); // Close the Bottom Sheet
-                },
-                child: Text('Stop'),
+                  ],
+                ),
               ),
             ],
           ),
@@ -248,18 +427,20 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet> {
   }
 }
 
-void showPlayerBlurBottomSheet(
-    BuildContext context, String audioUrl, String musica, String Author) {
+void showPlayerBlurBottomSheet(BuildContext context, String audioUrl,
+    String musica, String author, String lyrics) {
   showModalBottomSheet(
-    showDragHandle: true,
-    useSafeArea: true,
     context: context,
     backgroundColor: Colors.transparent,
     builder: (BuildContext context) {
-      return AudioPlayerBottomSheet(
-        audioUrl: audioUrl,
-        music: musica,
-        author: Author,
+      return Container(
+        height: 800, // Fixed height for the modal bottom sheet
+        child: AudioPlayerBottomSheet(
+          audioUrl: audioUrl,
+          music: musica,
+          author: author,
+          lyrics: lyrics,
+        ),
       );
     },
   );
@@ -274,7 +455,11 @@ class BPMBottomSheet extends StatefulWidget {
   _BPMBottomSheetState createState() => _BPMBottomSheetState();
 }
 
-class _BPMBottomSheetState extends State<BPMBottomSheet> {
+class _BPMBottomSheetState extends State<BPMBottomSheet>
+    with SingleTickerProviderStateMixin {
+  // Animation-related variables
+  late AnimationController _animationController;
+  late Animation<double> _animation;
   late AudioPlayer audioPlayer;
   bool isPlaying = false;
   Duration duration = Duration.zero;
@@ -291,6 +476,18 @@ class _BPMBottomSheetState extends State<BPMBottomSheet> {
 
     // Inicialize o BPM a partir do valor passado pelo widget
     _bpm = widget.bpm;
+
+    // Initialize the animation controller
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: (60000 / _bpm).toInt()),
+    );
+
+    // Define an animation that goes from 0 to 1
+    _animation = Tween<double>(begin: 0, end: 1).animate(_animationController)
+      ..addListener(() {
+        setState(() {}); // Rebuild the widget with the new animation value
+      });
 
     audioPlayer = AudioPlayer();
 
@@ -319,21 +516,32 @@ class _BPMBottomSheetState extends State<BPMBottomSheet> {
     final interval = Duration(milliseconds: (60000 / bpm).toInt());
 
     _timer?.cancel(); // Cancela qualquer temporizador existente
+
     _timer = Timer.periodic(interval, (timer) async {
+      if (mounted) return;
       if (onTick != null) onTick!();
       await _playClickSound(); // Toca o som do metrônomo
       print("tocando");
       print("Intervalo " + interval.inMilliseconds.toString());
     });
+
+    _animationController.repeat(reverse: true); // Start animation
   }
 
   void stop() {
     _timer?.cancel();
+    _animationController.stop(); // Stop the animation
   }
 
   void setBpm(int bpm) {
     _bpm = bpm;
     start(_bpm); // Restart the timer with the new BPM
+
+    // Update the animation duration based on the new BPM
+    _animationController.duration =
+        Duration(milliseconds: (60000 / _bpm).toInt());
+    _animationController.repeat(
+        reverse: true); // Repeat the animation back and forth
   }
 
   Future<void> _playClickSound() async {
@@ -351,7 +559,45 @@ class _BPMBottomSheetState extends State<BPMBottomSheet> {
     audioPlayer.dispose();
     _timer
         ?.cancel(); // Certifique-se de parar o timer quando o widget for destruído
+    _animationController.dispose(); // Dispose the animation controller
     super.dispose();
+  }
+
+// Helper method to build a static ball
+  Widget _buildStaticBall() {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
+// Helper method to build the moving ball
+  Widget _buildMovingBall() {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(
+              (MediaQuery.of(context).size.width / 3) *
+                  (_animation.value - 0.5) *
+                  2,
+              0), // Move left and right
+          child: child,
+        );
+      },
+      child: Container(
+        width: 20,
+        height: 20,
+        decoration: BoxDecoration(
+          color: Colors.red,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
   }
 
   @override
@@ -375,21 +621,29 @@ class _BPMBottomSheetState extends State<BPMBottomSheet> {
                     color: Colors.white),
               ),
               SizedBox(height: 20),
+              // Animation row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildStaticBall(), // Left static ball
+                  _buildMovingBall(), // Animated moving ball
+                  _buildStaticBall(), // Right static ball
+                ],
+              ),
+              SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   GestureDetector(
                     onTap: () {
-                      if (_bpm > 1) {
-                        setState(() {
-                          _bpm--; // Decrement BPM with lower limit
-                          setBpm(_bpm);
-                        });
-                      }
+                      setState(() {
+                        _bpm--; // Increment BPM
+                        setBpm(_bpm);
+                      });
                     },
-                    child: Text(
-                      '- Decrease',
-                      style: TextStyle(color: Colors.white),
+                    child: Icon(
+                      Icons.remove,
+                      color: Colors.white,
                     ),
                   ),
                   Text(
@@ -403,9 +657,9 @@ class _BPMBottomSheetState extends State<BPMBottomSheet> {
                         setBpm(_bpm);
                       });
                     },
-                    child: Text(
-                      '+ Increase',
-                      style: TextStyle(color: Colors.white),
+                    child: Icon(
+                      Icons.add,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -421,7 +675,10 @@ class _BPMBottomSheetState extends State<BPMBottomSheet> {
                     print('Metronome stopped');
                   }
                 },
-                child: Text('Play/Pause'),
+                child: Text(
+                  'Play/Pause',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
               SizedBox(height: 20),
               ElevatedButton(
@@ -429,7 +686,7 @@ class _BPMBottomSheetState extends State<BPMBottomSheet> {
                   stop(); // Stop the metronome
                   Navigator.pop(context); // Close the Bottom Sheet
                 },
-                child: Text('Stop'),
+                child: Text('Sair'),
               ),
             ],
           ),
@@ -823,7 +1080,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                               context,
                                               musica['link_audio'].toString(),
                                               musica['Music'],
-                                              musica['Author']);
+                                              musica['Author'],
+                                              musica['letra']);
                                         },
                                         child: Icon(
                                           Icons.play_circle,
