@@ -85,7 +85,8 @@ class _AddTimestampsPageState extends State<AddTimestampsPage> {
                 filled: true,
                 fillColor: Colors.white,
               ),
-              keyboardType: TextInputType.text,
+              keyboardType: TextInputType.multiline,
+              maxLines: null, // This allows for multi-line input
             ),
             SizedBox(height: 20),
             ElevatedButton(

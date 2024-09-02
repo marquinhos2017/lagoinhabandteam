@@ -212,6 +212,26 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                                   );
                                                 },
                                               ),
+                                            if (timestampsExist)
+                                              ListTile(
+                                                leading: Icon(Icons.add),
+                                                title: Text(
+                                                    'Adicionar Timestamps e Letras'),
+                                                onTap: () {
+                                                  Navigator.pop(context);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          AddTimestampsPage(
+                                                        title: data['Music'],
+                                                        document_id:
+                                                            document.id,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
                                             if (!timestampsExist)
                                               ListTile(
                                                 leading: Icon(Icons.add),

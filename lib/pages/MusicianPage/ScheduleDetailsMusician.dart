@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:lagoinha_music/pages/MusicianPage/VerCifraUser.dart';
 import 'package:lagoinha_music/pages/MusicianPage/VerLetra.dart';
@@ -32,6 +33,10 @@ class AudioPlayerBottomSheet extends StatefulWidget {
 
 class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
     with SingleTickerProviderStateMixin {
+  bool isUserScrolling = false; // Track if the user is scrolling manually
+  bool isAutoScrollEnabled = true; // New state to control auto-scrolling
+  late ScrollController _scrollController; // Add this line
+  bool isExpanded = false; // Estado de expansão
   late AudioPlayer audioPlayer;
   bool isPlaying = false;
   Duration duration = Duration.zero;
@@ -51,6 +56,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
     super.initState();
     audioPlayer = AudioPlayer();
     _tabController = TabController(length: 2, vsync: this);
+    _scrollController = ScrollController(); // Initialize the scroll controller
 
     fetchLyrics();
 
@@ -82,6 +88,23 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
       }
     });
 
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection !=
+          ScrollDirection.idle) {
+        setState(() {
+          isUserScrolling = true;
+        });
+      } else if (isUserScrolling) {
+        // Wait a bit before resetting to false to allow any slight manual scrolling to complete
+        Future.delayed(Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              isUserScrolling = false;
+            });
+          }
+        });
+      }
+    });
     playAudio();
 
     _tabController.addListener(() {
@@ -104,6 +127,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
     playerStateSubscription.cancel();
     durationSubscription.cancel();
     super.dispose();
+    _scrollController.dispose(); // Dispose of the scroll controller
   }
 
   void fetchLyrics() async {
@@ -174,9 +198,26 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
           setState(() {
             currentLyricIndex = i;
           });
+          // Scroll to keep the current lyric in view
+          _scrollToCurrentLyric();
         } else {
           break;
         }
+      }
+    }
+  }
+
+  void _scrollToCurrentLyric() {
+    if (_scrollController.hasClients && isAutoScrollEnabled) {
+      // Only scroll if auto-scrolling is enabled
+      if (currentLyricIndex < lyrics.length - 0) {
+        final offset =
+            currentLyricIndex * 60.0; // Adjust according to your needs
+        _scrollController.animateTo(
+          offset,
+          duration: Duration(milliseconds: 50),
+          curve: Curves.linear,
+        );
       }
     }
   }
@@ -216,7 +257,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          color: Colors.black.withOpacity(0.5),
+          color: Colors.black.withOpacity(0.7),
           child: Column(
             children: [
               TabBar(
@@ -235,7 +276,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                   children: [
                     // Player Tab
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(24.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -256,6 +297,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                                 color: Colors.white),
                           ),
                           SizedBox(height: 45),
+                          /*
                           Container(
                             decoration: BoxDecoration(color: Colors.white),
                             height: 12,
@@ -266,8 +308,47 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                               backgroundColor: Colors.grey[600],
                               color: Colors.white,
                             ),
-                          ),
+                          ),*/
                           SizedBox(height: 5),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: decreasePlaybackSpeed,
+                                child: Text(
+                                  '-0.25x',
+                                  style: TextStyle(
+                                      fontSize: 8, color: Colors.greenAccent),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              GestureDetector(
+                                onTap: resetPlaybackSpeed,
+                                child: Text(
+                                  'Normal',
+                                  style: TextStyle(
+                                      fontSize: 8, color: Colors.greenAccent),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              GestureDetector(
+                                onTap: increasePlaybackSpeed,
+                                child: Text(
+                                  '+0.25x',
+                                  style: TextStyle(
+                                      fontSize: 8, color: Colors.greenAccent),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 12,
+                          ),
+
                           LayoutBuilder(
                             builder: (context, constraints) {
                               return GestureDetector(
@@ -308,6 +389,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                             },
                           ),
                           SizedBox(height: 5),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -329,6 +411,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                           ),
                           SizedBox(height: 5),
                           SizedBox(height: 33),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -363,56 +446,171 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                           // Playback speed controls
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ElevatedButton(
-                                onPressed: decreasePlaybackSpeed,
-                                child: Text('-0.25x'),
-                              ),
-                              ElevatedButton(
-                                onPressed: resetPlaybackSpeed,
-                                child: Text('Normal'),
-                              ),
-                              ElevatedButton(
-                                onPressed: increasePlaybackSpeed,
-                                child: Text('+0.25x'),
-                              ),
-                            ],
+                            children: [],
                           ),
                           SizedBox(height: 20),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isExpanded = !isExpanded;
+                              });
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      isExpanded
+                                          ? Icons.keyboard_arrow_up
+                                          : Icons.keyboard_arrow_down,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      isExpanded
+                                          ? 'Ocultar Letra'
+                                          : 'Mostrar Letra',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                Visibility(
+                                  visible: isExpanded,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        isAutoScrollEnabled =
+                                            !isAutoScrollEnabled;
+                                      });
+                                    },
+                                    child: Text(
+                                      isAutoScrollEnabled
+                                          ? 'Disable Auto-Scroll'
+                                          : 'Enable Auto-Scroll',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          Visibility(
+                            visible: isExpanded,
+                            child: Flexible(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: lyrics.length,
+                                  itemBuilder: (context, index) {
+                                    final lyricData = lyrics[index];
+                                    final lyric = lyricData['lyric'] as String;
+                                    final isCurrent =
+                                        index == currentLyricIndex;
+
+                                    return AnimatedOpacity(
+                                      opacity: isCurrent ? 1.0 : 0.5,
+                                      duration: Duration(milliseconds: 300),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            lyric,
+                                            textAlign: TextAlign.left,
+                                            style: TextStyle(
+                                              fontSize: isCurrent ? 24 : 16,
+                                              color: isCurrent
+                                                  ? Colors.white
+                                                  : Colors.white
+                                                      .withOpacity(0.7),
+                                              fontWeight: isCurrent
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: isCurrent ? 40 : 20,
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          )
                         ],
                       ),
                     ),
+                    // Lyrics T
+                    // ab
+
                     // Lyrics Tab
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: ListView.builder(
-                        itemCount: lyrics.length,
-                        itemBuilder: (context, index) {
-                          final lyricData = lyrics[index];
-                          final timestamp = lyricData['timestamp'] as Duration;
-                          final lyric = lyricData['lyric'] as String;
+                      child: Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                isAutoScrollEnabled = !isAutoScrollEnabled;
+                              });
+                            },
+                            child: Text(isAutoScrollEnabled
+                                ? 'Disable Auto-Scroll'
+                                : 'Enable Auto-Scroll'),
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              itemCount: lyrics.length,
+                              itemBuilder: (context, index) {
+                                final lyricData = lyrics[index];
+                                final lyric = lyricData['lyric'] as String;
+                                final isCurrent = index == currentLyricIndex;
 
-                          final isCurrent = index == currentLyricIndex;
-
-                          return AnimatedContainer(
-                            duration: Duration(milliseconds: 300),
-                            margin: EdgeInsets.symmetric(vertical: 4),
-                            padding: EdgeInsets.symmetric(vertical: 4),
-                            color: isCurrent
-                                ? Colors.black.withOpacity(0.8)
-                                : Colors.transparent,
-                            child: Text(
-                              lyric,
-                              style: TextStyle(
-                                fontSize: isCurrent ? 20 : 14,
-                                color: isCurrent ? Colors.yellow : Colors.white,
-                                fontWeight: isCurrent
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
+                                return AnimatedOpacity(
+                                  opacity: isCurrent ? 1.0 : 0.5,
+                                  duration: Duration(milliseconds: 300),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        lyric,
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                          fontSize: isCurrent
+                                              ? 24
+                                              : 16, // Larger font for the current lyric
+                                          color: isCurrent
+                                              ? Colors.white
+                                              : Colors.white.withOpacity(
+                                                  0.7), // Less opacity for non-current lyrics
+                                          fontWeight: isCurrent
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: isCurrent
+                                            ? 40
+                                            : 20, // Extra space below the current lyric for emphasis
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -433,9 +631,9 @@ void showPlayerBlurBottomSheet(BuildContext context, String audioUrl,
     backgroundColor: Colors.transparent,
     isScrollControlled:
         true, // Allows the sheet to be taller than the default height
+    showDragHandle: true,
     builder: (BuildContext context) {
       return Container(
-        height: 700,
         child: AudioPlayerBottomSheet(
           audioUrl: audioUrl,
           music: musica,
