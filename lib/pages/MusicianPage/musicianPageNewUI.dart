@@ -1015,6 +1015,9 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                 ? musicData['link_audio']
                                                 : ' Desconhecido';
 
+                                            musicData['id_musica'] =
+                                                musicSnapshot.id;
+
                                             // Encontra o item correspondente no playlist para adicionar a key e link
                                             var song = playlist.firstWhere(
                                               (song) =>
@@ -1043,6 +1046,11 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                   'link_audio'] = musicData[
                                                       'link_audio'] ??
                                                   'Link não disponível'; // Adiciona o campo link
+
+                                              musicData[
+                                                  'id_musica'] = musicData[
+                                                      'id_musica'] ??
+                                                  'Nao Encontrado'; // Adiciona o campo link
                                             } else {
                                               // Caso não encontre a música no playlist, define valores padrão para key e link
                                               musicData['key'] =
