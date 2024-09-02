@@ -647,7 +647,7 @@ void showPlayerBlurBottomSheet(BuildContext context, String audioUrl,
 }
 
 class BPMBottomSheet extends StatefulWidget {
-  int bpm;
+  final int bpm;
 
   BPMBottomSheet({required this.bpm});
 
@@ -657,7 +657,6 @@ class BPMBottomSheet extends StatefulWidget {
 
 class _BPMBottomSheetState extends State<BPMBottomSheet>
     with SingleTickerProviderStateMixin {
-  // Animation-related variables
   late AnimationController _animationController;
   late Animation<double> _animation;
   late AudioPlayer audioPlayer;
@@ -666,7 +665,7 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
   Duration position = Duration.zero;
 
   Timer? _timer;
-  int _bpm = 0; // Inicialize sem um valor padrão aqui
+  int _bpm = 0;
   AudioPlayer _audioPlayer = AudioPlayer();
   Function()? onTick;
 
@@ -674,39 +673,47 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
   void initState() {
     super.initState();
 
-    // Inicialize o BPM a partir do valor passado pelo widget
     _bpm = widget.bpm;
 
-    // Initialize the animation controller
     _animationController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: (60000 / _bpm).toInt()),
     );
 
-    // Define an animation that goes from 0 to 1
     _animation = Tween<double>(begin: 0, end: 1).animate(_animationController)
       ..addListener(() {
-        setState(() {}); // Rebuild the widget with the new animation value
+        if (mounted) {
+          // Ensure the widget is still in the tree before calling setState
+          setState(() {});
+        }
       });
 
     audioPlayer = AudioPlayer();
-
     audioPlayer.onDurationChanged.listen((Duration newDuration) {
-      setState(() {
-        duration = newDuration;
-      });
+      if (mounted) {
+        // Ensure the widget is still in the tree before calling setState
+        setState(() {
+          duration = newDuration;
+        });
+      }
     });
 
     audioPlayer.onPositionChanged.listen((Duration newPosition) {
-      setState(() {
-        position = newPosition;
-      });
+      if (mounted) {
+        // Ensure the widget is still in the tree before calling setState
+        setState(() {
+          position = newPosition;
+        });
+      }
     });
 
     audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
-      setState(() {
-        isPlaying = state == PlayerState.playing;
-      });
+      if (mounted) {
+        // Ensure the widget is still in the tree before calling setState
+        setState(() {
+          isPlaying = state == PlayerState.playing;
+        });
+      }
     });
   }
 
@@ -715,16 +722,18 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
     _bpm = bpm;
     final interval = Duration(milliseconds: (60000 / bpm).toInt());
 
-    _timer?.cancel(); // Cancela qualquer temporizador existente
+    _timer?.cancel(); // Cancel any existing timer
 
     _timer = Timer.periodic(interval, (timer) async {
-      if (mounted) return;
+      if (!mounted) return; // Check if the widget is still mounted
       if (onTick != null) onTick!();
-      await _playClickSound(); // Toca o som do metrônomo
-      print("tocando");
+      await _playClickSound(); // Play metronome click sound
+      print("Tocando");
       print("Intervalo " + interval.inMilliseconds.toString());
     });
 
+    _animationController.duration =
+        Duration(milliseconds: (60000 / _bpm).toInt());
     _animationController.repeat(reverse: true); // Start animation
   }
 
@@ -746,9 +755,9 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
 
   Future<void> _playClickSound() async {
     try {
-      await _audioPlayer.stop(); // Para o som atual antes de tocar novamente
+      await _audioPlayer.stop(); // Stop any current sound
       await _audioPlayer
-          .play(AssetSource('click.mp3')); // Reinicia o som do início
+          .play(AssetSource('click.mp3')); // Play the metronome click sound
     } catch (e) {
       print('Error playing click sound: $e');
     }
@@ -756,14 +765,13 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
 
   @override
   void dispose() {
-    audioPlayer.dispose();
-    _timer
-        ?.cancel(); // Certifique-se de parar o timer quando o widget for destruído
-    _animationController.dispose(); // Dispose the animation controller
+    _timer?.cancel(); // Cancel the timer if it's running
+    _animationController.dispose(); // Dispose of the animation controller
+    audioPlayer.dispose(); // Dispose of the audio player
     super.dispose();
   }
 
-// Helper method to build a static ball
+  // Helper method to build a static ball
   Widget _buildStaticBall() {
     return Container(
       width: 20,
@@ -775,7 +783,7 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
     );
   }
 
-// Helper method to build the moving ball
+  // Helper method to build the moving ball
   Widget _buildMovingBall() {
     return AnimatedBuilder(
       animation: _animation,
@@ -814,7 +822,7 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Metronomo',
+                'Metrônomo',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -837,7 +845,7 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _bpm--; // Increment BPM
+                        _bpm--; // Decrement BPM
                         setBpm(_bpm);
                       });
                     },
@@ -869,10 +877,10 @@ class _BPMBottomSheetState extends State<BPMBottomSheet>
                 onTap: () {
                   if (_timer == null || !_timer!.isActive) {
                     start(_bpm); // Start metronome
-                    print('Metronome started at $_bpm BPM');
+                    print('Metrônomo iniciado a $_bpm BPM');
                   } else {
                     stop(); // Stop metronome
-                    print('Metronome stopped');
+                    print('Metrônomo parado');
                   }
                 },
                 child: Text(
