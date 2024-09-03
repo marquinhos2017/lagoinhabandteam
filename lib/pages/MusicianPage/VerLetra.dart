@@ -20,9 +20,10 @@ class _VerCifraUserState extends State<Verletra> {
   Timer? _userScrollTimer;
   bool _isAutoScrollEnabled = false;
   bool _isDarkMode = false; // Variable to control dark mode
-  final Duration _scrollDuration = Duration(seconds: 120);
-  final Duration _minScrollDuration = Duration(milliseconds: 500);
-  final Duration _userInactivityDuration = Duration(seconds: 3);
+  final Duration _scrollDuration = const Duration(seconds: 120);
+  final Duration _minScrollDuration = const Duration(milliseconds: 500);
+  final Duration _userInactivityDuration = const Duration(seconds: 3);
+
   late Future<Map<String, dynamic>?> _songDetailsFuture;
 
   double _fontSize = 16.0;
@@ -213,48 +214,44 @@ class _VerCifraUserState extends State<Verletra> {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(
-                child: Text('Erro ao carregar conteúdo',
-                    style: TextStyle(
-                        color: _isDarkMode ? Colors.white : Colors.black)));
+              child: Text('Erro ao carregar conteúdo: ${snapshot.error}',
+                  style: TextStyle(
+                      color: _isDarkMode ? Colors.white : Colors.black)),
+            );
           } else if (!snapshot.hasData || snapshot.data == null) {
             return Center(
-                child: Text('Música não encontrada',
-                    style: TextStyle(
-                        color: _isDarkMode ? Colors.white : Colors.black)));
+              child: Text('Música não encontrada',
+                  style: TextStyle(
+                      color: _isDarkMode ? Colors.white : Colors.black)),
+            );
           } else {
             final songDetails = snapshot.data!;
             final letra = songDetails['letra']?.replaceAll('\\n', '\n') ??
                 'Letra não disponível';
 
-            if (letra != "Letra não disponível") {
-              return GestureDetector(
-                onVerticalDragCancel: () {
-                  if (_isAutoScrollEnabled == true) {
-                    HandleTab();
-                  }
-                },
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Padding(
-                    padding: const EdgeInsets.all(30.0),
-                    child: Text(
-                      textAlign: TextAlign.left,
-                      letra,
-                      style: GoogleFonts.montserrat(
-                          textStyle: TextStyle(
-                              color: _isDarkMode ? Colors.white : Colors.black,
-                              fontSize: _fontSize)),
+            return GestureDetector(
+              onVerticalDragCancel: () {
+                if (_isAutoScrollEnabled) {
+                  HandleTab();
+                }
+              },
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Text(
+                    letra,
+                    textAlign: TextAlign.left,
+                    style: GoogleFonts.montserrat(
+                      textStyle: TextStyle(
+                        color: _isDarkMode ? Colors.white : Colors.black,
+                        fontSize: _fontSize,
+                      ),
                     ),
                   ),
                 ),
-              );
-            } else {
-              return Center(
-                child: Text("Letra não disponível",
-                    style: TextStyle(
-                        color: _isDarkMode ? Colors.white : Colors.black)),
-              );
-            }
+              ),
+            );
           }
         },
       ),
@@ -262,6 +259,7 @@ class _VerCifraUserState extends State<Verletra> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
+            heroTag: 'unique_tag_for_hero',
             onPressed: _increaseFontSize,
             backgroundColor: _isDarkMode ? Colors.white : Colors.black,
             child: Icon(Icons.add,

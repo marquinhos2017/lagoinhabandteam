@@ -33,6 +33,15 @@ class AudioPlayerBottomSheet extends StatefulWidget {
 
 class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
     with SingleTickerProviderStateMixin {
+  final List<Map<String, dynamic>> playbackSpeedOptions = [
+    {'label': '0.5x', 'value': 0.5},
+    {'label': '0.75x', 'value': 0.75},
+    {'label': 'Normal', 'value': 1.0}, // Default speed
+    {'label': '1.25x', 'value': 1.25},
+    {'label': '1.5x', 'value': 1.5},
+    {'label': '1.75x', 'value': 1.75},
+    {'label': '2.0x', 'value': 2.0},
+  ];
   bool isUserScrolling = false; // Track if the user is scrolling manually
   bool isAutoScrollEnabled = true; // New state to control auto-scrolling
   late ScrollController _scrollController; // Add this line
@@ -158,7 +167,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
       if (isPlaying) {
         await audioPlayer.pause();
       } else {
-        await audioPlayer.play(UrlSource(widget.audioUrl));
+        await audioPlayer.play(AssetSource("redentor.mp3"));
         await audioPlayer
             .setPlaybackRate(playbackSpeed); // Set initial playback speed
       }
@@ -296,7 +305,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                                 fontWeight: FontWeight.normal,
                                 color: Colors.white),
                           ),
-                          SizedBox(height: 45),
+                          SizedBox(height: 24),
                           /*
                           Container(
                             decoration: BoxDecoration(color: Colors.white),
@@ -309,39 +318,49 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                               color: Colors.white,
                             ),
                           ),*/
-                          SizedBox(height: 5),
+                          Container(
+                            height: 180,
+                            width: 180,
+                            decoration: BoxDecoration(color: Colors.grey),
+                            child: Icon(
+                              Icons.music_note,
+                              size: 87,
+                            ),
+                          ),
+                          SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              GestureDetector(
-                                onTap: decreasePlaybackSpeed,
-                                child: Text(
-                                  '-0.25x',
-                                  style: TextStyle(
-                                      fontSize: 8, color: Colors.greenAccent),
-                                ),
+                              Text(
+                                'Speed:',
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white),
                               ),
-                              SizedBox(
-                                width: 12,
-                              ),
-                              GestureDetector(
-                                onTap: resetPlaybackSpeed,
-                                child: Text(
-                                  'Normal',
-                                  style: TextStyle(
-                                      fontSize: 8, color: Colors.greenAccent),
-                                ),
-                              ),
-                              SizedBox(
-                                width: 12,
-                              ),
-                              GestureDetector(
-                                onTap: increasePlaybackSpeed,
-                                child: Text(
-                                  '+0.25x',
-                                  style: TextStyle(
-                                      fontSize: 8, color: Colors.greenAccent),
-                                ),
+                              SizedBox(width: 8),
+                              DropdownButton<double>(
+                                padding: EdgeInsets.zero,
+                                value: playbackSpeed,
+                                dropdownColor: Colors.black,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                                onChanged: (double? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      playbackSpeed = newValue;
+                                      audioPlayer
+                                          .setPlaybackRate(playbackSpeed);
+                                    });
+                                  }
+                                },
+                                items: playbackSpeedOptions.map((speedOption) {
+                                  return DropdownMenuItem<double>(
+                                    value: speedOption['value'],
+                                    child: Text(
+                                      speedOption['label'],
+                                      style: TextStyle(fontSize: 8),
+                                    ),
+                                  );
+                                }).toList(),
                               ),
                             ],
                           ),
@@ -512,6 +531,7 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                                     final lyric = lyricData['lyric'] as String;
                                     final isCurrent =
                                         index == currentLyricIndex;
+                                    var i = index++;
 
                                     return AnimatedOpacity(
                                       opacity: isCurrent ? 1.0 : 0.5,
@@ -575,36 +595,40 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                                 final lyric = lyricData['lyric'] as String;
                                 final isCurrent = index == currentLyricIndex;
 
-                                return AnimatedOpacity(
-                                  opacity: isCurrent ? 1.0 : 0.5,
-                                  duration: Duration(milliseconds: 300),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        lyric,
-                                        textAlign: TextAlign.left,
-                                        style: TextStyle(
-                                          fontSize: isCurrent
-                                              ? 24
-                                              : 16, // Larger font for the current lyric
-                                          color: isCurrent
-                                              ? Colors.white
-                                              : Colors.white.withOpacity(
-                                                  0.7), // Less opacity for non-current lyrics
-                                          fontWeight: isCurrent
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
+                                return Hero(
+                                  tag: 'hero-lyrics-$index',
+                                  child: AnimatedOpacity(
+                                    opacity: isCurrent ? 1.0 : 0.5,
+                                    duration: Duration(milliseconds: 300),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          lyric,
+                                          textAlign: TextAlign.left,
+                                          style: TextStyle(
+                                            fontSize: isCurrent
+                                                ? 24
+                                                : 16, // Larger font for the current lyric
+                                            color: isCurrent
+                                                ? Colors.white
+                                                : Colors.white.withOpacity(
+                                                    0.7), // Less opacity for non-current lyrics
+                                            fontWeight: isCurrent
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(
-                                        height: isCurrent
-                                            ? 40
-                                            : 20, // Extra space below the current lyric for emphasis
-                                      ),
-                                    ],
+                                        SizedBox(
+                                          height: isCurrent
+                                              ? 40
+                                              : 20, // Extra space below the current lyric for emphasis
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
@@ -1311,10 +1335,15 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                             ),
                                           );
                                         },
-                                        child: Icon(
-                                          Icons.lyrics,
-                                          color: Colors.black,
-                                          size: 24,
+                                        child: Hero(
+                                          // Adicione um Hero aqui se estiver fazendo animações com Hero
+                                          tag:
+                                              'song-hero-${musica['document_id']}', // Certifique-se de que a tag seja única
+                                          child: Icon(
+                                            Icons.lyrics,
+                                            color: Colors.black,
+                                            size: 24,
+                                          ),
                                         ),
                                       ),
                                     ],
