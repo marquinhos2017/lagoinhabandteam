@@ -1,12 +1,20 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/pages/adminAddtoPlaylist.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/pages/adminWorshipTeamSelect2.dart';
 import 'package:lagoinha_music/pages/login.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:dio/dio.dart';
+import 'package:path/path.dart' as path;
+
+import 'package:path_provider/path_provider.dart';
 
 class GerenciamentoCulto extends StatefulWidget {
   final String documentId;
@@ -1159,11 +1167,218 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                   ),
                                 ),
                               ),
-                            )
+                            ),
+                            /*  GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        UploadPage(culto: widget.documentId),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "asd",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CultoEspecificoPage(
+                                        cultoEspecifico: widget.documentId),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "asdswq",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),*/
                           ],
                         ),
                       ),
                     ),
+                    SizedBox(
+                      height: 24,
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Color(0xff171717),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              child: Text(
+                                "Arquivos",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Container(
+                              height: 200,
+                              child: StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('arquivos')
+                                    .where('culto_especifico',
+                                        isEqualTo: widget.documentId)
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasError) {
+                                    return Center(
+                                        child:
+                                            Text('Erro ao carregar arquivos.'));
+                                  }
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  final arquivos = snapshot.data!.docs;
+
+                                  if (arquivos.isEmpty) {
+                                    return Center(
+                                        child:
+                                            Text('Nenhum arquivo encontrado.'));
+                                  }
+
+                                  return ListView.builder(
+                                    itemCount: arquivos.length,
+                                    itemBuilder: (context, index) {
+                                      var arquivoData = arquivos[index].data()
+                                          as Map<String, dynamic>;
+                                      var arquivoUrl =
+                                          arquivoData['arquivo_url'] ?? '';
+                                      var cultoEspecifico =
+                                          arquivoData['culto_especifico'] ?? '';
+
+                                      return ListTile(
+                                        title: Text(
+                                          'Arquivo ${index + 1}',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        subtitle: Text(cultoEspecifico),
+                                        onTap: () {
+                                          //     _baixarArquivo(context, arquivoUrl,
+                                          //       'arquivo_${index + 1}.ext'); // Substitua ".ext" pela extensão apropriada
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        UploadPage(culto: widget.documentId),
+                                  ),
+                                ).then((value) {
+                                  // Após retornar da tela de adicionar música, você pode atualizar a página
+                                  setState(() {});
+                                  // Ou atualizar de acordo com a necessidade do seu fluxo
+                                });
+                                ;
+                                //Navigator.pushNamed(
+                                //    context, '/adminCultoForm');
+
+                                //Navigator.pushNamed(
+                                //    context, '/adminCultoForm');
+                              },
+                              child: Container(
+                                width: MediaQuery.of(context).size.width,
+                                margin: EdgeInsets.only(),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: Color(0xff4465D9),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(0.0),
+                                  child: Center(
+                                    child: Text(
+                                      "+",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 24),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ), /*
+                    Container(
+                      child: Text(
+                        "Arquivos",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    Container(
+                      height: 300,
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('arquivos')
+                            .where('culto_especifico',
+                                isEqualTo: widget.documentId)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Erro ao carregar arquivos.'));
+                          }
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+
+                          final arquivos = snapshot.data!.docs;
+
+                          if (arquivos.isEmpty) {
+                            return Center(
+                                child: Text('Nenhum arquivo encontrado.'));
+                          }
+
+                          return ListView.builder(
+                            itemCount: arquivos.length,
+                            itemBuilder: (context, index) {
+                              var arquivoData = arquivos[index].data()
+                                  as Map<String, dynamic>;
+                              var arquivoUrl = arquivoData['arquivo_url'] ?? '';
+                              var cultoEspecifico =
+                                  arquivoData['culto_especifico'] ?? '';
+
+                              return ListTile(
+                                title: Text(
+                                  'Arquivo ${index + 1}',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                subtitle: Text(cultoEspecifico),
+                                onTap: () {
+                                  //     _baixarArquivo(context, arquivoUrl,
+                                  //       'arquivo_${index + 1}.ext'); // Substitua ".ext" pela extensão apropriada
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  */
                   ],
                 ),
               ),
@@ -1442,4 +1657,233 @@ class CirclePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+class UploadPage extends StatefulWidget {
+  late String culto;
+
+  UploadPage({required this.culto});
+  @override
+  _UploadPageState createState() => _UploadPageState();
+}
+
+class _UploadPageState extends State<UploadPage> {
+  File? _file;
+  bool _uploading = false;
+  double _progress = 0;
+  String? _downloadURL;
+  String? _cultoEspecifico;
+
+  @override
+  void initState() {
+    super.initState();
+    // Lógica adicional
+    _cultoEspecifico = widget.culto;
+  }
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      setState(() {
+        _file = File(result.files.single.path!);
+      });
+    }
+  }
+
+  Future<void> _uploadFile() async {
+    if (_file == null || _cultoEspecifico == null || _cultoEspecifico!.isEmpty)
+      return;
+
+    setState(() {
+      _uploading = true;
+    });
+
+    String fileName = _file!.path.split('/').last;
+    Reference storageRef =
+        FirebaseStorage.instance.ref().child('uploads/$fileName');
+
+    UploadTask uploadTask = storageRef.putFile(_file!);
+
+    uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      setState(() {
+        _progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      });
+    });
+
+    try {
+      await uploadTask;
+      // Obter a URL de download
+      String downloadURL = await storageRef.getDownloadURL();
+      setState(() {
+        _downloadURL = downloadURL;
+      });
+
+      // Salvar a URL do arquivo e o culto_especifico no Firestore
+      await _firestore.collection('arquivos').add({
+        'arquivo_url': downloadURL,
+        'culto_especifico': _cultoEspecifico,
+        'created_at':
+            Timestamp.now(), // Campo opcional para armazenar a data de criação
+      });
+
+      print('File uploaded and saved to Firestore: $downloadURL');
+    } catch (e) {
+      print('Upload failed: $e');
+    }
+
+    setState(() {
+      _uploading = false;
+      _progress = 0;
+      _file = null;
+      _cultoEspecifico = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Upload and Save to Firestore'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            if (_file != null)
+              Text('Selected file: ${_file!.path.split('/').last}'),
+            SizedBox(height: 20),
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  _cultoEspecifico = widget.culto;
+                  print(_cultoEspecifico);
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Culto Específico',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _pickFile,
+              child: Text('Pick File'),
+            ),
+            SizedBox(height: 20),
+            _uploading
+                ? Column(
+                    children: [
+                      LinearProgressIndicator(value: _progress / 100),
+                      SizedBox(height: 20),
+                      Text('${_progress.toStringAsFixed(2)}% uploaded'),
+                    ],
+                  )
+                : ElevatedButton(
+                    onPressed: _uploadFile,
+                    child: Text('Upload and Save'),
+                  ),
+            SizedBox(height: 20),
+            if (_downloadURL != null)
+              Column(
+                children: [
+                  Text('Download URL:'),
+                  GestureDetector(
+                    onTap: () {
+                      // Código para abrir a URL
+                    },
+                    child: Text(
+                      _downloadURL!,
+                      style: TextStyle(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CultoEspecificoPage extends StatelessWidget {
+  final String cultoEspecifico;
+
+  CultoEspecificoPage({required this.cultoEspecifico});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Arquivos do Culto Específico'),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('arquivos')
+            .where('culto_especifico', isEqualTo: cultoEspecifico)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Erro ao carregar arquivos.'));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          final arquivos = snapshot.data!.docs;
+
+          if (arquivos.isEmpty) {
+            return Center(child: Text('Nenhum arquivo encontrado.'));
+          }
+
+          return ListView.builder(
+            itemCount: arquivos.length,
+            itemBuilder: (context, index) {
+              var arquivoData = arquivos[index].data() as Map<String, dynamic>;
+              var arquivoUrl = arquivoData['arquivo_url'] ?? '';
+              var cultoEspecifico = arquivoData['culto_especifico'] ?? '';
+
+              return ListTile(
+                title: Text('Arquivo ${index + 1}'),
+                subtitle: Text(cultoEspecifico),
+                onTap: () {
+                  _baixarArquivo(context, arquivoUrl,
+                      'arquivo_${index + 1}.ext'); // Substitua ".ext" pela extensão apropriada
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _baixarArquivo(
+      BuildContext context, String url, String fileName) async {
+    try {
+      // Obter o diretório para salvar o arquivo
+      Directory dir =
+          await getApplicationDocumentsDirectory(); // Usado para iOS e Android
+
+      // Configurar o caminho do arquivo
+      String filePath = path.join(dir.path, fileName);
+
+      // Fazer o download do arquivo
+      Dio dio = Dio();
+      await dio.download(url, filePath);
+
+      // Mostrar uma mensagem de sucesso
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Download concluído: $filePath'),
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Erro ao baixar arquivo: $e'),
+      ));
+    }
+  }
 }

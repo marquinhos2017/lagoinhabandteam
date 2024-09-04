@@ -48,6 +48,11 @@ dependencies:
   permission_handler: ^10.1.0
   audioplayers: ^5.2.1
 
+  firebase_storage: 
+  file_picker: 
+
+  dio: 
+
 
 dev_dependencies:
   flutter_test:
