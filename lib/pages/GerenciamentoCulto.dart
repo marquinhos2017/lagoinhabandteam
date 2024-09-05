@@ -438,15 +438,29 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
   }
 
   Widget _buildInstrumentButton(BuildContext context, String instrument) {
+    print(instrument);
+    String instrumenta = instrument;
+    String a = "";
+    if (instrumenta == "Piano") {
+      a = "keyboard.png";
+    }
+    if (instrumenta == "Guitarra") {
+      a = "guitarra.png";
+    }
     return Container(
-      margin: EdgeInsets.only(right: 24),
-      width: 75,
       decoration: BoxDecoration(
-        color: Color(0xff4465D9),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.all(Radius.circular(60)),
+        /* boxShadow: [
+          BoxShadow(
+            color: const Color.fromARGB(
+                60, 0, 0, 0), // Sombra alaranjada com 50% de opacidade
+            blurRadius: 15,
+            offset: Offset(0, 10), // Deslocamento da sombra
+          ),
+        ],,*/
       ),
-      child: TextButton(
-        onPressed: () => Navigator.push(
+      child: GestureDetector(
+        onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => MusicianSelect2(
@@ -459,12 +473,11 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             setState(() {}); // Atualiza a página se algo mudou
           }
         }),
-        child: Text(
-          instrument,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+        child: Container(
+          margin: EdgeInsets.only(right: 24),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image(height: 100, image: AssetImage("assets/" + a)),
           ),
         ),
       ),
@@ -517,7 +530,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                 child: Center(
                   child: Text(
                       'Clique no Botao acima para adicionar instrumentistas', // Significa que esta faltando todos os instrumentos
-                      style: TextStyle(color: Colors.white, fontSize: 12)),
+                      style: TextStyle(color: Colors.black, fontSize: 12)),
                 ),
               );
             }
@@ -525,10 +538,13 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             final musicoList = futureSnapshot.data!;
 
             return Container(
-              color: Color(0xff171717),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(60),
+                  color: Colors.white,
+                  border: Border.all(color: Colors.black, width: 1)),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 2),
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
                 child: ListView.builder(
                     padding: EdgeInsets.zero,
                     itemCount: musicoList.length,
@@ -544,130 +560,185 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                           musico['instrument'] ?? 'Instrumento não disponível';
                       final id = musico['item'] ?? 'Instrumento não disponível';
 
-                      return Container(
-                        child: Column(
-                          children: [
-                            GestureDetector(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Dismissible(
-                                      key: UniqueKey(), // Ensure a unique key
-                                      direction: DismissDirection.endToStart,
-                                      background: Container(
-                                        color: Colors.red,
-                                        alignment: Alignment.centerRight,
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 20),
-                                        child: Icon(Icons.delete,
-                                            color: Colors.white),
-                                      ),
-                                      onDismissed: (direction) async {
-                                        if (_isProcessing || !mounted) return;
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Dismissible(
+                                        key: UniqueKey(), // Ensure a unique key
+                                        direction: DismissDirection.endToStart,
+                                        background: Container(
+                                          color: Colors.red,
+                                          alignment: Alignment.centerRight,
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 20),
+                                          child: Icon(Icons.delete,
+                                              color: Colors.black),
+                                        ),
+                                        onDismissed: (direction) async {
+                                          if (_isProcessing || !mounted) return;
 
-                                        setState(() {
-                                          _isProcessing = true;
-                                        });
+                                          setState(() {
+                                            _isProcessing = true;
+                                          });
 
-                                        // Ensure we're working with the correct list
-                                        final musicoToRemove =
-                                            musicoList[index];
-                                        final userId =
-                                            musicoToRemove['user_id'] as int? ??
-                                                0;
-                                        final idCulto = widget.documentId;
+                                          // Ensure we're working with the correct list
+                                          final musicoToRemove =
+                                              musicoList[index];
+                                          final userId =
+                                              musicoToRemove['user_id']
+                                                      as int? ??
+                                                  0;
+                                          final idCulto = widget.documentId;
 
-                                        // Perform removal operation
-                                        print("Removing $id");
+                                          // Perform removal operation
+                                          print("Removing $id");
 
-                                        // Assuming you want to also remove the item from the list
-                                        // (You should do this only after successfully removing from the database)
-                                        // setState(() {
-                                        //   musicoList.removeAt(index);
-                                        // });
+                                          // Assuming you want to also remove the item from the list
+                                          // (You should do this only after successfully removing from the database)
+                                          // setState(() {
+                                          //   musicoList.removeAt(index);
+                                          // });
 
-                                        // Remove from Firestore
-                                        // await _removeMusician(userId, id);
+                                          // Remove from Firestore
+                                          // await _removeMusician(userId, id);
 
-                                        setState(() {
-                                          _isProcessing = false;
-                                        });
-                                      },
-                                      child: ClipRect(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              name,
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Row(
-                                              children: [
+                                          setState(() {
+                                            _isProcessing = false;
+                                          });
+                                        },
+                                        child: ClipRect(
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              if (instrument == "Piano")
                                                 Container(
                                                   margin: EdgeInsets.only(
-                                                      right: 20),
-                                                  child: Text(
-                                                    instrument,
-                                                    style: TextStyle(
-                                                      color: Color(0xff558FFF),
-                                                      fontSize: 12,
-                                                    ),
+                                                      right: 24),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    child: Image(
+                                                        height: 50,
+                                                        image: AssetImage(
+                                                            "assets/" +
+                                                                "keyboard.png")),
                                                   ),
                                                 ),
-                                                IconButton(
-                                                  icon: Icon(Icons.delete,
-                                                      color: Colors.red),
-                                                  onPressed: () async {
-                                                    if (_isProcessing ||
-                                                        !mounted) return;
-
-                                                    setState(() {
-                                                      _isProcessing = true;
-                                                    });
-
-                                                    final musicoToRemove =
-                                                        musicoList[index];
-                                                    final userId =
-                                                        musicoToRemove[
-                                                                    'user_id']
-                                                                as int? ??
-                                                            0;
-                                                    final idCulto =
-                                                        widget.documentId;
-
-                                                    // Perform removal operation
-                                                    print("Removing $id");
-
-                                                    // Remove from Firestore
-                                                    await _removeMusician(
-                                                        userId, idCulto, id);
-
-                                                    // Update local list after successful Firestore operation
-                                                    setState(() {
-                                                      musicoList
-                                                          .removeAt(index);
-                                                      _isProcessing = false;
-                                                    });
-                                                  },
+                                              if (instrument == "Guitarra")
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                      right: 24),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    child: Image(
+                                                        height: 50,
+                                                        image: AssetImage(
+                                                            "assets/" +
+                                                                "guitarra.png")),
+                                                  ),
                                                 ),
-                                              ],
-                                            ),
-                                          ],
+                                              Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    name,
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    margin: EdgeInsets.only(
+                                                        right: 2),
+                                                    child: Text(
+                                                      instrument,
+                                                      style: TextStyle(
+                                                        color:
+                                                            Color(0xff558FFF),
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  /*  Container(
+                                                    margin: EdgeInsets.only(
+                                                        right: 20),
+                                                    child: Text(
+                                                      instrument,
+                                                      style: TextStyle(
+                                                        color: Color(0xff558FFF),
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ),*/
+                                                  IconButton(
+                                                    icon: Icon(Icons.delete,
+                                                        color: Colors.red),
+                                                    onPressed: () async {
+                                                      if (_isProcessing ||
+                                                          !mounted) return;
+
+                                                      setState(() {
+                                                        _isProcessing = true;
+                                                      });
+
+                                                      final musicoToRemove =
+                                                          musicoList[index];
+                                                      final userId =
+                                                          musicoToRemove[
+                                                                      'user_id']
+                                                                  as int? ??
+                                                              0;
+                                                      final idCulto =
+                                                          widget.documentId;
+
+                                                      // Perform removal operation
+                                                      print("Removing $id");
+
+                                                      // Remove from Firestore
+                                                      await _removeMusician(
+                                                          userId, idCulto, id);
+
+                                                      // Update local list after successful Firestore operation
+                                                      setState(() {
+                                                        musicoList
+                                                            .removeAt(index);
+                                                        _isProcessing = false;
+                                                      });
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     }),
@@ -714,7 +785,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
         ],
         backgroundColor: Colors.black,
       ),
-      backgroundColor: Color(0xff010101),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -754,7 +825,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Color(0xff171717),
+                        color: Colors.white,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
@@ -762,12 +833,61 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              child: Text(
-                                "Playlist",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Playlist",
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddtoPlaylist(
+                                            document_id: widget.documentId,
+                                          ),
+                                        ),
+                                      ).then((value) {
+                                        // Após retornar da tela de adicionar música, você pode atualizar a página
+                                        setState(() {});
+                                        // Ou atualizar de acordo com a necessidade do seu fluxo
+                                      });
+                                      ;
+                                      //Navigator.pushNamed(
+                                      //    context, '/adminCultoForm');
+
+                                      //Navigator.pushNamed(
+                                      //    context, '/adminCultoForm');
+                                    },
+                                    child: Container(
+                                      // width: MediaQuery.of(context).size.width,
+                                      width: 46,
+                                      // margin:
+                                      //       EdgeInsets.only(top: 24, bottom: 16),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: Colors.black,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(0.0),
+                                        child: Center(
+                                          child: Text(
+                                            "+",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 24),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             Container(
@@ -1024,49 +1144,77 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                           musicDocumentId);
                                                     },
                                                     child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
                                                       children: [
-                                                        Expanded(
-                                                          child: Text(
-                                                            musica,
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Row(
+                                                              children: [
+                                                                Text(
+                                                                  musica,
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: Colors
+                                                                        .black,
+                                                                    fontSize:
+                                                                        14,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                                SizedBox(
+                                                                  width: 16,
+                                                                ),
+                                                                Container(
+                                                                  color: Colors
+                                                                      .black,
+                                                                  child:
+                                                                      Padding(
+                                                                    padding:
+                                                                        const EdgeInsets
+                                                                            .all(
+                                                                            4.0),
+                                                                    child: Text(
+                                                                      key, // Aqui você pode mostrar o tom da música
+                                                                      style: TextStyle(
+                                                                          color: Colors
+                                                                              .white,
+                                                                          fontSize:
+                                                                              12),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                          ),
-                                                        ),
-                                                        Expanded(
-                                                          child: Text(
-                                                            author,
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                            Text(
+                                                              author,
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .black,
+                                                                fontSize: 12,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                              ),
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                             ),
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          key, // Aqui você pode mostrar o tom da música
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white),
+                                                          ],
                                                         ),
                                                         PopupMenuButton<String>(
                                                           color: Colors.black,
                                                           iconColor:
-                                                              Colors.white,
+                                                              Colors.black,
                                                           onSelected: (String
                                                               value) async {
                                                             if (value ==
@@ -1209,24 +1357,23 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Color(0xff171717),
+                        color: Colors.white,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              child: Text(
-                                "Arquivos",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold),
-                              ),
+                            Text(
+                              "Arquivos",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
                             ),
+                            SizedBox(height: 24),
                             Container(
-                              height: 200,
+                              height: 100,
                               child: StreamBuilder<QuerySnapshot>(
                                 stream: FirebaseFirestore.instance
                                     .collection('arquivos')
@@ -1260,19 +1407,200 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                           as Map<String, dynamic>;
                                       var arquivoUrl =
                                           arquivoData['arquivo_url'] ?? '';
-                                      var cultoEspecifico =
-                                          arquivoData['culto_especifico'] ?? '';
+                                      var name =
+                                          arquivoData['nome_arquivo'] ?? '';
 
-                                      return ListTile(
-                                        title: Text(
-                                          'Arquivo ${index + 1}',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                        subtitle: Text(cultoEspecifico),
-                                        onTap: () {
-                                          //     _baixarArquivo(context, arquivoUrl,
-                                          //       'arquivo_${index + 1}.ext'); // Substitua ".ext" pela extensão apropriada
-                                        },
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () async {
+                                              if (arquivoUrl.isNotEmpty) {
+                                                // Baixar o arquivo quando o ícone é clicado
+                                                await _downloadFile(
+                                                    arquivoUrl, name);
+                                              }
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.file_present),
+                                                SizedBox(width: 12),
+                                                Text(name,
+                                                    style: TextStyle(
+                                                        color: Colors.black)),
+                                              ],
+                                            ),
+                                          ),
+                                          Row(
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(Icons.download,
+                                                    color: Colors.black),
+                                                onPressed: () async {
+                                                  // Confirmar exclusão
+                                                  bool confirmar =
+                                                      await showDialog(
+                                                    context: context,
+                                                    builder: (context) {
+                                                      return AlertDialog(
+                                                        title: Text(
+                                                            'Excluir Arquivo'),
+                                                        content: Text(
+                                                            'Tem certeza de que deseja excluir o arquivo "$name"?'),
+                                                        actions: [
+                                                          TextButton(
+                                                            child: Text(
+                                                                'Cancelar'),
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(false);
+                                                            },
+                                                          ),
+                                                          TextButton(
+                                                            child:
+                                                                Text('Excluir'),
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(true);
+                                                            },
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+
+                                                  if (confirmar) {
+                                                    try {
+                                                      // Excluir o arquivo do Firebase Storage
+                                                      if (arquivoUrl
+                                                          .isNotEmpty) {
+                                                        Reference
+                                                            storageReference =
+                                                            FirebaseStorage
+                                                                .instance
+                                                                .refFromURL(
+                                                                    arquivoUrl);
+                                                        await storageReference
+                                                            .delete();
+                                                      }
+
+                                                      // Excluir o documento do Firestore
+                                                      await FirebaseFirestore
+                                                          .instance
+                                                          .collection(
+                                                              'arquivos')
+                                                          .doc(arquivos[index]
+                                                              .id)
+                                                          .delete();
+
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                              SnackBar(
+                                                        content: Text(
+                                                            'Arquivo excluído com sucesso!'),
+                                                      ));
+                                                    } catch (e) {
+                                                      // Tratar possíveis erros
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                              SnackBar(
+                                                        content: Text(
+                                                            'Erro ao excluir o arquivo: $e'),
+                                                      ));
+                                                    }
+                                                  }
+                                                },
+                                              ),
+                                              IconButton(
+                                                icon: Icon(Icons.delete,
+                                                    color: Colors.red),
+                                                onPressed: () async {
+                                                  // Confirmar exclusão
+                                                  bool confirmar =
+                                                      await showDialog(
+                                                    context: context,
+                                                    builder: (context) {
+                                                      return AlertDialog(
+                                                        title: Text(
+                                                            'Excluir Arquivo'),
+                                                        content: Text(
+                                                            'Tem certeza de que deseja excluir o arquivo "$name"?'),
+                                                        actions: [
+                                                          TextButton(
+                                                            child: Text(
+                                                                'Cancelar'),
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(false);
+                                                            },
+                                                          ),
+                                                          TextButton(
+                                                            child:
+                                                                Text('Excluir'),
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(true);
+                                                            },
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+
+                                                  if (confirmar) {
+                                                    try {
+                                                      // Excluir o arquivo do Firebase Storage
+                                                      if (arquivoUrl
+                                                          .isNotEmpty) {
+                                                        Reference
+                                                            storageReference =
+                                                            FirebaseStorage
+                                                                .instance
+                                                                .refFromURL(
+                                                                    arquivoUrl);
+                                                        await storageReference
+                                                            .delete();
+                                                      }
+
+                                                      // Excluir o documento do Firestore
+                                                      await FirebaseFirestore
+                                                          .instance
+                                                          .collection(
+                                                              'arquivos')
+                                                          .doc(arquivos[index]
+                                                              .id)
+                                                          .delete();
+
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                              SnackBar(
+                                                        content: Text(
+                                                            'Arquivo excluído com sucesso!'),
+                                                      ));
+                                                    } catch (e) {
+                                                      // Tratar possíveis erros
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                              SnackBar(
+                                                        content: Text(
+                                                            'Erro ao excluir o arquivo: $e'),
+                                                      ));
+                                                    }
+                                                  }
+                                                },
+                                              )
+                                            ],
+                                          ),
+                                        ],
                                       );
                                     },
                                   );
@@ -1288,23 +1616,15 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                         UploadPage(culto: widget.documentId),
                                   ),
                                 ).then((value) {
-                                  // Após retornar da tela de adicionar música, você pode atualizar a página
                                   setState(() {});
-                                  // Ou atualizar de acordo com a necessidade do seu fluxo
                                 });
-                                ;
-                                //Navigator.pushNamed(
-                                //    context, '/adminCultoForm');
-
-                                //Navigator.pushNamed(
-                                //    context, '/adminCultoForm');
                               },
                               child: Container(
                                 width: MediaQuery.of(context).size.width,
                                 margin: EdgeInsets.only(),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(4),
-                                  color: Color(0xff4465D9),
+                                  color: Colors.black,
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(0.0),
@@ -1321,7 +1641,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                           ],
                         ),
                       ),
-                    ), /*
+                    ),
                     Container(
                       child: Text(
                         "Arquivos",
@@ -1378,7 +1698,6 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                         },
                       ),
                     ),
-                  */
                   ],
                 ),
               ),
@@ -1387,6 +1706,42 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
         ),
       ),
     );
+  }
+
+  Future<void> _downloadFile(String url, String fileName) async {
+    try {
+      // Solicita permissão para acessar o armazenamento (necessário no Android)
+      if (Platform.isAndroid) {
+        var status = await Permission.storage.request();
+        if (!status.isGranted) {
+          throw Exception('Permissão para acessar o armazenamento negada');
+        }
+      }
+
+      // Obtém o diretório correto para salvar o arquivo
+      final directory = Platform.isIOS
+          ? await getApplicationDocumentsDirectory()
+          : await getExternalStorageDirectory();
+
+      if (directory == null) {
+        throw Exception('Falha ao obter o diretório de armazenamento');
+      }
+
+      // Caminho completo para salvar o arquivo
+      final filePath = '${directory.path}/$fileName';
+
+      // Faz o download do arquivo
+      Dio dio = Dio();
+      await dio.download(url, filePath, onReceiveProgress: (received, total) {
+        if (total != -1) {
+          print((received / total * 100).toStringAsFixed(0) + "%");
+        }
+      });
+
+      print('Arquivo salvo em: $filePath');
+    } catch (e) {
+      print('Erro ao baixar o arquivo: $e');
+    }
   }
 
   void _showUpdateLinkDialog(BuildContext context, int index, String link) {
@@ -1660,9 +2015,10 @@ class CirclePainter extends CustomPainter {
 }
 
 class UploadPage extends StatefulWidget {
-  late String culto;
+  final String culto;
 
   UploadPage({required this.culto});
+
   @override
   _UploadPageState createState() => _UploadPageState();
 }
@@ -1677,7 +2033,6 @@ class _UploadPageState extends State<UploadPage> {
   @override
   void initState() {
     super.initState();
-    // Lógica adicional
     _cultoEspecifico = widget.culto;
   }
 
@@ -1715,16 +2070,18 @@ class _UploadPageState extends State<UploadPage> {
 
     try {
       await uploadTask;
+
       // Obter a URL de download
       String downloadURL = await storageRef.getDownloadURL();
       setState(() {
         _downloadURL = downloadURL;
       });
 
-      // Salvar a URL do arquivo e o culto_especifico no Firestore
+      // Salvar a URL do arquivo, o culto_especifico, e o nome do arquivo no Firestore
       await _firestore.collection('arquivos').add({
         'arquivo_url': downloadURL,
         'culto_especifico': _cultoEspecifico,
+        'nome_arquivo': fileName, // Salvando o nome do arquivo
         'created_at':
             Timestamp.now(), // Campo opcional para armazenar a data de criação
       });
@@ -1759,7 +2116,6 @@ class _UploadPageState extends State<UploadPage> {
               onChanged: (value) {
                 setState(() {
                   _cultoEspecifico = widget.culto;
-                  print(_cultoEspecifico);
                 });
               },
               decoration: InputDecoration(
