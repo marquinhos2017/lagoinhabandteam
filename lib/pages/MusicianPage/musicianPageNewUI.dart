@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lagoinha_music/pages/MusicianPage/EditProfilePage.dart';
 import 'package:lagoinha_music/pages/MusicianPage/ScheduleDetailsMusician.dart';
 import 'package:lagoinha_music/pages/MusicianPage/afinador.dart';
 import 'package:lagoinha_music/pages/login.dart';
@@ -33,6 +34,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
   int _selectedIndex = -1; // No card is selected initially
   int _currentIndex = 0;
   late PageController _pageController;
+  String avatar = "";
 
   int cultosCount = 0; // Variável para armazenar a contagem de cultos
   String mesIdEspecifico = "";
@@ -116,6 +118,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
         // Extrai o campo "nome" do primeiro documento encontrado
         setState(() {
           musicianName = querySnapshot.docs.first['name'];
+          avatar = querySnapshot.docs.first['photoUrl'];
           print(musicianName);
           isLoading = false;
         });
@@ -416,6 +419,14 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                   // Ação para Opção 1
 
                                                   Navigator.pop(context);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            EditProfilePage(
+                                                                userId:
+                                                                    widget.id)),
+                                                  );
                                                 },
                                               ),
                                               ListTile(
@@ -469,15 +480,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                           ),
                                         ],
                                       ),
-                                      child: CircleAvatar(
-                                        // Pode adicionar uma imagem ou ícone dentro do CircleAvatar
-                                        // backgroundImage: AssetImage(
-                                        //        'assets/profile.png'), // Substitua pelo caminho da sua imagem
-
-                                        backgroundImage: NetworkImage(
-                                            "https://static.vecteezy.com/system/resources/previews/002/700/586/original/woman-singing-avatar-character-icons-free-vector.jpg"),
-                                        // Ou use um ícone ao invés de uma imagem
-                                      ),
+                                      child: ProfileAvatar(avatarUrl: avatar),
                                     ),
                                   )
                                 ],
@@ -558,7 +561,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                   Future<void> loadMusicsForDocument(
                                       int docIndex) async {
                                     final doc = weeklyDocs[docIndex];
-                                    print("Doc: " + doc.id);
                                     final data =
                                         doc.data() as Map<String, dynamic>;
                                     final playlist =
@@ -587,6 +589,26 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                               musicSnapshot
                                                   .id; // Adiciona o documentId
 
+                                          // Adiciona o campo 'bpm' se estiver disponível no documento
+                                          musicData['bpm'] =
+                                              musicData.containsKey('bpm')
+                                                  ? musicData['bpm']
+                                                  : ' Unkown';
+
+                                          // Adiciona o campo 'bpm' se estiver disponível no documento
+                                          musicData['letra'] =
+                                              musicData.containsKey('letra')
+                                                  ? musicData['letra']
+                                                  : ' Unkown';
+
+                                          musicData['link_audio'] = musicData
+                                                  .containsKey('link_audio')
+                                              ? musicData['link_audio']
+                                              : ' Desconhecido';
+
+                                          musicData['id_musica'] =
+                                              musicSnapshot.id;
+
                                           // Encontra o item correspondente no playlist para adicionar a key e link
                                           var song = playlist.firstWhere(
                                             (song) =>
@@ -595,11 +617,28 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                             orElse: () => null,
                                           );
 
+                                          print("asdasd" + musicData['bpm']);
+
                                           if (song != null) {
                                             musicData['key'] = song['key'] ??
                                                 'Key Desconhecida'; // Adiciona o campo key
                                             musicData['link'] = song['link'] ??
                                                 'Link não disponível'; // Adiciona o campo link
+                                            musicData['bpm'] = musicData[
+                                                    'bpm'] ??
+                                                'Link não disponível'; // Adiciona o campo link
+
+                                            musicData['letra'] = musicData[
+                                                    'letra'] ??
+                                                'letra não disponível'; // Adiciona o campo link
+
+                                            musicData['link_audio'] = musicData[
+                                                    'link_audio'] ??
+                                                'Link não disponível'; // Adiciona o campo link
+
+                                            musicData['id_musica'] = musicData[
+                                                    'id_musica'] ??
+                                                'Nao Encontrado'; // Adiciona o campo link
                                           } else {
                                             // Caso não encontre a música no playlist, define valores padrão para key e link
                                             musicData['key'] =
@@ -1624,6 +1663,28 @@ class BottomNavBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ProfileAvatar extends StatelessWidget {
+  String avatarUrl;
+
+  ProfileAvatar({required this.avatarUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    if (avatarUrl == "") {
+      avatarUrl =
+          "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png";
+    }
+    return CircleAvatar(
+      radius: 100, // Ajuste o tamanho conforme necessário
+      backgroundColor: Colors.grey[200], // Cor de fundo do círculo
+      backgroundImage: NetworkImage(avatarUrl),
+      child: avatarUrl.isEmpty
+          ? CircularProgressIndicator() // Exibe o indicador de carregamento se a URL estiver vazia
+          : null,
     );
   }
 }

@@ -52,6 +52,8 @@ dependencies:
   file_picker: 
 
   dio: 
+  image_picker: ^0.8.5+3
+
 
 
 dev_dependencies:
@@ -86,6 +88,12 @@ flutter:
     - assets/redentor.mp3
     - assets/keyboard.png
     - assets/guitarra.png
+    - assets/violao.png
+    - assets/bass.png
+    - assets/drum.png
+    - assets/md.png
+    - assets/cantor.png
+    - assets/avatar.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

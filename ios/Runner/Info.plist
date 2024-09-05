@@ -9,6 +9,13 @@
   <string>sms</string>
   <string>tel</string>
 </array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>App needs access to the photo library to upload profile pictures.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>App needs access to the camera to take profile pictures.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>App needs access to the microphone for recording purposes.</string>
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

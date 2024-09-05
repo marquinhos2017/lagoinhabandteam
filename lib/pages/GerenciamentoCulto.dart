@@ -447,6 +447,34 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
     if (instrumenta == "Guitarra") {
       a = "guitarra.png";
     }
+    if (instrumenta == "Violão") {
+      a = "violao.png";
+    }
+    if (instrumenta == "Baixo") {
+      a = "bass.png";
+    }
+    if (instrumenta == "Bateria") {
+      a = "drum.png";
+    }
+    if (instrumenta == "MD") {
+      a = "md.png";
+    }
+
+    if (instrumenta == "Ministro") {
+      a = "cantor.png";
+    }
+
+    if (instrumenta == "BV 1") {
+      a = "cantor.png";
+    }
+
+    if (instrumenta == "BV 2") {
+      a = "cantor.png";
+    }
+
+    if (instrumenta == "BV 3") {
+      a = "cantor.png";
+    }
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(60)),
@@ -634,6 +662,81 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                 "keyboard.png")),
                                                   ),
                                                 ),
+                                              if (instrument == "Bateria")
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                      right: 24),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    child: Image(
+                                                        height: 50,
+                                                        image: AssetImage(
+                                                            "assets/" +
+                                                                "drum.png")),
+                                                  ),
+                                                ),
+                                              if (instrument == "Ministro")
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                      right: 24),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    child: Image(
+                                                        height: 50,
+                                                        image: AssetImage(
+                                                            "assets/" +
+                                                                "cantor.png")),
+                                                  ),
+                                                ),
+                                              if (instrument == "BV 1")
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                      right: 24),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    child: Image(
+                                                        height: 50,
+                                                        image: AssetImage(
+                                                            "assets/" +
+                                                                "cantor.png")),
+                                                  ),
+                                                ),
+                                              if (instrument == "BV 2")
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                      right: 24),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    child: Image(
+                                                        height: 50,
+                                                        image: AssetImage(
+                                                            "assets/" +
+                                                                "cantor.png")),
+                                                  ),
+                                                ),
+                                              if (instrument == "Violão")
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                      right: 24),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    child: Image(
+                                                        height: 50,
+                                                        image: AssetImage(
+                                                            "assets/" +
+                                                                "violao.png")),
+                                                  ),
+                                                ),
                                               if (instrument == "Guitarra")
                                                 Container(
                                                   margin: EdgeInsets.only(
@@ -803,7 +906,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                           child: Text(
                             "Band",
                             style: TextStyle(
-                                color: Colors.white,
+                                color: Colors.black,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold),
                           ),
@@ -1276,7 +1379,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                     )
                                   ]),
                             ),
-                            GestureDetector(
+                            /*   GestureDetector(
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -1302,7 +1405,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                 margin: EdgeInsets.only(top: 24, bottom: 16),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(4),
-                                  color: Color(0xff4465D9),
+                                  color: Colors.black,
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(0.0),
@@ -1315,7 +1418,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                   ),
                                 ),
                               ),
-                            ),
+                            ),*/
                             /*  GestureDetector(
                               onTap: () {
                                 Navigator.push(

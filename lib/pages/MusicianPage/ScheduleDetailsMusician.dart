@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
@@ -1592,6 +1593,72 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
             );
           },
         );
+      case "Notes":
+        final List<DocumentSnapshot> documentsAll = widget.documents;
+        final List<List<Map<String, dynamic>>> musicsAll = widget.musics;
+        final id = documentsAll[currentIndex].id;
+        return Container(
+          height: 100,
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('arquivos')
+                .where('culto_especifico', isEqualTo: id)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text('Erro ao carregar arquivos.'));
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              final arquivos = snapshot.data!.docs;
+
+              if (arquivos.isEmpty) {
+                return Center(child: Text('Nenhum arquivo encontrado.'));
+              }
+
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ListView.builder(
+                  itemCount: arquivos.length,
+                  itemBuilder: (context, index) {
+                    var arquivoData =
+                        arquivos[index].data() as Map<String, dynamic>;
+                    var arquivoUrl = arquivoData['arquivo_url'] ?? '';
+                    var name = arquivoData['nome_arquivo'] ?? '';
+
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              if (arquivoUrl.isNotEmpty) {
+                                // Baixar o arquivo quando o ícone é clicado
+                                //   await _downloadFile(arquivoUrl, name);
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.file_present),
+                                SizedBox(width: 12),
+                                Text(name,
+                                    style: TextStyle(color: Colors.black)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        );
+
       case 'Ensaio':
         return Column(
           children: [
