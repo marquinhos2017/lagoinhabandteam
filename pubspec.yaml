@@ -53,6 +53,7 @@ dependencies:
 
   dio: 
   image_picker: ^0.8.5+3
+  shared_preferences: ^2.3.2
 
 
 

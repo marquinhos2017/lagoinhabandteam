@@ -9,6 +9,8 @@ import 'package:lagoinha_music/pages/MusicianPage/musicianPage%20copy.dart';
 import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class login extends StatefulWidget {
   const login({super.key});
 
@@ -22,6 +24,38 @@ class _LoginStateState extends State<login> {
   TextEditingController emailController = TextEditingController();
 
   TextEditingController passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginState();
+  }
+
+  Future<void> _checkLoginState() async {
+    // Checa se há um usuário salvo nas preferências
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('user_id');
+    String? userType = prefs.getString('tipo');
+
+    if (userId != null && userType != null) {
+      // Redireciona para a página correta com base no tipo de usuário
+      if (userType == 'user') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MusicianPageNewUI(id: userId),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => userMainPage(),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

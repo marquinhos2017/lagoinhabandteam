@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musician.dart';
+import 'package:lagoinha_music/pages/MusicianPage/musicianPageNewUI.dart';
 
 import 'package:lagoinha_music/pages/adminAddtoPlaylist.dart';
 import 'package:lagoinha_music/pages/adminWorshipTeamSelect.dart';
@@ -12,20 +13,58 @@ import 'package:lagoinha_music/pages/userMain.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider with ChangeNotifier {
   String? _userId;
+  int? userid;
 
   String? get userId => _userId;
 
-  void login(String userId) {
-    _userId = userId;
+  AuthProvider() {
+    // Carrega o userId automaticamente ao inicializar o AuthProvider
+    loadUserId();
+  }
+
+  Future<void> loadUserId() async {
+    // Carrega o userId das preferências
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getString('user_id');
+
+    // Converte o userIdString para int, se possível
+    if (_userId != null) {
+      try {
+        userid = int.parse(_userId!);
+      } catch (e) {
+        // Em caso de erro na conversão, definir userid como null
+        userid = null;
+        print('Erro ao converter user_id para int: $e');
+      }
+    } else {
+      userid = null;
+    }
+
+    print(userid);
+
     notifyListeners();
   }
 
-  void logout() {
+  Future<void> login(String userId) async {
+    _userId = userId;
+    notifyListeners();
+
+    // Salva o userId nas preferências
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_id', userId);
+  }
+
+  Future<void> logout() async {
     _userId = null;
     notifyListeners();
+
+    // Remove o userId das preferências
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_id');
   }
 }
 
@@ -132,6 +171,7 @@ class CultosProvider extends ChangeNotifier {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await SharedPreferences.getInstance(); // Inicializa as preferências
   await initializeDateFormatting('pt_BR', null);
 
   runApp(
@@ -147,27 +187,54 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        // Define cores e estilo global para o time picker
-        timePickerTheme: TimePickerThemeData(
-          backgroundColor: const Color.fromARGB(255, 0, 0, 0), // Cor de fundo
-          dialHandColor: Colors.blue, // Cor do ponteiro
-          hourMinuteTextColor: Colors.black, // Cor do texto da hora e minutos
-          dayPeriodTextColor: Colors.black, // Cor do texto do período (AM/PM)
-          dayPeriodColor: Colors.blue, // Cor do fundo do período (AM/PM)
-        ),
-      ),
-      title: 'LWF',
-      home: const login(),
-      routes: {
-        // '/intro_page': (context) => const userMainPage(),
-        // '/adminCultoForm': (context) => adminCultoForm(culto: Culto(nome: n),),
-        //'/MusicianSelect': (context) => MusicianSelect(),
-        //   '/AddtoPlaylist': (context) => AddtoPlaylist(),
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        print("Autasdo: " + authProvider._userId.toString());
+
+        return MaterialApp(
+          theme: ThemeData(
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+              dialHandColor: Colors.blue,
+              hourMinuteTextColor: Colors.black,
+              dayPeriodTextColor: Colors.black,
+              dayPeriodColor: Colors.blue,
+            ),
+          ),
+          title: 'LWF',
+          home: authProvider.userId == null
+              ? const login()
+              : FutureBuilder<QuerySnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('musicos')
+                      .where('user_id', isEqualTo: authProvider.userid)
+                      .get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      print("User_Id: = " + authProvider._userId.toString());
+                      if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                        print("aasdasasdasdasdassd");
+                        // Pega o primeiro documento da consulta
+                        var userData = snapshot.data!.docs.first.data()
+                            as Map<String, dynamic>;
+                        var userType = userData['tipo'];
+
+                        // Redireciona com base no tipo de usuário
+                        if (userType == 'user') {
+                          return MusicianPageNewUI(id: authProvider.userId!);
+                        } else {
+                          return userMainPage();
+                        }
+                      } else {
+                        return Text('Usuário não encontrado');
+                      }
+                    }
+                    return const CircularProgressIndicator();
+                  },
+                ),
+        );
       },
     );
   }

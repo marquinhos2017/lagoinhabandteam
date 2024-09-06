@@ -33,31 +33,41 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
   }
 
   Future<bool> _checkIfChordExists(String documentId) async {
-    final querySnapshot = await _firestore
-        .collection('songs')
-        .where('SongId', isEqualTo: documentId)
-        .get();
-    return querySnapshot.docs.isNotEmpty;
+    try {
+      // Realiza a consulta com base no campo SongId
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('songs')
+          .where('SongId', isEqualTo: documentId)
+          .get();
+
+      // Retorna true se algum documento for encontrado, senão false
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      // Captura qualquer erro, como se a coleção não existir
+      print('Erro ao verificar se o campo SongId existe: $e');
+      return false;
+    }
   }
 
   Future<bool> _checkbpm(String documentId) async {
-    // Consulta o Firestore para encontrar documentos com o SongId fornecido
-    final querySnapshot = await _firestore
-        .collection('songs')
-        .where('SongId', isEqualTo: documentId)
-        .get();
+    try {
+      // Obtém o documento específico pelo documentId
+      final documentSnapshot = await FirebaseFirestore.instance
+          .collection('music_database')
+          .doc(documentId)
+          .get();
 
-    // Verifica se algum documento foi encontrado
-    if (querySnapshot.docs.isNotEmpty) {
-      // Obtém o primeiro documento da consulta
-      final document = querySnapshot.docs.first;
-
-      // Verifica se o campo 'bpm' existe no documento
-      return document.data().containsKey('bpm');
+      // Verifica se o documento existe e se o campo 'bpm' está presente
+      if (documentSnapshot.exists) {
+        return documentSnapshot.data()?.containsKey('bpm') ?? false;
+      } else {
+        // Documento não encontrado
+        return false;
+      }
+    } catch (e) {
+      print('Erro ao verificar o campo bpm: $e');
+      return false;
     }
-
-    // Se nenhum documento foi encontrado, retorna false
-    return false;
   }
 
   Future<bool> _checkIfLetraExists(String documentId) async {
@@ -149,6 +159,9 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                           document.id);
 
                                   bool bpmexist = await _checkbpm(document.id);
+                                  print("Existe BPM?: " + bpmexist.toString());
+                                  print("Existe chord?: " +
+                                      chordExists.toString());
 
                                   showModalBottomSheet(
                                     context: context,
@@ -192,7 +205,7 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                                   );
                                                 },
                                               ),
-                                            if (bpmexist)
+                                            if (chordExists)
                                               ListTile(
                                                 leading: Icon(Icons.search),
                                                 title: Text('Ver Cifra'),
