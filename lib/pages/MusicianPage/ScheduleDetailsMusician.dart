@@ -1409,11 +1409,28 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
               groupedData[name]!.add(item);
             }
 
-            return Container(
-              color: Colors.white,
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: groupedData.entries.map((entry) {
+            // Separar banda e vocais
+            Map<String, List<Map<String, dynamic>>> bandItems = {};
+            Map<String, List<Map<String, dynamic>>> vocalItems = {};
+
+            groupedData.forEach((name, userItems) {
+              bool isVocal = userItems.any((item) =>
+                  item['Instrument'] == 'BV 1' ||
+                  item['Instrument'] == 'BV 2' ||
+                  item['Instrument'] == 'BV 3' ||
+                  item['Instrument'] == 'Ministro');
+
+              if (isVocal) {
+                vocalItems[name] = userItems;
+              } else {
+                bandItems[name] = userItems;
+              }
+            });
+
+            Widget buildUserList(
+                Map<String, List<Map<String, dynamic>>> items) {
+              return Column(
+                children: items.entries.map((entry) {
                   String name = entry.key;
                   List<Map<String, dynamic>> userItems = entry.value;
 
@@ -1499,6 +1516,17 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                     ),
                   );
                 }).toList(),
+              );
+            }
+
+            return Container(
+              color: Colors.white,
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  buildUserList(bandItems), // Exibe a banda primeiro
+                  buildUserList(vocalItems), // Exibe os vocais depois
+                ],
               ),
             );
           },
