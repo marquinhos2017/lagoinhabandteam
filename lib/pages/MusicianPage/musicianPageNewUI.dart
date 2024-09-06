@@ -424,6 +424,28 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
   Widget build(BuildContext context) {
     // Obtenha a data atual
     DateTime now = DateTime.now();
+    int getDayOfYear(DateTime date) {
+      int dayOfYear = 0;
+      for (int i = 1; i < date.month; i++) {
+        dayOfYear += DateTime(date.year, i + 1, 0).day;
+      }
+      dayOfYear += date.day;
+      return dayOfYear;
+    }
+
+    List<String> verses = [
+      "Cantai ao Senhor um cântico novo, cantai ao Senhor, todas as terras. - Salmos 96:1",
+      "Louvem-no com o som da trombeta; louvem-no com a lira e a harpa. - Salmos 150:3",
+      "Bendirei o Senhor em todo tempo, o seu louvor estará sempre nos meus lábios. - Salmos 34:1",
+      // Adicione mais 97 versículos...
+    ];
+
+    String getDailyVerse() {
+      int dayOfYear = getDayOfYear(DateTime.now());
+      int verseIndex = dayOfYear %
+          verses.length; // Para garantir que esteja no intervalo da lista
+      return verses[verseIndex];
+    }
 
     // Formate a data usando DateFormat
     String formattedDate = DateFormat('EEEE, dd MMMM', 'pt_BR').format(now);
@@ -458,8 +480,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                       child: Padding(
                         padding: const EdgeInsets.all(0.0),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(24.0),
@@ -486,12 +506,48 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                             : errorMessage ??
                                                 'Bom dia, ${musicianName?.toCapitalized() ?? 'Músico'}',
                                         style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w500),
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      SizedBox(
+                                        height: 24,
+                                      ),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8.0,
+                                                      vertical: 2),
+                                              child: Text("Verso do Dia"),
+                                            ),
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                border: Border.all(
+                                                    color: Colors.black)),
+                                          ),
+                                          Container(
+                                            width: 180,
+                                            child: Text(
+                                              getDailyVerse(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
                                   Container(
+                                    margin: EdgeInsets.only(top: 30),
                                     child: GestureDetector(
                                       onTap: () {
                                         showModalBottomSheet(
@@ -1020,7 +1076,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Container(
-                                height: 400,
+                                height: 600,
                                 margin: EdgeInsets.only(bottom: 100),
                                 child: FutureBuilder<QuerySnapshot>(
                                   future: FirebaseFirestore.instance
