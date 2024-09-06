@@ -1058,9 +1058,13 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
           Map<String, dynamic> userData =
               userSnapshot.docs.first.data() as Map<String, dynamic>;
           data['name'] = userData['name'] ?? 'Nome não encontrado';
+          data['user_id'] = userData['user_id'] ?? 'ID não encontrado';
+          data['photoUrl'] = userData['photoUrl'] ?? 'ID não encontrado';
           print(userData['name']);
         } else {
           data['name'] = 'Nome não encontrado';
+          data['user_id'] = 'ID não encontrado';
+          data['photoUrl'] = 'ID não encontrado';
         }
 
         userCultoInstrumentsData.add(data);
@@ -1404,15 +1408,16 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 24.0),
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                ProfileAvatar(avatarUrl: item['photoUrl']),
                                 Text(
                                   item['name'].toString().toTitleCase() ??
                                       'Nome desconhecido',
                                   style: GoogleFonts.montserrat(
-                                      textStyle:
-                                          TextStyle(color: Colors.black)),
+                                      textStyle: TextStyle(
+                                          color: Colors.black, fontSize: 12)),
                                 ),
                                 if (item['Instrument'] == "Piano")
                                   Container(
@@ -1843,7 +1848,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
               ),
             ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 24),
           Expanded(child: _buildContent()),
         ],
       ),
@@ -1887,6 +1892,28 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ProfileAvatar extends StatelessWidget {
+  String avatarUrl;
+
+  ProfileAvatar({required this.avatarUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    if (avatarUrl == "") {
+      avatarUrl =
+          "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png";
+    }
+    return CircleAvatar(
+      radius: 25, // Ajuste o tamanho conforme necessário
+      backgroundColor: Colors.grey[200], // Cor de fundo do círculo
+      backgroundImage: NetworkImage(avatarUrl),
+      child: avatarUrl.isEmpty
+          ? CircularProgressIndicator() // Exibe o indicador de carregamento se a URL estiver vazia
+          : null,
     );
   }
 }

@@ -241,31 +241,59 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
     }
   }
 
-  Future<void> _removeMusician(int userId, String idCulto, String id) async {
-    try {
-      await _firestore.collection('Cultos').doc(idCulto).update({
-        'musicos': FieldValue.arrayRemove([
-          {'user_id': userId}
-        ])
-      });
+  Future<void> _removeMusician(
+      int userId, String idCulto, String id, int index) async {
+    print("Removendo: $userId");
+    print("Removendo Culto: $idCulto");
+    print("Removendo Documento: $id");
 
+    try {
+      // Remove o documento da coleção 'user_culto_instrument' usando o id
       final documentRef =
           _firestore.collection('user_culto_instrument').doc(id);
-
-      // Apaga o documento
       await documentRef.delete();
 
+      // Atualiza o array 'musicos' no documento do culto
+      final cultoRef = _firestore.collection('Cultos').doc(idCulto);
+      final cultoDoc = await cultoRef.get();
+
+      if (cultoDoc.exists) {
+        final musicosList = cultoDoc.data()?['musicos'] as List<dynamic>? ?? [];
+
+        if (index < 0 || index >= musicosList.length) {
+          throw Exception('Índice fora do intervalo');
+        }
+
+        // Remove o músico específico pelo índice
+        final updatedMusicosList = List.from(musicosList)..removeAt(index);
+
+        // Atualiza o documento do culto com a lista de músicos modificada
+        await cultoRef.update({
+          'musicos': updatedMusicosList,
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Músico removido com sucesso'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Documento do culto não encontrado'),
+          ),
+        );
+      }
+    } catch (e) {
+      // Feedback para o usuário sobre erro na remoção
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                'Músico e documento de instrumento removidos com sucesso')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao remover músico: $e')),
+          content: Text('Erro ao remover músico: $e'),
+        ),
       );
       print('Erro ao remover músico: $e');
     } finally {
+      // Atualiza o estado do widget, se ainda estiver montado
       if (mounted) {
         setState(() {
           _isProcessing = false;
@@ -594,6 +622,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                       final instrument =
                           musico['instrument'] ?? 'Instrumento não disponível';
                       final id = musico['item'] ?? 'Instrumento não disponível';
+                      print(musicoList);
 
                       return Padding(
                         padding: const EdgeInsets.all(0.0),
@@ -605,6 +634,10 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               GestureDetector(
+                                onTap: () {
+                                  print("Index");
+                                  print(index);
+                                },
                                 onLongPress: () async {
                                   if (_isProcessing || !mounted) return;
 
@@ -613,15 +646,20 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                   });
 
                                   final musicoToRemove = musicoList[index];
+
                                   final userId =
                                       musicoToRemove['user_id'] as int? ?? 0;
                                   final idCulto = widget.documentId;
+                                  print("asdasdasdasdasdasdasda" +
+                                      userId.toString());
 
                                   // Perform removal operation
-                                  print("Removing $id");
+                                  print(
+                                      "Removing da tabela culto_user_isntrument: $id");
 
                                   // Remove from Firestore
-                                  await _removeMusician(userId, idCulto, id);
+                                  await _removeMusician(
+                                      userId, idCulto, id, index);
 
                                   // Update local list after successful Firestore operation
                                   setState(() {
@@ -655,6 +693,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                           // Ensure we're working with the correct list
                                           final musicoToRemove =
                                               musicoList[index];
+                                          print("Musico to Remvoe: " +
+                                              musicoToRemove[index]);
                                           final userId =
                                               musicoToRemove['user_id']
                                                       as int? ??

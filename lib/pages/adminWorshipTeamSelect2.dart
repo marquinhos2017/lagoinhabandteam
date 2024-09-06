@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Importe o pacote intl
 
+// Esse
+
 extension StringCasingExtension on String {
   String toCapitalized() =>
       length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
@@ -267,7 +269,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
 
                                         // Verifica se o músico é "md" ou está na lista de IDs específicos
                                         var isMd = musicoData['role'] == 'md';
-                                        var alwaysIncludedIds = [100, 102];
+                                        var alwaysIncludedIds = [100, 131];
                                         var isAlwaysIncluded = alwaysIncludedIds
                                             .contains(musicoId);
 

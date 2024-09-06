@@ -1,0 +1,203 @@
+Container(
+        height: 220,
+        margin: EdgeInsets.only(top: 20),
+        child: FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('Cultos')
+              .orderBy("date")
+              .get(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('Erro: ${snapshot.error}'));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(child: Text('Nenhum culto encontrado.'));
+            }
+
+            // Obtém todos os documentos
+            List<DocumentSnapshot> docs = snapshot.data!.docs;
+
+            // Obtém o intervalo da semana atual
+            DateTime now = DateTime.now();
+            DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+            DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+
+            // Filtra os documentos para obter apenas os cultos desta semana
+            List<DocumentSnapshot> weeklyDocs = docs.where((doc) {
+              DateTime cultoDate = (doc['date'] as Timestamp).toDate();
+              return cultoDate.isAfter(startOfWeek.subtract(Duration(seconds: 1))) &&
+                  cultoDate.isBefore(endOfWeek.add(Duration(days: 1)));
+            }).toList();
+
+            // Filtra os cultos onde o user_id do músico logado está no array 'musicos'
+            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            int loggedInUserId = authProvider.userId!;
+
+            List<DocumentSnapshot> filteredDocs = weeklyDocs.where((doc) {
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              List<dynamic> musicos = data['musicos'] ?? [];
+
+              // Verifica se o user_id do músico logado está no array 'musicos'
+              return musicos.any((musico) =>
+                  musico['user_id'] == loggedInUserId);
+            }).toList();
+
+            if (filteredDocs.isEmpty) {
+              return Center(child: Text('Nenhum culto para este músico encontrado.'));
+            }
+
+            // Lista para armazenar todas as músicas de todos os cultos filtrados
+            List<List<Map<String, dynamic>>> allMusicDataList =
+                List.generate(filteredDocs.length, (_) => []);
+
+            // Função para carregar as músicas de um culto específico
+            Future<void> loadMusicsForDocument(int docIndex) async {
+              final doc = filteredDocs[docIndex];
+              final data = doc.data() as Map<String, dynamic>;
+              final playlist = data['playlist'] as List<dynamic>?;
+
+              if (playlist != null) {
+                List<Future<DocumentSnapshot>> musicFutures = playlist.map((song) {
+                  String musicDocumentId = song['music_document'] as String;
+                  return FirebaseFirestore.instance
+                      .collection('music_database')
+                      .doc(musicDocumentId)
+                      .get();
+                }).toList();
+
+                List<DocumentSnapshot> musicSnapshots = await Future.wait(musicFutures);
+                List<Map<String, dynamic>> musicDataList = musicSnapshots.map((musicSnapshot) {
+                  if (musicSnapshot.exists) {
+                    Map<String, dynamic> musicData = musicSnapshot.data() as Map<String, dynamic>;
+                    musicData['document_id'] = musicSnapshot.id;
+
+                    // Adiciona o campo 'bpm', 'letra', 'link_audio', e 'key'
+                    musicData['bpm'] = musicData['bpm'] ?? 'Unknown';
+                    musicData['letra'] = musicData['letra'] ?? 'Unknown';
+                    musicData['link_audio'] = musicData['link_audio'] ?? 'Desconhecido';
+                    musicData['key'] = playlist.firstWhere(
+                      (song) => song['music_document'] == musicSnapshot.id,
+                      orElse: () => {'key': 'Key Desconhecida'}
+                    )['key'] ?? 'Key Desconhecida';
+
+                    return musicData;
+                  } else {
+                    return {
+                      'Music': 'Música Desconhecida',
+                      'Author': 'Autor Desconhecido',
+                      'key': 'Key Desconhecida',
+                      'link': 'Link não disponível',
+                      'document_id': '',
+                    };
+                  }
+                }).toList();
+
+                allMusicDataList[docIndex] = musicDataList;
+              }
+            }
+
+            // Carregar as músicas para todos os documentos
+            Future<void> loadAllMusics() async {
+              for (int i = 0; i < filteredDocs.length; i++) {
+                await loadMusicsForDocument(i);
+              }
+            }
+
+            return FutureBuilder<void>(
+              future: loadAllMusics(),
+              builder: (context, musicSnapshot) {
+                if (musicSnapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                if (musicSnapshot.hasError) {
+                  return Center(child: Text('Erro ao carregar músicas'));
+                }
+
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(filteredDocs.length, (index) {
+                        bool isSelected = _selectedIndex == index;
+                        DocumentSnapshot doc = filteredDocs[index];
+                        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                        DateTime cultoDate = (data['date'] as Timestamp).toDate();
+
+                        String horario = data['horario'] ?? '';
+
+                        return FutureBuilder<String>(
+                          future: loadInstrumentForDocument(widget.id, doc.id),
+                          builder: (context, instrumentSnapshot) {
+                            String instrumentText = 'Instrumento Desconhecido';
+                            if (instrumentSnapshot.connectionState == ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+
+                            if (instrumentSnapshot.hasData) {
+                              instrumentText = instrumentSnapshot.data!;
+                            } else if (instrumentSnapshot.hasError) {
+                              print('Erro ao carregar instrumento: ${instrumentSnapshot.error}');
+                            }
+
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (context, animation, secondaryAnimation) => ScheduleDetailsMusician(
+                                      documents: filteredDocs,
+                                      id: doc.id,
+                                      currentIndex: index,
+                                      musics: allMusicDataList,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                margin: EdgeInsets.symmetric(horizontal: 8.0),
+                                padding: EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? Colors.blue : Colors.white,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.3),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      DateFormat('dd MMMM yyyy').format(cultoDate),
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    Text('Horário: $horario'),
+                                    Text('Instrumento: $instrumentText'),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),

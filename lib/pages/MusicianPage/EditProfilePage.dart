@@ -6,7 +6,15 @@ import 'dart:io';
 
 import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/pages/MusicianPage/musicianPageNewUI.dart';
+import 'package:lagoinha_music/pages/adminWorshipTeamSelect2.dart';
 import 'package:provider/provider.dart';
+
+String capitalize(String text) {
+  if (text == null || text.isEmpty) {
+    return text;
+  }
+  return text[0].toUpperCase() + text.substring(1).toLowerCase();
+}
 
 class EditProfilePage extends StatefulWidget {
   final String userId;
@@ -89,6 +97,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  // Na página de edição
   void _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -97,11 +106,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       try {
         if (_profileImage != null) {
-          // Se uma nova imagem foi selecionada, faça o upload para o Firebase Storage
           await _uploadImageToFirebase();
         }
 
-        // Atualizar outros dados no Firestore
         await FirebaseFirestore.instance
             .collection('musicos')
             .doc(_documentId)
@@ -113,12 +120,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           'ver_formulario': false,
         });
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MusicianPageNewUI(id: widget.userId),
-          ),
-        );
+        Navigator.pop(context, true); // Indica que os dados foram atualizados
       } catch (e) {
         print('Erro ao salvar perfil: $e');
       } finally {
@@ -132,8 +134,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Editar Perfil'),
+        title: Text('Seu Perfil'),
+        backgroundColor: Colors.transparent,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -143,9 +147,73 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 key: _formKey,
                 child: ListView(
                   children: [
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
+                        radius: 75, // Ajuste o raio conforme necessário
+                        backgroundColor: Colors
+                            .grey[200], // Cor de fundo quando não há imagem
+                        backgroundImage: _profileImage != null
+                            ? FileImage(_profileImage!)
+                            : _photoUrl.isNotEmpty
+                                ? NetworkImage(_photoUrl)
+                                    as ImageProvider<Object>
+                                : null,
+                        child: _profileImage == null && _photoUrl.isEmpty
+                            ? Icon(
+                                Icons.camera_alt,
+                                size: 50,
+                                color: Colors.grey[800],
+                              )
+                            : null,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 12,
+                    ),
+                    Center(
+                        child: Text(
+                      _nameController.text.toCapitalized(),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    )),
+                    Center(
+                      child: Text(
+                        _instrumentController.text,
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 42,
+                    ),
                     TextFormField(
                       controller: _nameController,
-                      decoration: InputDecoration(labelText: 'Nome'),
+                      decoration: InputDecoration(
+                        labelText: 'Nome',
+                        fillColor: Color(0xfff7f6f9), // Cor do fundo
+                        filled: true, // Habilita a cor de fundo
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              8.0), // Arredondamento dos cantos
+                          borderSide: BorderSide.none, // Remove a borda padrão
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(
+                              color: Colors
+                                  .blue), // Cor da borda quando o campo está focado
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(
+                              color: Colors
+                                  .grey), // Cor da borda quando o campo está habilitado
+                        ),
+                        suffixIcon: Icon(
+                          Icons.person, // Ícone que você deseja adicionar
+                          color: Colors.grey[600], size: 12, // Cor do ícone
+                        ),
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor, insira o nome';
@@ -153,9 +221,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         return null;
                       },
                     ),
+                    SizedBox(
+                      height: 24,
+                    ),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: InputDecoration(labelText: 'Senha'),
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(
+                          Icons.lock,
+                          size: 12,
+                        ),
+                        labelText: 'Senha',
+                        fillColor: Color(0xfff7f6f9), // Cor do fundo
+                        filled: true, // Habilita a cor de fundo
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              8.0), // Arredondamento dos cantos
+                          borderSide: BorderSide.none, // Remove a borda padrão
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(
+                              color: Colors
+                                  .blue), // Cor da borda quando o campo está focado
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(
+                              color: Colors
+                                  .grey), // Cor da borda quando o campo está habilitado
+                        ),
+                      ),
                       obscureText: true,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -164,9 +260,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         return null;
                       },
                     ),
+                    SizedBox(
+                      height: 24,
+                    ),
                     TextFormField(
                       controller: _instrumentController,
-                      decoration: InputDecoration(labelText: 'Instrumento'),
+                      decoration: InputDecoration(
+                        labelText: 'Instrumento',
+                        fillColor: Colors.grey[200], // Cor do fundo
+                        filled: true, // Habilita a cor de fundo
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              8.0), // Arredondamento dos cantos
+                          borderSide: BorderSide.none, // Remove a borda padrão
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(
+                              color: Colors
+                                  .blue), // Cor da borda quando o campo está focado
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(
+                              color: Colors
+                                  .grey), // Cor da borda quando o campo está habilitado
+                        ),
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Por favor, insira o instrumento';
@@ -174,15 +294,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         return null;
                       },
                     ),
+                    SizedBox(
+                      height: 24,
+                    ),
                     SizedBox(height: 20),
-                    GestureDetector(
+
+                    /* GestureDetector(
                       onTap: _pickImage,
                       child: _profileImage == null
                           ? (_photoUrl.isNotEmpty
                               ? Image.network(_photoUrl, height: 150)
                               : Text('Nenhuma foto selecionada'))
                           : Image.file(_profileImage!, height: 150),
-                    ),
+                    ),*/
                     SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _saveProfile,

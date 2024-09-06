@@ -93,14 +93,14 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.white,
         title: Text(
           "Banco de Cançōes",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black),
         ),
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -112,7 +112,7 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
               child: Text(
                 "Cançōes",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -141,231 +141,244 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            width: 320,
-                            child: ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              trailing: ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                      Colors.transparent),
-                                ),
-                                onPressed: () async {
-                                  bool chordExists =
-                                      await _checkIfChordExists(document.id);
-                                  bool letraExists =
-                                      await _checkIfLetraExists(document.id);
-                                  bool timestampsExist =
-                                      await _checkIfTimestampsExist(
-                                          document.id);
+                            child: Expanded(
+                              child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                trailing: ElevatedButton(
+                                  style: ButtonStyle(
+                                    elevation: WidgetStateProperty.all(0),
+                                    foregroundColor: WidgetStateProperty.all(
+                                        Colors.transparent),
+                                    backgroundColor: WidgetStateProperty.all(
+                                        Colors.transparent),
+                                  ),
+                                  onPressed: () async {
+                                    bool chordExists =
+                                        await _checkIfChordExists(document.id);
+                                    bool letraExists =
+                                        await _checkIfLetraExists(document.id);
+                                    bool timestampsExist =
+                                        await _checkIfTimestampsExist(
+                                            document.id);
 
-                                  bool bpmexist = await _checkbpm(document.id);
-                                  print("Existe BPM?: " + bpmexist.toString());
-                                  print("Existe chord?: " +
-                                      chordExists.toString());
+                                    bool bpmexist =
+                                        await _checkbpm(document.id);
+                                    print(
+                                        "Existe BPM?: " + bpmexist.toString());
+                                    print("Existe chord?: " +
+                                        chordExists.toString());
 
-                                  showModalBottomSheet(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return Container(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: <Widget>[
-                                            if (bpmexist)
-                                              ListTile(
-                                                leading: Icon(Icons.search),
-                                                title: Text('Alterar BPM'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          BPMSelectorPage(
-                                                        documentId: document.id,
+                                    showModalBottomSheet(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return Container(
+                                          padding: EdgeInsets.all(16.0),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: <Widget>[
+                                              if (bpmexist)
+                                                ListTile(
+                                                  leading: Icon(Icons.search),
+                                                  title: Text('Alterar BPM'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            BPMSelectorPage(
+                                                          documentId:
+                                                              document.id,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              )
-                                            else
-                                              ListTile(
-                                                leading: Icon(Icons.add),
-                                                title: Text('Adicionar BPM'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          BPMSelectorPage(
-                                                        documentId: document.id,
+                                                    );
+                                                  },
+                                                )
+                                              else
+                                                ListTile(
+                                                  leading: Icon(Icons.add),
+                                                  title: Text('Adicionar BPM'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            BPMSelectorPage(
+                                                          documentId:
+                                                              document.id,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            if (chordExists)
-                                              ListTile(
-                                                leading: Icon(Icons.search),
-                                                title: Text('Ver Cifra'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          VerCifra(
-                                                        documentId: document.id,
-                                                        isAdmin: true,
+                                                    );
+                                                  },
+                                                ),
+                                              if (chordExists)
+                                                ListTile(
+                                                  leading: Icon(Icons.search),
+                                                  title: Text('Ver Cifra'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            VerCifra(
+                                                          documentId:
+                                                              document.id,
+                                                          isAdmin: true,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              )
-                                            else
-                                              ListTile(
-                                                leading: Icon(Icons.add),
-                                                title: Text('Adicionar Cifra'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          AddSongPage(
-                                                        title: data['Music'],
-                                                        document_id:
-                                                            document.id,
+                                                    );
+                                                  },
+                                                )
+                                              else
+                                                ListTile(
+                                                  leading: Icon(Icons.add),
+                                                  title:
+                                                      Text('Adicionar Cifra'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            AddSongPage(
+                                                          title: data['Music'],
+                                                          document_id:
+                                                              document.id,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            if (!letraExists)
-                                              ListTile(
-                                                leading: Icon(Icons.add),
-                                                title: Text('Adicionar Letra'),
-                                                onTap: () {
-                                                  print(document.id);
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          AddLetraPage(
-                                                        title: data['Music'],
-                                                        document_id:
-                                                            document.id,
+                                                    );
+                                                  },
+                                                ),
+                                              if (!letraExists)
+                                                ListTile(
+                                                  leading: Icon(Icons.add),
+                                                  title:
+                                                      Text('Adicionar Letra'),
+                                                  onTap: () {
+                                                    print(document.id);
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            AddLetraPage(
+                                                          title: data['Music'],
+                                                          document_id:
+                                                              document.id,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              )
-                                            else
-                                              ListTile(
-                                                leading:
-                                                    Icon(Icons.remove_red_eye),
-                                                title: Text('Ver Letra'),
-                                                onTap: () {
-                                                  print(document.id);
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          Verletra(
-                                                        isAdmin: false,
-                                                        documentId: document.id,
+                                                    );
+                                                  },
+                                                )
+                                              else
+                                                ListTile(
+                                                  leading: Icon(
+                                                      Icons.remove_red_eye),
+                                                  title: Text('Ver Letra'),
+                                                  onTap: () {
+                                                    print(document.id);
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            Verletra(
+                                                          isAdmin: false,
+                                                          documentId:
+                                                              document.id,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            if (timestampsExist)
-                                              ListTile(
-                                                leading: Icon(Icons.add),
-                                                title: Text(
-                                                    'Adicionar Timestamps e Letras'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          AddTimestampsPage(
-                                                        title: data['Music'],
-                                                        document_id:
-                                                            document.id,
+                                                    );
+                                                  },
+                                                ),
+                                              if (timestampsExist)
+                                                ListTile(
+                                                  leading: Icon(Icons.add),
+                                                  title: Text(
+                                                      'Adicionar Timestamps e Letras'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            AddTimestampsPage(
+                                                          title: data['Music'],
+                                                          document_id:
+                                                              document.id,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            if (!timestampsExist)
-                                              ListTile(
-                                                leading: Icon(Icons.add),
-                                                title: Text(
-                                                    'Adicionar Timestamps e Letras'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          AddTimestampsPage(
-                                                        title: data['Music'],
-                                                        document_id:
-                                                            document.id,
+                                                    );
+                                                  },
+                                                ),
+                                              if (!timestampsExist)
+                                                ListTile(
+                                                  leading: Icon(Icons.add),
+                                                  title: Text(
+                                                      'Adicionar Timestamps e Letras'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            AddTimestampsPage(
+                                                          title: data['Music'],
+                                                          document_id:
+                                                              document.id,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              )
-                                            else
-                                              ListTile(
-                                                leading:
-                                                    Icon(Icons.remove_red_eye),
-                                                title: Text(
-                                                    'Ver Timestamps e Letras'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          ViewTimestampsPage(
-                                                        documentId: document.id,
+                                                    );
+                                                  },
+                                                )
+                                              else
+                                                ListTile(
+                                                  leading: Icon(
+                                                      Icons.remove_red_eye),
+                                                  title: Text(
+                                                      'Ver Timestamps e Letras'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            ViewTimestampsPage(
+                                                          documentId:
+                                                              document.id,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Icon(
-                                  Icons.more_horiz,
-                                  color: Color(0xff4465D9),
+                                                    );
+                                                  },
+                                                ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Icon(
+                                    Icons.more_vert,
+                                    color: Color.fromARGB(255, 27, 27, 27),
+                                  ),
                                 ),
-                              ),
-                              title: Text(
-                                data['Music'] ?? 'No artist',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                                title: Text(
+                                  data['Music'] ?? 'No artist',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                              subtitle: Text(
-                                data['Author'] ?? 'No title',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w200,
+                                subtitle: Text(
+                                  data['Author'] ?? 'No title',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w200,
+                                  ),
                                 ),
                               ),
                             ),

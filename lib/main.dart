@@ -60,11 +60,24 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     _userId = null;
+    userid = null; // Limpa também o userid convertido para int
     notifyListeners();
 
     // Remove o userId das preferências
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_id');
+
+    // Limpa outros caches ou dados específicos do usuário aqui
+    await clearUserCache();
+
+    // Navegar para a tela inicial ou de login
+  }
+
+  Future<void> clearUserCache() async {
+    // Implementar lógica para limpar outros caches, se necessário
+    // Exemplo:
+    // - Limpar dados temporários
+    // - Resetar qualquer estado relacionado ao usuário
   }
 }
 
