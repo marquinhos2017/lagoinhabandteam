@@ -164,7 +164,7 @@ class _userMainPageState extends State<userMainPage> {
   Widget build(BuildContext context) {
     DocumentSnapshot? proximoCulto = _findProximoCulto();
     var scaffoldKey = GlobalKey<ScaffoldState>();
-    CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
+    //CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
     final TextEditingController dataController = TextEditingController();
     String servicename = '';
     String dataselecionada = "";

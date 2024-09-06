@@ -284,43 +284,45 @@ class _KeySelectorGridState extends State<KeySelectorGrid> {
 
     return SizedBox(
       width: 200, // Specify a width for the grid
-      height: 200, // Specify a height for the grid
-      child: GridView.builder(
-        shrinkWrap: true, // Allow the grid to be as small as possible
-        physics: NeverScrollableScrollPhysics(), // Disable scrolling
-        itemCount: keys.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, // Number of columns in the grid
-          mainAxisSpacing: 10.0,
-          crossAxisSpacing: 10.0,
-        ),
-        itemBuilder: (context, index) {
-          final key = keys[index];
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedKey = key; // Update the selected key
-              });
-              widget.onSelect(key);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: key == selectedKey ? Colors.blue : Colors.grey[800],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Center(
-                child: Text(
-                  key,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+      height: 400, // Specify a height for the grid
+      child: Center(
+        child: GridView.builder(
+          shrinkWrap: true, // Allow the grid to be as small as possible
+          physics: NeverScrollableScrollPhysics(), // Disable scrolling
+          itemCount: keys.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3, // Number of columns in the grid
+            mainAxisSpacing: 10.0,
+            crossAxisSpacing: 10.0,
+          ),
+          itemBuilder: (context, index) {
+            final key = keys[index];
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedKey = key; // Update the selected key
+                });
+                widget.onSelect(key);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: key == selectedKey ? Colors.blue : Colors.grey[800],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Center(
+                  child: Text(
+                    key,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

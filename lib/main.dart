@@ -13,6 +13,22 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+class AuthProvider with ChangeNotifier {
+  String? _userId;
+
+  String? get userId => _userId;
+
+  void login(String userId) {
+    _userId = userId;
+    notifyListeners();
+  }
+
+  void logout() {
+    _userId = null;
+    notifyListeners();
+  }
+}
+
 class CultosProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Culto> _cultos = [];
@@ -121,7 +137,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => CultosProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: MyApp(),
     ),

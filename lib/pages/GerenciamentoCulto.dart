@@ -505,7 +505,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
           margin: EdgeInsets.only(right: 24),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
-            child: Image(height: 100, image: AssetImage("assets/" + a)),
+            child: Image(height: 50, image: AssetImage("assets/" + a)),
           ),
         ),
       ),
@@ -567,13 +567,20 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
 
             return Container(
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(60),
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black, width: 1)),
+                borderRadius: BorderRadius.circular(60),
+                color: Colors.white,
+                //     border: Border.all(color: Colors.black, width: 1)),
+              ),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
-                child: ListView.builder(
+                    const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0),
+                child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 6.0,
+                        mainAxisSpacing: 24.0,
+                        childAspectRatio: 2.5,
+                        mainAxisExtent: 60),
                     padding: EdgeInsets.zero,
                     itemCount: musicoList.length,
                     shrinkWrap: true,
@@ -589,14 +596,42 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                       final id = musico['item'] ?? 'Instrumento não disponível';
 
                       return Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(0.0),
                         child: Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black)),
                           child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               GestureDetector(
+                                onLongPress: () async {
+                                  if (_isProcessing || !mounted) return;
+
+                                  setState(() {
+                                    _isProcessing = true;
+                                  });
+
+                                  final musicoToRemove = musicoList[index];
+                                  final userId =
+                                      musicoToRemove['user_id'] as int? ?? 0;
+                                  final idCulto = widget.documentId;
+
+                                  // Perform removal operation
+                                  print("Removing $id");
+
+                                  // Remove from Firestore
+                                  await _removeMusician(userId, idCulto, id);
+
+                                  // Update local list after successful Firestore operation
+                                  setState(() {
+                                    musicoList.removeAt(index);
+                                    _isProcessing = false;
+                                  });
+                                },
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Expanded(
                                       child: Dismissible(
@@ -645,9 +680,11 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                         child: ClipRect(
                                           child: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.start,
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
                                             children: [
-                                              if (instrument == "Piano")
+                                              /*    if (instrument == "Piano")
                                                 Container(
                                                   margin: EdgeInsets.only(
                                                       right: 24),
@@ -671,7 +708,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                         BorderRadius.circular(
                                                             12),
                                                     child: Image(
-                                                        height: 50,
+                                                        height: 25,
                                                         image: AssetImage(
                                                             "assets/" +
                                                                 "drum.png")),
@@ -751,7 +788,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                             "assets/" +
                                                                 "guitarra.png")),
                                                   ),
-                                                ),
+                                                ),*/
                                               Column(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.start,
@@ -794,7 +831,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                       ),
                                                     ),
                                                   ),*/
-                                                  IconButton(
+                                                  /*            IconButton(
                                                     icon: Icon(Icons.delete,
                                                         color: Colors.red),
                                                     onPressed: () async {
@@ -830,6 +867,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                       });
                                                     },
                                                   ),
+                                        */
                                                 ],
                                               ),
                                             ],
@@ -857,7 +895,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
   Widget build(BuildContext context) {
     print(widget.documentId);
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-    final cultosProvider = Provider.of<CultosProvider>(context);
+    // final cultosProvider = Provider.of<CultosProvider>(context);
 
     return Scaffold(
       key: scaffoldKey,
@@ -2133,13 +2171,13 @@ class _UploadPageState extends State<UploadPage> {
   String? _downloadURL;
   String? _cultoEspecifico;
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   void initState() {
     super.initState();
     _cultoEspecifico = widget.culto;
   }
-
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -2147,6 +2185,7 @@ class _UploadPageState extends State<UploadPage> {
     if (result != null) {
       setState(() {
         _file = File(result.files.single.path!);
+        _uploadFile();
       });
     }
   }
@@ -2162,7 +2201,6 @@ class _UploadPageState extends State<UploadPage> {
     String fileName = _file!.path.split('/').last;
     Reference storageRef =
         FirebaseStorage.instance.ref().child('uploads/$fileName');
-
     UploadTask uploadTask = storageRef.putFile(_file!);
 
     uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
@@ -2174,32 +2212,86 @@ class _UploadPageState extends State<UploadPage> {
     try {
       await uploadTask;
 
-      // Obter a URL de download
       String downloadURL = await storageRef.getDownloadURL();
       setState(() {
         _downloadURL = downloadURL;
       });
 
-      // Salvar a URL do arquivo, o culto_especifico, e o nome do arquivo no Firestore
       await _firestore.collection('arquivos').add({
         'arquivo_url': downloadURL,
         'culto_especifico': _cultoEspecifico,
-        'nome_arquivo': fileName, // Salvando o nome do arquivo
-        'created_at':
-            Timestamp.now(), // Campo opcional para armazenar a data de criação
+        'nome_arquivo': fileName,
+        'created_at': Timestamp.now(),
       });
 
-      print('File uploaded and saved to Firestore: $downloadURL');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('File uploaded and saved to Firestore: $downloadURL')),
+      );
     } catch (e) {
       print('Upload failed: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading file')),
+      );
+    } finally {
+      setState(() {
+        _uploading = false;
+        _progress = 0;
+        _file = null;
+        _cultoEspecifico = null;
+      });
     }
+  }
 
-    setState(() {
-      _uploading = false;
-      _progress = 0;
-      _file = null;
-      _cultoEspecifico = null;
-    });
+  void _showUploadDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _uploading
+                    ? Column(
+                        children: [
+                          SizedBox(
+                            height: 100,
+                            width: 100,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 6,
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          Text('${_progress.toStringAsFixed(2)}% uploaded'),
+                        ],
+                      )
+                    : GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                          _pickFile(); // Open file picker
+                        },
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.blue,
+                          ),
+                          child: Icon(
+                            Icons.upload_file,
+                            color: Colors.white,
+                            size: 50,
+                          ),
+                        ),
+                      ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -2208,60 +2300,43 @@ class _UploadPageState extends State<UploadPage> {
       appBar: AppBar(
         title: Text('Upload and Save to Firestore'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (_file != null)
-              Text('Selected file: ${_file!.path.split('/').last}'),
-            SizedBox(height: 20),
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  _cultoEspecifico = widget.culto;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'Culto Específico',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _pickFile,
-              child: Text('Pick File'),
-            ),
-            SizedBox(height: 20),
             _uploading
                 ? Column(
                     children: [
-                      LinearProgressIndicator(value: _progress / 100),
+                      SizedBox(
+                        height: 100,
+                        width: 100,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 6,
+                        ),
+                      ),
                       SizedBox(height: 20),
                       Text('${_progress.toStringAsFixed(2)}% uploaded'),
                     ],
                   )
-                : ElevatedButton(
-                    onPressed: _uploadFile,
-                    child: Text('Upload and Save'),
-                  ),
-            SizedBox(height: 20),
-            if (_downloadURL != null)
-              Column(
-                children: [
-                  Text('Download URL:'),
-                  GestureDetector(
+                : GestureDetector(
                     onTap: () {
-                      // Código para abrir a URL
+                      //  Navigator.of(context).pop(); // Close the dialog
+                      _pickFile(); // Open file picker
                     },
-                    child: Text(
-                      _downloadURL!,
-                      style: TextStyle(
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.blue,
+                      ),
+                      child: Icon(
+                        Icons.upload_file,
+                        color: Colors.white,
+                        size: 50,
+                      ),
                     ),
                   ),
-                ],
-              ),
           ],
         ),
       ),

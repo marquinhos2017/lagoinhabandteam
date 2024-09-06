@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lagoinha_music/pages/AddLetraPage.dart';
 import 'package:lagoinha_music/pages/AddSongPage.dart';
 import 'package:lagoinha_music/pages/MusicDataBase/AddTimestampsPage.dart';
+import 'package:lagoinha_music/pages/MusicDataBase/BPMSelectionPage.dart';
 import 'package:lagoinha_music/pages/MusicDataBase/ViewTimestampsPage.dart';
 import 'package:lagoinha_music/pages/MusicianPage/VerLetra.dart';
 import 'package:lagoinha_music/pages/VerCifra.dart';
@@ -37,6 +38,26 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
         .where('SongId', isEqualTo: documentId)
         .get();
     return querySnapshot.docs.isNotEmpty;
+  }
+
+  Future<bool> _checkbpm(String documentId) async {
+    // Consulta o Firestore para encontrar documentos com o SongId fornecido
+    final querySnapshot = await _firestore
+        .collection('songs')
+        .where('SongId', isEqualTo: documentId)
+        .get();
+
+    // Verifica se algum documento foi encontrado
+    if (querySnapshot.docs.isNotEmpty) {
+      // Obtém o primeiro documento da consulta
+      final document = querySnapshot.docs.first;
+
+      // Verifica se o campo 'bpm' existe no documento
+      return document.data().containsKey('bpm');
+    }
+
+    // Se nenhum documento foi encontrado, retorna false
+    return false;
   }
 
   Future<bool> _checkIfLetraExists(String documentId) async {
@@ -127,6 +148,8 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                       await _checkIfTimestampsExist(
                                           document.id);
 
+                                  bool bpmexist = await _checkbpm(document.id);
+
                                   showModalBottomSheet(
                                     context: context,
                                     builder: (BuildContext context) {
@@ -135,7 +158,41 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: <Widget>[
-                                            if (chordExists)
+                                            if (bpmexist)
+                                              ListTile(
+                                                leading: Icon(Icons.search),
+                                                title: Text('Alterar BPM'),
+                                                onTap: () {
+                                                  Navigator.pop(context);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          BPMSelectorPage(
+                                                        documentId: document.id,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            else
+                                              ListTile(
+                                                leading: Icon(Icons.add),
+                                                title: Text('Adicionar BPM'),
+                                                onTap: () {
+                                                  Navigator.pop(context);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          BPMSelectorPage(
+                                                        documentId: document.id,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            if (bpmexist)
                                               ListTile(
                                                 leading: Icon(Icons.search),
                                                 title: Text('Ver Cifra'),

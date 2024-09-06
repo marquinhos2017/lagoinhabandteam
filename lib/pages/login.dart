@@ -25,17 +25,10 @@ class _LoginStateState extends State<login> {
 
   @override
   Widget build(BuildContext context) {
-    CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
-    int index = cultosProvider.musician
-        .indexWhere((musician) => musician.name == "Marcos Rodrigues");
-    bool exists = cultosProvider.musician
-        .any((musician) => musician.name == "Marcos Rodrigues");
-    print(exists);
-    print(index);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "",
           style: TextStyle(color: Colors.white),
         ),
@@ -53,74 +46,6 @@ class _LoginStateState extends State<login> {
                 fit: BoxFit.cover, // Ajusta a imagem para cobrir o container
               ),
             ),
-            /*     StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('Cultos').where(
-                  'musicos',
-                  arrayContains: {'name': 'Marcos'}).snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-        
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Text('Não há cultos com Marcos'),
-                  );
-                }
-        
-                return ListView.builder(
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    var cultoDoc = snapshot.data!.docs[index];
-                    var cultoData = cultoDoc.data() as Map<String, dynamic>;
-                    var cultoName = cultoData['nome'] ?? '';
-        
-                    return ListTile(
-                      title: Text(cultoName),
-                      // Adicione mais campos conforme necessário
-                    );
-                  },
-                );
-              },
-            ),*/
-            /*
-            Container(
-              height: 200,
-              child: StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance.collection('Cultos').snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-        
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(
-                      child: Text('Nenhum culto encontrado'),
-                    );
-                  }
-        
-                  return ListView.builder(
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (context, index) {
-                      var culto = snapshot.data!.docs[index];
-                      var cultoData = culto.data() as Map<String, dynamic>;
-        
-                      return ListTile(
-                        title: Text(cultoData['nome'] ?? ''),
-                        subtitle: Text(
-                            'Data: ${cultoData['data']}'), // Substitua 'data' pelo campo correto
-                        // Adicione mais campos conforme necessário
-                      );
-                    },
-                  );
-                },
-              ),
-            ),*/
             Form(
               key: _formKey,
               child: Column(
@@ -135,7 +60,7 @@ class _LoginStateState extends State<login> {
                         children: [
                           Container(
                             height: 70,
-                            child: Text(
+                            child: const Text(
                               "LM",
                               style: TextStyle(
                                 color: Colors.white,
@@ -145,7 +70,7 @@ class _LoginStateState extends State<login> {
                               ),
                             ),
                           ),
-                          Text(
+                          const Text(
                             "faro",
                             style: TextStyle(
                                 letterSpacing: 14,
@@ -158,36 +83,32 @@ class _LoginStateState extends State<login> {
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.only(top: 40),
+                    margin: const EdgeInsets.only(top: 40),
                     child: Column(
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 16),
                           child: TextFormField(
-                            style: TextStyle(color: Colors.black),
+                            style: const TextStyle(color: Colors.black),
                             controller: emailController,
                             decoration: const InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.black), // Borda branca
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(20)),
-                                  borderSide: BorderSide(
-                                      color: Colors
-                                          .black), // Borda branca quando o campo está habilitado
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(20)),
-                                  borderSide: BorderSide(
-                                      color: Colors
-                                          .black), // Borda branca quando o campo está focado
-                                ),
-                                labelText: "Usuario",
-                                labelStyle: TextStyle(color: Colors.black)),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                                borderSide: BorderSide(color: Colors.black),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                                borderSide: BorderSide(color: Colors.black),
+                              ),
+                              labelText: "Usuario",
+                              labelStyle: TextStyle(color: Colors.black),
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor insira seu usuario';
@@ -200,30 +121,26 @@ class _LoginStateState extends State<login> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 16),
                           child: TextFormField(
-                            style: TextStyle(color: Colors.black),
+                            style: const TextStyle(color: Colors.black),
                             controller: passwordController,
                             obscureText: true,
                             decoration: const InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.black), // Borda branca
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(20)),
-                                  borderSide: BorderSide(
-                                      color: Colors
-                                          .black), // Borda branca quando o campo está habilitado
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(20)),
-                                  borderSide: BorderSide(
-                                      color: Colors
-                                          .black), // Borda branca quando o campo está focado
-                                ),
-                                labelText: "Senha",
-                                labelStyle: TextStyle(color: Colors.black)),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                                borderSide: BorderSide(color: Colors.black),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                                borderSide: BorderSide(color: Colors.black),
+                              ),
+                              labelText: "Senha",
+                              labelStyle: TextStyle(color: Colors.black),
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your password';
@@ -242,38 +159,18 @@ class _LoginStateState extends State<login> {
                       height: 48,
                       width: 400,
                       decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black26,
-                              offset: Offset(0, 4),
-                              blurRadius: 5.0)
-                        ],
-                        /*
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          stops: [0.0, 1.0],
-                          colors: [
-                            Color(0xff41AA5C),
-                            Color(0xff558FFF),
-                          ],
-                        ),*/
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: ElevatedButton(
                         style: ButtonStyle(
                           foregroundColor:
-                              WidgetStateProperty.all(Colors.white),
+                              MaterialStateProperty.all(Colors.white),
                           backgroundColor:
-                              WidgetStateProperty.all(Colors.transparent),
-                          // elevation: MaterialStateProperty.all(3),
-                          shadowColor:
-                              WidgetStateProperty.all(Colors.transparent),
+                              MaterialStateProperty.all(Colors.transparent),
                         ),
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            // Verifica se o e-mail está presente no banco de dados
                             QuerySnapshot querySnapshot =
                                 await FirebaseFirestore.instance
                                     .collection('musicos')
@@ -282,27 +179,28 @@ class _LoginStateState extends State<login> {
                                     .get();
 
                             if (querySnapshot.docs.isNotEmpty) {
-                              // E-mail encontrado
-                              // Verifica se a senha está correta
                               DocumentSnapshot musicianDoc =
                                   querySnapshot.docs[0];
                               Map<String, dynamic> musicianData =
                                   musicianDoc.data() as Map<String, dynamic>;
+
                               if (musicianData['password'] ==
                                   passwordController.text) {
-                                // Senha correta
-                                // Navegue para a página correta com base no tipo de usuário
+                                // Salva o user_id no AuthProvider
+                                Provider.of<AuthProvider>(context,
+                                        listen: false)
+                                    .login(musicianData['user_id'].toString());
+
                                 String musicianType = musicianData['tipo'];
                                 if (musicianType == 'user') {
                                   Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => MusicianPageNewUI(
-                                            id: musicianData['user_id']
-                                                .toString())),
-
-                                    (Route<dynamic> route) =>
-                                        false, // Remove todas as rotas existentes
+                                      builder: (context) => MusicianPageNewUI(
+                                        id: musicianData['user_id'].toString(),
+                                      ),
+                                    ),
+                                    (Route<dynamic> route) => false,
                                   );
                                 } else {
                                   Navigator.push(
@@ -313,18 +211,16 @@ class _LoginStateState extends State<login> {
                                 }
                               } else {
                                 // Senha incorreta
-                                print('Senha incorreta');
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content: Text('Senha incorreta')),
                                 );
                               }
                             } else {
-                              // E-mail não encontrado
-                              print('Usuario não encontrado');
+                              // Usuario não encontrado
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('E-mail não encontrado')),
+                                    content: Text('Usuario não encontrado')),
                               );
                             }
                           } else {

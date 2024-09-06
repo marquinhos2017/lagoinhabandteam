@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lagoinha_music/main.dart';
 import 'package:lagoinha_music/pages/MusicianPage/EditProfilePage.dart';
 import 'package:lagoinha_music/pages/MusicianPage/ScheduleDetailsMusician.dart';
 import 'package:lagoinha_music/pages/MusicianPage/afinador.dart';
@@ -13,6 +14,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:pitch_detector_dart/pitch_detector.dart';
 import 'package:pitchupdart/instrument_type.dart';
 import 'package:pitchupdart/pitch_handler.dart';
+import 'package:provider/provider.dart';
 
 class BoolStringPair {
   bool booleanValue;
@@ -97,6 +99,45 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
     verificarVerFormulario();
     _fetchMusicianByUsrId();
+  }
+
+  Future<void> _navigateAndReload() async {
+    // Navega para a página de edição e aguarda o retorno
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => EditProfilePage(
+                userId: widget.id,
+              )),
+    );
+
+    // Verifica se o resultado foi 'true' (se a página de edição retornou algo)
+    if (result == true) {
+      // Chama a função que carrega novamente os dados
+      _reloadData();
+    }
+  }
+
+  Future<void> _reloadData() async {
+    setState(() {
+      isLoading = true; // Mostrar um indicador de carregamento se necessário
+    });
+
+    try {
+      // Aqui você pode chamar as funções que recarregam os dados
+      await _fetchMusicianByUsrId(); // Função que busca os dados do Firestore
+      await contarCultosDoUsuario(); // Recarregar as contagens de cultos, por exemplo
+
+      setState(() {
+        isLoading = false; // Desativar o indicador de carregamento
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        // Tratar erros de carregamento se necessário
+        errorMessage = 'Erro ao recarregar os dados: $e';
+      });
+    }
   }
 
   Future<void> _fetchMusicianByUsrId() async {
@@ -343,6 +384,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
   @override
   Widget build(BuildContext context) {
+    final userId = Provider.of<AuthProvider>(context).userId;
     print("User_id: " + widget.id);
 
     return Scaffold(

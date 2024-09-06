@@ -1,0 +1,181 @@
+          children: [
+                            Container(
+                              child: Text(
+                                "Arquivos",
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Container(
+                              height: 200,
+                              child: StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('arquivos')
+                                    .where('culto_especifico',
+                                        isEqualTo: widget.documentId)
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasError) {
+                                    return Center(
+                                        child:
+                                            Text('Erro ao carregar arquivos.'));
+                                  }
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  final arquivos = snapshot.data!.docs;
+
+                                  if (arquivos.isEmpty) {
+                                    return Center(
+                                        child:
+                                            Text('Nenhum arquivo encontrado.'));
+                                  }
+
+                                  return ListView.builder(
+                                    itemCount: arquivos.length,
+                                    itemBuilder: (context, index) {
+                                      var arquivoData = arquivos[index].data()
+                                          as Map<String, dynamic>;
+                                      var arquivoUrl =
+                                          arquivoData['arquivo_url'] ?? '';
+                                      var cultoEspecifico =
+                                          arquivoData['culto_especifico'] ?? '';
+
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(Icons.file_present),
+                                              Text(
+                                                'Arquivo ${index + 1}',
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
+                                            ],
+                                          ),
+
+                                          // Text(cultoEspecifico),
+                                          IconButton(
+                                            icon: Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () async {
+                                              // Confirmar exclusão
+                                              bool confirmar = await showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return AlertDialog(
+                                                    title:
+                                                        Text('Excluir Arquivo'),
+                                                    content: Text(
+                                                        'Tem certeza de que deseja excluir o arquivo ${index + 1}?'),
+                                                    actions: [
+                                                      TextButton(
+                                                        child: Text('Cancelar'),
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop(false);
+                                                        },
+                                                      ),
+                                                      TextButton(
+                                                        child: Text('Excluir'),
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop(true);
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+
+                                              if (confirmar) {
+                                                try {
+                                                  // Excluir o arquivo do Firebase Storage
+                                                  if (arquivoUrl.isNotEmpty) {
+                                                    Reference storageReference =
+                                                        FirebaseStorage.instance
+                                                            .refFromURL(
+                                                                arquivoUrl);
+                                                    await storageReference
+                                                        .delete();
+                                                  }
+
+                                                  // Excluir o documento do Firestore
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('arquivos')
+                                                      .doc(arquivos[index]
+                                                          .id) // ID do documento
+                                                      .delete();
+
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(SnackBar(
+                                                    content: Text(
+                                                        'Arquivo excluído com sucesso!'),
+                                                  ));
+                                                } catch (e) {
+                                                  // Tratar possíveis erros
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(SnackBar(
+                                                    content: Text(
+                                                        'Erro ao excluir o arquivo: $e'),
+                                                  ));
+                                                }
+                                              }
+                                            },
+                                          )
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        UploadPage(culto: widget.documentId),
+                                  ),
+                                ).then((value) {
+                                  // Após retornar da tela de adicionar música, você pode atualizar a página
+                                  setState(() {});
+                                  // Ou atualizar de acordo com a necessidade do seu fluxo
+                                });
+                                ;
+                                //Navigator.pushNamed(
+                                //    context, '/adminCultoForm');
+
+                                //Navigator.pushNamed(
+                                //    context, '/adminCultoForm');
+                              },
+                              child: Container(
+                                width: MediaQuery.of(context).size.width,
+                                margin: EdgeInsets.only(),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: Color(0xff4465D9),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(0.0),
+                                  child: Center(
+                                    child: Text(
+                                      "+",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 24),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                 
