@@ -269,7 +269,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
 
                                         // Verifica se o músico é "md" ou está na lista de IDs específicos
                                         var isMd = musicoData['role'] == 'md';
-                                        var alwaysIncludedIds = [100, 131];
+                                        var alwaysIncludedIds = [100, 131, 133];
                                         var isAlwaysIncluded = alwaysIncludedIds
                                             .contains(musicoId);
 

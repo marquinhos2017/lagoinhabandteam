@@ -149,21 +149,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   children: [
                     GestureDetector(
                       onTap: _pickImage,
-                      child: CircleAvatar(
-                        radius: 75, // Ajuste o raio conforme necessário
-                        backgroundColor: Colors
-                            .grey[200], // Cor de fundo quando não há imagem
-                        backgroundImage: _profileImage != null
-                            ? FileImage(_profileImage!)
-                            : _photoUrl.isNotEmpty
-                                ? NetworkImage(_photoUrl)
-                                    as ImageProvider<Object>
-                                : null,
+                      child: Container(
+                        width: 100, // Largura ajustável
+                        height: 100, // Altura ajustável
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle, // Mantém a forma circular
+                          color: Colors
+                              .grey[200], // Cor de fundo quando não há imagem
+                          image: _profileImage != null
+                              ? DecorationImage(
+                                  image: FileImage(_profileImage!),
+                                  fit: BoxFit
+                                      .contain, // Controla o ajuste da imagem
+                                )
+                              : _photoUrl.isNotEmpty
+                                  ? DecorationImage(
+                                      image: NetworkImage(_photoUrl),
+                                      fit: BoxFit
+                                          .none, // Controla o ajuste da imagem
+                                    )
+                                  : null,
+                        ),
                         child: _profileImage == null && _photoUrl.isEmpty
-                            ? Icon(
-                                Icons.camera_alt,
-                                size: 50,
-                                color: Colors.grey[800],
+                            ? Center(
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  size: 50,
+                                  color: Colors.grey[800],
+                                ),
                               )
                             : null,
                       ),

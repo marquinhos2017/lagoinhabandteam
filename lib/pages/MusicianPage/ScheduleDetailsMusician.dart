@@ -1389,211 +1389,116 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
               );
             } else if (snapshot.hasError) {
               return Center(
-                  child: Text('Erro ao carregar dados: ${snapshot.error}',
-                      style: TextStyle(color: Colors.white)));
+                child: Text('Erro ao carregar dados: ${snapshot.error}',
+                    style: TextStyle(color: Colors.white)),
+              );
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return Center(
-                  child: Text('Nenhum dado disponível',
-                      style: TextStyle(color: Colors.white)));
+                child: Text('Nenhum dado disponível',
+                    style: TextStyle(color: Colors.white)),
+              );
+            }
+
+            // Agrupar os itens por nome
+            Map<String, List<Map<String, dynamic>>> groupedData = {};
+            for (var item in snapshot.data!) {
+              String name = item['name'].toString();
+              if (!groupedData.containsKey(name)) {
+                groupedData[name] = [];
+              }
+              groupedData[name]!.add(item);
             }
 
             return Container(
               color: Colors.white,
               child: ListView(
                 padding: EdgeInsets.zero,
-                children: snapshot.data!
-                    .map((item) => Container(
-                          margin: EdgeInsets.all(12),
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 24.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                ProfileAvatar(avatarUrl: item['photoUrl']),
-                                Text(
-                                  item['name'].toString().toTitleCase() ??
-                                      'Nome desconhecido',
-                                  style: GoogleFonts.montserrat(
-                                      textStyle: TextStyle(
-                                          color: Colors.black, fontSize: 12)),
-                                ),
-                                if (item['Instrument'] == "Piano")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.black,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "Guitarra")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "Bateria")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "Violão")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.brown,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "Baixo")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "MD")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.purple,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "Ministro")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "BV 1")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.cyan,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "BV 2")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.black,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                if (item['Instrument'] == "BV 3")
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.teal,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        ' ${item['Instrument'] ?? 'Desconhecido'}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
+                children: groupedData.entries.map((entry) {
+                  String name = entry.key;
+                  List<Map<String, dynamic>> userItems = entry.value;
+
+                  // Concatena os instrumentos da pessoa
+                  List<Widget> instrumentsWidgets = userItems.map((item) {
+                    Color color;
+                    switch (item['Instrument']) {
+                      case "Piano":
+                        color = Colors.black;
+                        break;
+                      case "Guitarra":
+                        color = Colors.blue;
+                        break;
+                      case "Bateria":
+                        color = Colors.red;
+                        break;
+                      case "Violão":
+                        color = Colors.brown;
+                        break;
+                      case "Baixo":
+                        color = Colors.green;
+                        break;
+                      case "MD":
+                        color = Colors.purple;
+                        break;
+                      case "Ministro":
+                        color = Colors.orange;
+                        break;
+                      case "BV 1":
+                        color = Colors.cyan;
+                        break;
+                      case "BV 2":
+                        color = Colors.black;
+                        break;
+                      case "BV 3":
+                        color = Colors.teal;
+                        break;
+                      default:
+                        color = Colors.grey;
+                    }
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          item['Instrument'] ?? 'Desconhecido',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList();
+
+                  return Container(
+                    margin: EdgeInsets.all(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ProfileAvatar(avatarUrl: userItems[0]['photoUrl']),
+                          Text(
+                            name.toTitleCase(),
+                            style: GoogleFonts.montserrat(
+                              textStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
-                        ))
-                    .toList(),
+                          Row(
+                              children:
+                                  instrumentsWidgets), // Exibe os instrumentos juntos
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             );
           },
@@ -1711,93 +1616,128 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black,
+                      ),
+                      icon: Icon(Icons.arrow_left, color: Colors.white),
+                      onPressed: () {
+                        if (currentIndex > 0) {
+                          _navigateToDocument(currentIndex - 1);
+                        } else {
+                          print("Não há documento anterior.");
+                        }
+                      },
+                    ),
+                    IconButton(
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black,
+                      ),
+                      icon: Icon(Icons.arrow_right, color: Colors.white),
+                      onPressed: () {
+                        if (currentIndex < widget.documents.length - 1) {
+                          _navigateToDocument(currentIndex + 1);
+                        } else {
+                          print("Não há documento seguinte.");
+                        }
+                      },
+                    ),
+                  ],
+                ),
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment
                         .spaceBetween, // Distribui o espaço entre os elementos
                     children: [
                       // O Expanded empurra o conteúdo restante para ocupar o espaço disponível
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            IconButton(
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.black,
-                              ),
-                              icon: Icon(Icons.arrow_left, color: Colors.white),
-                              onPressed: () {
-                                if (currentIndex > 0) {
-                                  _navigateToDocument(currentIndex - 1);
-                                } else {
-                                  print("Não há documento anterior.");
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+
                       // Centraliza o texto
                       Column(
                         children: [
-                          Text(
-                            documentsAll[currentIndex]['nome'] ??
-                                'Nome desconhecido',
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold),
-                          ),
                           Row(
                             children: [
-                              Text(
-                                DateFormat('dd/MM/yyyy').format(
-                                        (documentsAll[currentIndex]['date']
-                                                as Timestamp)
-                                            .toDate()) ??
-                                    'Nome desconhecido',
-                                style: TextStyle(
+                              Container(
+                                height: 78,
+                                width: 72,
+                                decoration: BoxDecoration(
                                     color: Colors.black,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold),
+                                    borderRadius: BorderRadius.circular(12)),
+                                margin: EdgeInsets.only(right: 12),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.asset(
+                                    documentsAll[currentIndex]['nome'] ==
+                                            "Culto da Fé"
+                                        ? "assets/hq720.jpg"
+                                        : "assets/hq720 (1).jpg", // URL da imagem
+                                    fit: BoxFit
+                                        .cover, // Ajusta a imagem para cobrir o container
+                                  ),
+                                ),
                               ),
-                              Text(" - "),
-                              Text(
-                                documentsAll[currentIndex]['horario'] ??
-                                    'Nome desconhecido',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold),
-                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(6))),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Text(
+                                        DateFormat('dd/MM/yyyy').format(
+                                                (documentsAll[currentIndex]
+                                                        ['date'] as Timestamp)
+                                                    .toDate()) ??
+                                            'Nome desconhecido',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    documentsAll[currentIndex]['nome'] ??
+                                        'Nome desconhecido',
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border.all(color: Colors.black),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(6))),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Text(
+                                        documentsAll[currentIndex]['horario'] ??
+                                            'Nome desconhecido',
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
                             ],
+                          ),
+                          Row(
+                            children: [],
                           ),
                         ],
                       ),
                       // O Spacer vai empurrar o próximo Expanded para o extremo direito
-
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.black,
-                              ),
-                              icon:
-                                  Icon(Icons.arrow_right, color: Colors.white),
-                              onPressed: () {
-                                if (currentIndex <
-                                    widget.documents.length - 1) {
-                                  _navigateToDocument(currentIndex + 1);
-                                } else {
-                                  print("Não há documento seguinte.");
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),
