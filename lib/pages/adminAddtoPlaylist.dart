@@ -14,6 +14,13 @@ class AddtoPlaylist extends StatefulWidget {
 class _AddtoPlaylistState extends State<AddtoPlaylist> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? selectedKey; // Armazena o tom selecionado
+  TextEditingController _searchController =
+      TextEditingController(); // Controlador de busca
+  String _searchText = ""; // Texto de busca
+  Set<String> _selectedMusicIds =
+      Set(); // Armazena IDs das músicas já selecionadas
+  List<Map<String, dynamic>> _addedMusics =
+      []; // Armazena informações das músicas adicionadas
 
   Future<List<String>> _getPlaylistMusicIds() async {
     try {
@@ -26,6 +33,10 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
       }
 
       List<dynamic> playlist = cultoDoc['playlist'] ?? [];
+      _addedMusics = playlist
+          .map((item) => {'id': item['music_document'], 'key': item['key']})
+          .toList();
+
       return playlist.map((item) => item['music_document'] as String).toList();
     } catch (e) {
       print('Erro ao obter IDs das músicas na playlist: $e');
@@ -34,7 +45,6 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
   }
 
   Future<void> _showKeyDialog(String documentId) async {
-    // Reset to default key "C" every time the dialog opens
     setState(() {
       selectedKey = 'C'; // Set default key to "C"
     });
@@ -56,7 +66,7 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
           actions: <Widget>[
             TextButton(
               child:
-                  const Text('CANCELAR', style: TextStyle(color: Colors.white)),
+                  const Text('CANCELAR', style: TextStyle(color: Colors.black)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -66,7 +76,6 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
                 _saveToPlaylist(documentId);
-                Navigator.of(context).pop(); // Save the song to the playlist
               },
             ),
           ],
@@ -95,6 +104,14 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
           ])
         });
 
+        setState(() {
+          _selectedMusicIds
+              .add(documentId); // Adiciona a música à lista de selecionados
+        });
+
+        // Atualiza a lista de músicas adicionadas
+        await _getPlaylistMusicIds();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Color(0xff4465D9),
@@ -116,6 +133,36 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
     }
   }
 
+  void _showAddedMusics() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Músicas Adicionadas'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: _addedMusics.map((music) {
+                return ListTile(
+                  title: Text(music['id']),
+                  subtitle: Text('Tom: ${music['key']}'),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child:
+                  const Text('FECHAR', style: TextStyle(color: Colors.black)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,15 +172,20 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
               onTap: () => Navigator.pop(context),
               child: Icon(
                 Icons.arrow_back_ios,
-                color: Colors.white,
+                color: Colors.black,
               )),
         ),
         centerTitle: true,
         title: Text(
           "Adicionar Canção",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.list),
+            color: Colors.black,
+            onPressed: _showAddedMusics,
+          ),
           GestureDetector(
               onTap: () => Navigator.pushReplacement(
                     context,
@@ -141,100 +193,134 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                   ),
               child: Icon(
                 Icons.login,
-                color: Colors.white,
+                color: Colors.black,
               )),
         ],
         foregroundColor: Colors.black,
-        backgroundColor: Colors.black,
+        elevation: 0,
+        backgroundColor: Colors.white,
       ),
-      backgroundColor: Color(0xff010101),
-      body: Container(
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(57.0),
-              child: Container(
-                height: 500,
-                child: FutureBuilder<List<String>>(
-                  future: _getPlaylistMusicIds(),
-                  builder: (context, playlistSnapshot) {
-                    if (!playlistSnapshot.hasData) {
-                      return Center(child: CircularProgressIndicator());
-                    }
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchText = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Buscar músicas...',
+                  hintStyle: TextStyle(color: Colors.black54),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.black),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  prefixIcon: Icon(Icons.search, color: Colors.black),
+                ),
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            Expanded(
+              child: FutureBuilder<List<String>>(
+                future: _getPlaylistMusicIds(),
+                builder: (context, playlistSnapshot) {
+                  if (!playlistSnapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
-                    final List<String> playlistMusicIds =
-                        playlistSnapshot.data!;
+                  final List<String> playlistMusicIds = playlistSnapshot.data!;
 
-                    return StreamBuilder<QuerySnapshot>(
-                      stream:
-                          _firestore.collection('music_database').snapshots(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return Center(child: CircularProgressIndicator());
-                        }
+                  return StreamBuilder<QuerySnapshot>(
+                    stream: _firestore.collection('music_database').snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(child: CircularProgressIndicator());
+                      }
 
-                        final List<DocumentSnapshot> documents =
-                            snapshot.data!.docs;
+                      final List<DocumentSnapshot> documents =
+                          snapshot.data!.docs;
 
-                        // Filtrar músicas que já estão na playlist
-                        final List<DocumentSnapshot> filteredDocuments =
-                            documents
-                                .where(
-                                    (doc) => !playlistMusicIds.contains(doc.id))
-                                .toList();
+                      // Filtrar músicas que já estão na playlist
+                      final List<DocumentSnapshot> filteredDocuments =
+                          documents.where(
+                        (doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          final musicName = data['Music'] ?? '';
+                          final authorName = data['Author'] ?? '';
+                          return !playlistMusicIds.contains(doc.id) &&
+                              (musicName
+                                      .toLowerCase()
+                                      .contains(_searchText.toLowerCase()) ||
+                                  authorName
+                                      .toLowerCase()
+                                      .contains(_searchText.toLowerCase()));
+                        },
+                      ).toList();
 
-                        return ListView.builder(
-                          padding: EdgeInsets.all(0),
-                          itemCount: filteredDocuments.length,
-                          itemBuilder: (context, index) {
-                            final data = filteredDocuments[index].data()
-                                as Map<String, dynamic>;
-                            var documentId = filteredDocuments[index].id;
+                      return ListView.builder(
+                        padding: EdgeInsets.all(0),
+                        itemCount: filteredDocuments.length,
+                        itemBuilder: (context, index) {
+                          final data = filteredDocuments[index].data()
+                              as Map<String, dynamic>;
+                          var documentId = filteredDocuments[index].id;
 
-                            return Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  child: Expanded(
-                                    child: ListTile(
-                                      contentPadding: EdgeInsets.zero,
-                                      trailing: GestureDetector(
-                                        onTap: () async {
-                                          await _showKeyDialog(documentId);
-                                        },
-                                        child: Icon(
-                                          Icons.add,
-                                          color: Color(0xff4465D9),
-                                        ),
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                child: Expanded(
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    trailing: GestureDetector(
+                                      onTap: () async {
+                                        await _showKeyDialog(documentId);
+                                      },
+                                      child: Icon(
+                                        Icons.add,
+                                        color: _selectedMusicIds
+                                                .contains(documentId)
+                                            ? Colors.green
+                                            : Color(0xff4465D9),
                                       ),
-                                      title: Text(
-                                        data['Author'] ?? 'No title',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                    ),
+                                    title: Text(
+                                      data['Author'] ?? 'No title',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                      subtitle: Text(
-                                        data['Music'] ?? 'No artist',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w200,
-                                        ),
+                                    ),
+                                    subtitle: Text(
+                                      data['Music'] ?? 'No artist',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w200,
                                       ),
                                     ),
                                   ),
                                 ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -287,7 +373,7 @@ class _KeySelectorGridState extends State<KeySelectorGrid> {
       height: 400, // Specify a height for the grid
       child: Center(
         child: GridView.builder(
-          shrinkWrap: true, // Allow the grid to be as small as possible
+          shrinkWrap: true, // Allow the grid to be as small as possível
           physics: NeverScrollableScrollPhysics(), // Disable scrolling
           itemCount: keys.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -313,7 +399,7 @@ class _KeySelectorGridState extends State<KeySelectorGrid> {
                   child: Text(
                     key,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
