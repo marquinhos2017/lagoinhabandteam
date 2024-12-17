@@ -166,7 +166,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   ? DecorationImage(
                                       image: NetworkImage(_photoUrl),
                                       fit: BoxFit
-                                          .none, // Controla o ajuste da imagem
+                                          .contain, // Controla o ajuste da imagem
                                     )
                                   : null,
                         ),

@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+//ESSE
+
 import 'package:flutter/material.dart';
 import 'package:lagoinha_music/main.dart';
+import 'package:lagoinha_music/pages/MusicDataBase/BibliotecaMusical.dart';
 import 'package:lagoinha_music/pages/MusicianPage/EditProfilePage.dart';
 import 'package:lagoinha_music/pages/MusicianPage/ScheduleDetailsMusician.dart';
 import 'package:lagoinha_music/pages/MusicianPage/afinador.dart';
@@ -33,6 +37,55 @@ class MusicianPageNewUI extends StatefulWidget {
 }
 
 class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
+  List<QueryDocumentSnapshot> cultosDaSemana = [];
+
+  // Função para calcular o início e fim da semana atual
+  DateTime getStartOfWeek() {
+    DateTime now = DateTime.now();
+    return now.subtract(Duration(days: now.weekday));
+  }
+
+  DateTime getEndOfWeek() {
+    DateTime startOfWeek = getStartOfWeek();
+    return startOfWeek.add(Duration(days: 6));
+  }
+
+  // Função para buscar cultos da semana
+  Future<void> fetchCultos(int userId) async {
+    DateTime startOfWeek = getStartOfWeek();
+
+    DateTime endOfWeek = getEndOfWeek();
+
+    // Formatar as datas para Timestamp
+    Timestamp startTimestamp = Timestamp.fromDate(startOfWeek);
+    Timestamp endTimestamp = Timestamp.fromDate(endOfWeek);
+
+    // Realizando a consulta no Firestore
+    var querySnapshot = await FirebaseFirestore.instance
+        .collection('Cultos')
+        .where('date', isGreaterThanOrEqualTo: startTimestamp)
+        .where('date', isLessThanOrEqualTo: endTimestamp)
+        .get();
+    print("Query");
+    print(querySnapshot.docs);
+
+    // Filtrando os cultos que contêm o user_id no array de músicos
+    List<QueryDocumentSnapshot> filteredCultos =
+        querySnapshot.docs.where((doc) {
+      List<dynamic> musicos = doc['musicos'];
+      return musicos.any((musico) => musico['user_id'] == userId);
+    }).toList();
+    print("Filtrdo");
+    print(filteredCultos);
+
+    setState(() {
+      cultosDaSemana =
+          filteredCultos; // Atualiza o estado com os cultos filtrados
+    });
+    print("Da Semna");
+    print(cultosDaSemana);
+  }
+
   String photoo = "";
   late Stream<QuerySnapshot> _userProfileStream;
   int _selectedIndex = -1; // No card is selected initially
@@ -80,6 +133,11 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
   @override
   void initState() {
+    int userId = int.parse(widget.id); // Substitua pelo ID do usuário logado
+    fetchCultos(userId); // Chama a função para buscar os cultos da semana
+    print("asdasdasdasdasad");
+    print(cultosDaSemana);
+
     _userProfileStream = FirebaseFirestore.instance
         .collection('musicos')
         .where('user_id',
@@ -452,6 +510,11 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
     final userId = Provider.of<AuthProvider>(context).userId;
     print("User_id: " + widget.id);
+    if (widget.id == null) {
+      return Center(
+          child:
+              CircularProgressIndicator()); // Ou qualquer outro indicador de carregamento
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -481,6 +544,32 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                         padding: const EdgeInsets.all(0.0),
                         child: Column(
                           children: [
+                            /*
+                            Container(
+                              height: 200,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: cultosDaSemana.map((document) {
+                                  // Supondo que cada documento tenha campos como 'nome' e 'data'
+                                  final data =
+                                      document.data() as Map<String, dynamic>;
+                                  final nome =
+                                      data['nome'] ?? 'Nome não disponível';
+                                  final dataCulto =
+                                      data['date']?.toDate() ?? DateTime.now();
+
+                                  final horarioCulto = data['horario'];
+
+                                  return GestureDetector(
+                                    child: ListTile(
+                                      title: Text(nome),
+                                      subtitle: Text(dataCulto.toString()),
+                                      trailing: Text(horarioCulto),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),*/
                             Padding(
                               padding: const EdgeInsets.all(24.0),
                               child: Row(
@@ -512,7 +601,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                       SizedBox(
                                         height: 24,
                                       ),
-                                      Column(
+                                      /*Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.start,
                                         crossAxisAlignment:
@@ -543,7 +632,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                             ),
                                           ),
                                         ],
-                                      ),
+                                      ),*/
                                     ],
                                   ),
                                   Container(
@@ -652,10 +741,8 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                   CrossAxisAlignment.center,
                                               children: [
                                                 Container(
-                                                  width:
-                                                      100, // Largura do ícone
-                                                  height:
-                                                      100, // Altura do ícone
+                                                  width: 50, // Largura do ícone
+                                                  height: 50, // Altura do ícone
                                                   decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
                                                     boxShadow: [
@@ -1031,7 +1118,405 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                 },
                               ),
                             ),
+                            
                     */
+
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: Text(
+                                    "NESSA SEMANA ",
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              height: 200,
+                              width: 500,
+                              margin: EdgeInsets.only(bottom: 0),
+                              child: FutureBuilder<QuerySnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .collection('Cultos')
+                                    .where('date',
+                                        isGreaterThanOrEqualTo:
+                                            getStartOfWeek())
+                                    .where('date',
+                                        isLessThanOrEqualTo: getEndOfWeek())
+                                    .orderBy('date') // Ordena por data
+                                    .get(), // Obtém todos os documentos que estão dentro da semana atual
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  if (snapshot.hasError) {
+                                    return Center(
+                                        child: Text('Erro: ${snapshot.error}'));
+                                  }
+
+                                  if (!snapshot.hasData ||
+                                      snapshot.data!.docs.isEmpty) {
+                                    return Center(
+                                        child:
+                                            Text('Nenhum culto encontrado.'));
+                                  }
+
+                                  List<DocumentSnapshot> docs =
+                                      snapshot.data!.docs;
+
+                                  // Filtra os documentos para encontrar aqueles que contêm o user_id específico
+                                  List<DocumentSnapshot> filteredDocs =
+                                      docs.where((doc) {
+                                    final musicos =
+                                        (doc['musicos'] as List<dynamic>?) ??
+                                            [];
+                                    return musicos.any((musico) {
+                                      return (musico as Map<String, dynamic>)[
+                                              'user_id'] ==
+                                          int.parse(widget.id);
+                                    });
+                                  }).toList();
+
+                                  if (filteredDocs.isEmpty) {
+                                    return Center(
+                                        child: Text(
+                                            'Nenhum culto encontrado para o usuário.'));
+                                  }
+
+                                  // Lista para armazenar todas as músicas de todos os cultos
+                                  List<List<Map<String, dynamic>>>
+                                      allMusicDataList = List.generate(
+                                          filteredDocs.length, (_) => []);
+
+                                  // Função para carregar as músicas de um culto específico
+                                  Future<void> loadMusicsForDocument(
+                                      int docIndex) async {
+                                    final doc = filteredDocs[docIndex];
+                                    final data =
+                                        doc.data() as Map<String, dynamic>;
+                                    final playlist =
+                                        data['playlist'] as List<dynamic>?;
+
+                                    if (playlist != null) {
+                                      List<Future<DocumentSnapshot>>
+                                          musicFutures = playlist.map((song) {
+                                        String musicDocumentId =
+                                            song['music_document'] as String;
+                                        return FirebaseFirestore.instance
+                                            .collection('music_database')
+                                            .doc(musicDocumentId)
+                                            .get();
+                                      }).toList();
+
+                                      List<DocumentSnapshot> musicSnapshots =
+                                          await Future.wait(musicFutures);
+                                      List<Map<String, dynamic>> musicDataList =
+                                          musicSnapshots.map((musicSnapshot) {
+                                        if (musicSnapshot.exists) {
+                                          Map<String, dynamic> musicData =
+                                              musicSnapshot.data()
+                                                  as Map<String, dynamic>;
+                                          musicData['document_id'] =
+                                              musicSnapshot
+                                                  .id; // Adiciona o documentId
+
+                                          // Adiciona o campo 'bpm' se estiver disponível no documento
+                                          musicData['bpm'] =
+                                              musicData.containsKey('bpm')
+                                                  ? musicData['bpm']
+                                                  : 'Unkown';
+                                          musicData['letra'] =
+                                              musicData.containsKey('letra')
+                                                  ? musicData['letra']
+                                                  : 'Unkown';
+                                          musicData['link_audio'] = musicData
+                                                  .containsKey('link_audio')
+                                              ? musicData['link_audio']
+                                              : 'Desconhecido';
+                                          musicData['id_musica'] =
+                                              musicSnapshot.id;
+
+                                          // Encontra o item correspondente no playlist para adicionar a key e link
+                                          var song = playlist.firstWhere(
+                                            (song) =>
+                                                song['music_document'] ==
+                                                musicSnapshot.id,
+                                            orElse: () => null,
+                                          );
+
+                                          if (song != null) {
+                                            musicData['key'] = song['key'] ??
+                                                'Key Desconhecida'; // Adiciona o campo key
+                                            musicData['link'] = song['link'] ??
+                                                'Link não disponível'; // Adiciona o campo link
+                                          } else {
+                                            // Caso não encontre a música no playlist, define valores padrão para key e link
+                                            musicData['key'] =
+                                                'Key Desconhecida';
+                                            musicData['link'] =
+                                                'Link não disponível';
+                                          }
+
+                                          return musicData;
+                                        } else {
+                                          return {
+                                            'Music': 'Música Desconhecida',
+                                            'Author': 'Autor Desconhecido',
+                                            'key': 'Key Desconhecida',
+                                            'link': 'Link não disponível',
+                                            'document_id':
+                                                '', // Adiciona um campo vazio se o documento não existir
+                                          };
+                                        }
+                                      }).toList();
+
+                                      allMusicDataList[docIndex] =
+                                          musicDataList;
+                                    }
+                                  }
+
+                                  // Carregar as músicas para todos os documentos
+                                  Future<void> loadAllMusics() async {
+                                    for (int i = 0;
+                                        i < filteredDocs.length;
+                                        i++) {
+                                      await loadMusicsForDocument(i);
+                                    }
+                                  }
+
+                                  return FutureBuilder<void>(
+                                    future: loadAllMusics(),
+                                    builder: (context, musicSnapshot) {
+                                      if (musicSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Center(
+                                            child: CircularProgressIndicator());
+                                      }
+
+                                      if (musicSnapshot.hasError) {
+                                        return Center(
+                                            child: Text(
+                                                'Erro ao carregar músicas'));
+                                      }
+
+                                      return Container(
+                                        margin: EdgeInsets.only(bottom: 0),
+                                        child: ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          padding: EdgeInsets.zero,
+                                          itemCount: filteredDocs.length,
+                                          itemBuilder: (context, index) {
+                                            Map<String, dynamic> data =
+                                                filteredDocs[index].data()
+                                                    as Map<String, dynamic>;
+                                            String idDocument =
+                                                filteredDocs[index].id;
+
+                                            DateTime? dataDocumento;
+                                            try {
+                                              dataDocumento =
+                                                  (data['date'] as Timestamp?)
+                                                      ?.toDate();
+                                            } catch (e) {
+                                              print(
+                                                  'Erro ao converter data: $e');
+                                              dataDocumento = null;
+                                            }
+
+                                            return FutureBuilder<String>(
+                                              future: loadInstrumentForDocument(
+                                                  widget.id, idDocument),
+                                              builder: (context,
+                                                  instrumentSnapshot) {
+                                                String instrumentText =
+                                                    'Instrumento Desconhecido';
+                                                if (instrumentSnapshot
+                                                        .connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return Center(
+                                                      child:
+                                                          CircularProgressIndicator());
+                                                }
+
+                                                if (instrumentSnapshot
+                                                    .hasData) {
+                                                  instrumentText =
+                                                      instrumentSnapshot.data!;
+                                                } else if (instrumentSnapshot
+                                                    .hasError) {
+                                                  print(
+                                                      'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
+                                                }
+
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    print("O Index");
+                                                    print(index);
+                                                    Navigator.push(
+                                                      context,
+                                                      PageRouteBuilder(
+                                                        pageBuilder: (context,
+                                                                animation,
+                                                                secondaryAnimation) =>
+                                                            ScheduleDetailsMusician(
+                                                          documents:
+                                                              filteredDocs,
+                                                          id: idDocument,
+                                                          currentIndex: index,
+                                                          musics:
+                                                              allMusicDataList,
+                                                        ),
+                                                        transitionsBuilder:
+                                                            (context,
+                                                                animation,
+                                                                secondaryAnimation,
+                                                                child) {
+                                                          const begin = Offset(
+                                                              1.0,
+                                                              0.0); // Início do movimento (fora da tela, à direita)
+                                                          const end = Offset
+                                                              .zero; // Fim do movimento (posição final)
+                                                          const curve =
+                                                              Curves.easeInOut;
+
+                                                          var tween = Tween(
+                                                                  begin: begin,
+                                                                  end: end)
+                                                              .chain(CurveTween(
+                                                                  curve:
+                                                                      curve));
+                                                          var offsetAnimation =
+                                                              animation
+                                                                  .drive(tween);
+
+                                                          return SlideTransition(
+                                                            position:
+                                                                offsetAnimation,
+                                                            child: child,
+                                                          );
+                                                        },
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Container(
+                                                      width: 250,
+                                                      decoration: BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(12),
+                                                          border: Border.all(
+                                                              color:
+                                                                  Colors.black,
+                                                              width: 1)),
+                                                      child: Column(
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Container(
+                                                              margin: EdgeInsets
+                                                                  .only(
+                                                                      bottom:
+                                                                          12),
+                                                              child: Row(
+                                                                children: [
+                                                                  Container(
+                                                                    height: 78,
+                                                                    width: 72,
+                                                                    decoration: BoxDecoration(
+                                                                        color: Colors
+                                                                            .black,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(12)),
+                                                                    margin: EdgeInsets.only(
+                                                                        right:
+                                                                            12),
+                                                                    child:
+                                                                        ClipRRect(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              12),
+                                                                      child: Image
+                                                                          .asset(
+                                                                        data['nome'] ==
+                                                                                "Culto da Fé"
+                                                                            ? "assets/hq720.jpg"
+                                                                            : "assets/hq720 (1).jpg", // URL da imagem
+                                                                        fit: BoxFit
+                                                                            .cover, // Ajusta a imagem para cobrir o container
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Column(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .spaceAround,
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .start,
+                                                                    children: [
+                                                                      Column(
+                                                                        mainAxisAlignment:
+                                                                            MainAxisAlignment.start,
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.start,
+                                                                        children: [
+                                                                          Text(
+                                                                            data['nome'],
+                                                                            style:
+                                                                                TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                                                          ),
+                                                                          Text(
+                                                                            instrumentText,
+                                                                            style:
+                                                                                TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      Text(
+                                                                        "Noite, " +
+                                                                            DateFormat('MMM d').format(dataDocumento!),
+                                                                        style: TextStyle(
+                                                                            fontSize:
+                                                                                10,
+                                                                            fontWeight:
+                                                                                FontWeight.bold),
+                                                                      ),
+                                                                    ],
+                                                                  )
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 24.0, vertical: 0),
@@ -1321,6 +1806,8 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
                                                   return GestureDetector(
                                                     onTap: () {
+                                                      print("O Index");
+                                                      print(index);
                                                       Navigator.push(
                                                         context,
                                                         PageRouteBuilder(
@@ -1692,6 +2179,8 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                   ],
                 ),
               ),
+              Bibliotecamusical(),
+              Afinador(),
             ],
           ),
           Align(
@@ -1753,14 +2242,24 @@ class BottomNavBar extends StatelessWidget {
           AnimatedAlign(
             duration: Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            alignment: currentIndex == 0
-                ? Alignment.centerLeft
-                : Alignment.centerRight,
+            alignment: () {
+              switch (currentIndex) {
+                case 0:
+                  return Alignment.centerLeft;
+                case 1:
+                  return Alignment.center;
+                case 2:
+                  return Alignment.centerRight;
+                default:
+                  return Alignment
+                      .center; // Valor padrão caso currentIndex não seja 0, 1 ou 2
+              }
+            }(),
             child: Padding(
               padding:
-                  const EdgeInsets.only(left: 46.0, right: 50.0, bottom: 6.0),
+                  const EdgeInsets.only(left: 46, right: 50.0, bottom: 6.0),
               child: Container(
-                width: 80,
+                width: 30,
                 height: 10,
                 decoration: BoxDecoration(
                   color: Color(0xff000000),
@@ -1776,6 +2275,10 @@ class BottomNavBar extends StatelessWidget {
                   icon: Icon(Icons.home), label: '', tooltip: "Home"),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
+                label: '',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.tune),
                 label: '',
               ),
             ],

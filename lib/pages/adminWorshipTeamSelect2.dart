@@ -163,7 +163,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xff010101),
+      backgroundColor: Colors.white,
       body: isLoading
           ? Center(
               child:
@@ -180,17 +180,27 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                           onTap: () => Navigator.pop(context, false),
                           child: Icon(
                             Icons.arrow_back_ios,
-                            color: Colors.white,
+                            color: Colors.black,
                           )),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32.0),
                     child: Text(
-                      widget.instrument,
+                      "Função: " + widget.instrument,
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontSize: 24,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Text(
+                      "Escolha uma pessoa",
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -201,7 +211,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Color(0xff171717),
+                        color: Colors.white,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
@@ -269,7 +279,12 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
 
                                         // Verifica se o músico é "md" ou está na lista de IDs específicos
                                         var isMd = musicoData['role'] == 'md';
-                                        var alwaysIncludedIds = [100, 131, 133];
+                                        var alwaysIncludedIds = [
+                                          100,
+                                          131,
+                                          133,
+                                          187
+                                        ];
                                         var isAlwaysIncluded = alwaysIncludedIds
                                             .contains(musicoId);
 
@@ -281,6 +296,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                       }).toList();
 
                                       return ListView.builder(
+                                        physics: ClampingScrollPhysics(),
                                         itemCount: musicosDisponiveis.length,
                                         padding: EdgeInsets.zero,
                                         itemBuilder: (context, index) {
@@ -311,7 +327,9 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                               if (disponibilidadeSnapshot
                                                   .hasError) {
                                                 return ListTile(
-                                                  title: Text(nomeMusico),
+                                                  title: Text(
+                                                    nomeMusico,
+                                                  ),
                                                   subtitle: Text(
                                                       'Erro ao verificar disponibilidade.'),
                                                 );
@@ -338,40 +356,161 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                     }
 
                                                     bool? resposta =
-                                                        await showDialog<bool>(
+                                                        await showDialog(
                                                       context: context,
                                                       builder: (BuildContext
-                                                              context) =>
-                                                          AlertDialog(
-                                                        backgroundColor:
-                                                            Color(0xff171717),
-                                                        title: Text(
-                                                          mensagem,
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 16),
-                                                        ),
-                                                        actions: <Widget>[
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                    context,
-                                                                    true),
-                                                            child: Text(disponivel
-                                                                ? 'OK'
-                                                                : 'Adicionar'),
+                                                          context) {
+                                                        return Dialog(
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20),
                                                           ),
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                    context,
-                                                                    false),
-                                                            child:
-                                                                Text('Cancel'),
+                                                          backgroundColor: Colors
+                                                              .white, // Fundo branco
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(20.0),
+                                                            child: Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                // Ícone principal
+                                                                Container(
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                    color: disponivel
+                                                                        ? Colors.blue[
+                                                                            50]
+                                                                        : Colors
+                                                                            .red[50], // Fundo azul claro ou vermelho claro
+                                                                  ),
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .all(
+                                                                          16),
+                                                                  child: Icon(
+                                                                    disponivel
+                                                                        ? Icons
+                                                                            .check_circle
+                                                                        : Icons
+                                                                            .error,
+                                                                    size: 48,
+                                                                    color: disponivel
+                                                                        ? Colors
+                                                                            .blue
+                                                                        : Colors
+                                                                            .red,
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                    height: 16),
+                                                                // Título
+                                                                Text(
+                                                                  mensagem,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: Colors
+                                                                        .black, // Texto preto
+                                                                    fontSize:
+                                                                        18,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                    height: 16),
+                                                                // Opções
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceEvenly,
+                                                                  children: [
+                                                                    // Botão de Cancelar
+                                                                    ElevatedButton
+                                                                        .icon(
+                                                                      onPressed: () => Navigator.pop(
+                                                                          context,
+                                                                          false),
+                                                                      icon: Icon(
+                                                                          Icons
+                                                                              .cancel,
+                                                                          color:
+                                                                              Colors.black),
+                                                                      label: Text(
+                                                                          'Cancelar'),
+                                                                      style: ElevatedButton
+                                                                          .styleFrom(
+                                                                        backgroundColor:
+                                                                            Colors.white, // Fundo branco
+                                                                        foregroundColor:
+                                                                            Colors.black, // Texto preto
+                                                                        shape:
+                                                                            RoundedRectangleBorder(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(12),
+                                                                          side:
+                                                                              BorderSide(color: Colors.black), // Borda preta
+                                                                        ),
+                                                                        padding: EdgeInsets.symmetric(
+                                                                            horizontal:
+                                                                                16,
+                                                                            vertical:
+                                                                                10),
+                                                                      ),
+                                                                    ),
+                                                                    // Botão de OK/Adicionar
+                                                                    ElevatedButton
+                                                                        .icon(
+                                                                      onPressed: () => Navigator.pop(
+                                                                          context,
+                                                                          true),
+                                                                      icon: Icon(
+                                                                          Icons
+                                                                              .add,
+                                                                          color:
+                                                                              Colors.white),
+                                                                      label: Text(disponivel
+                                                                          ? 'OK'
+                                                                          : 'Adicionar'),
+                                                                      style: ElevatedButton
+                                                                          .styleFrom(
+                                                                        backgroundColor:
+                                                                            Colors.blue, // Fundo azul
+                                                                        foregroundColor:
+                                                                            Colors.white, // Texto branco
+                                                                        shape:
+                                                                            RoundedRectangleBorder(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(12),
+                                                                        ),
+                                                                        padding: EdgeInsets.symmetric(
+                                                                            horizontal:
+                                                                                16,
+                                                                            vertical:
+                                                                                10),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-                                                        ],
-                                                      ),
+                                                        );
+                                                      },
                                                     );
 
                                                     if (resposta == true) {
@@ -392,29 +531,51 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                           true); // Retorna o resultado para a página anterior
                                                     }
                                                   },
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        nomeMusico
-                                                            .toString()
-                                                            .toCapitalized(),
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        color:
+                                                            Color(0xffebebeb),
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                                Radius.circular(
+                                                                    24)),
+                                                        border: Border.all(
+                                                            width: 1,
+                                                            color: Color(
+                                                                0xffebebeb))),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                            nomeMusico
+                                                                .toString()
+                                                                .toCapitalized(),
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .black,
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
+                                                          Icon(
+                                                            disponivel
+                                                                ? Icons
+                                                                    .confirmation_num
+                                                                : Icons.error,
+                                                            color: disponivel
+                                                                ? Colors.green
+                                                                : Colors.black,
+                                                          ),
+                                                        ],
                                                       ),
-                                                      Icon(
-                                                        disponivel
-                                                            ? Icons
-                                                                .confirmation_num
-                                                            : Icons.error,
-                                                        color: disponivel
-                                                            ? Colors.green
-                                                            : Colors.red,
-                                                      ),
-                                                    ],
+                                                    ),
                                                   ),
                                                 ),
                                               );

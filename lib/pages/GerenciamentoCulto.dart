@@ -1,8 +1,10 @@
+//ESSA
 import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lagoinha_music/pages/MusicianPage/EditProfilePage.dart';
 import 'package:lagoinha_music/pages/adminAddtoPlaylist.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -604,9 +606,9 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                     const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0),
                 child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
+                        crossAxisCount: 4,
                         crossAxisSpacing: 6.0,
-                        mainAxisSpacing: 24.0,
+                        mainAxisSpacing: 6.0,
                         childAspectRatio: 2.5,
                         mainAxisExtent: 60),
                     padding: EdgeInsets.zero,
@@ -628,17 +630,29 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                         padding: const EdgeInsets.all(0.0),
                         child: Container(
                           decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black)),
+                              border: Border.all(color: Colors.transparent)),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  print("Index");
-                                  print(index);
+                                  print("Index: " + index.toString());
+
+                                  final musicoToRemove = musicoList[index];
+                                  print(musicoToRemove);
+
+                                  final userId =
+                                      musicoToRemove['user_id'] as int? ?? 0;
+
+                                  print("UserID: " + userId.toString());
+                                  final idCulto = widget.documentId;
+
+                                  print("ID Culto: " + idCulto);
+                                  print("asdasdasdasdasdasdasda" +
+                                      userId.toString());
                                 },
-                                onLongPress: () async {
+                                onDoubleTap: () async {
                                   if (_isProcessing || !mounted) return;
 
                                   setState(() {
@@ -700,6 +714,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                       as int? ??
                                                   0;
                                           final idCulto = widget.documentId;
+                                          print("Delete this + " +
+                                              musicoToRemove.toString());
 
                                           // Perform removal operation
                                           print("Removing $id");
@@ -831,28 +847,42 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                 ),*/
                                               Column(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.start,
+                                                    MainAxisAlignment.center,
                                                 crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                    CrossAxisAlignment.center,
                                                 children: [
                                                   Text(
-                                                    name,
+                                                    // Outras opções: sentences, characters
+                                                    capitalize(name),
                                                     style: TextStyle(
                                                       color: Colors.black,
-                                                      fontSize: 14,
+                                                      fontSize: 12,
                                                       fontWeight:
                                                           FontWeight.bold,
                                                     ),
                                                   ),
                                                   Container(
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.black,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(6)),
                                                     margin: EdgeInsets.only(
                                                         right: 2),
-                                                    child: Text(
-                                                      instrument,
-                                                      style: TextStyle(
-                                                        color:
-                                                            Color(0xff558FFF),
-                                                        fontSize: 12,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Text(
+                                                        instrument,
+                                                        style: TextStyle(
+                                                          color: Color.fromARGB(
+                                                              255,
+                                                              255,
+                                                              255,
+                                                              255),
+                                                          fontSize: 10,
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
@@ -1238,7 +1268,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                           return ListView.builder(
                                             padding: EdgeInsets.zero,
                                             shrinkWrap:
-                                                true, // Ajusta o tamanho da ListView para o conteúdo
+                                                true, // Ajusta o tamanho da ListView ao conteúdo
                                             physics:
                                                 NeverScrollableScrollPhysics(), // Desativa o scroll interno
                                             itemCount: playlist.length,
@@ -1273,20 +1303,26 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                       child:
                                                           CircularProgressIndicator(
                                                               color:
-                                                                  Colors.white),
+                                                                  Colors.blue),
                                                     );
                                                   }
 
                                                   if (musicSnapshot.hasError) {
                                                     return Text(
-                                                        'Erro ao carregar música');
+                                                      'Erro ao carregar música',
+                                                      style: TextStyle(
+                                                          color: Colors.red),
+                                                    );
                                                   }
 
                                                   if (!musicSnapshot.hasData ||
                                                       !musicSnapshot
                                                           .data!.exists) {
                                                     return Text(
-                                                        'Música não encontrada');
+                                                      'Música não encontrada',
+                                                      style: TextStyle(
+                                                          color: Colors.black),
+                                                    );
                                                   }
 
                                                   final musicData =
@@ -1300,152 +1336,194 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                       musicData['Author'] ??
                                                           'Autor Desconhecido';
 
-                                                  return Dismissible(
-                                                    key:
-                                                        UniqueKey(), // Cada item deve ter uma chave única
-                                                    direction: DismissDirection
-                                                        .endToStart, // Define a direção do arrasto
-                                                    background: Container(
-                                                      color: Colors.red,
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 20),
-                                                      child: Icon(Icons.delete,
-                                                          color: Colors.white),
+                                                  return Card(
+                                                    elevation: 3,
+                                                    margin: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 0,
+                                                        vertical: 6),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
                                                     ),
-                                                    onDismissed:
-                                                        (direction) async {
-                                                      // Remove o item da playlist e do Firestore
-                                                      await _removeItemFromPlaylist(
-                                                          context,
-                                                          index,
-                                                          widget.documentId,
-                                                          musicDocumentId);
-                                                    },
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Row(
+                                                    child: ListTile(
+                                                      contentPadding:
+                                                          const EdgeInsets
+                                                              .symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 10,
+                                                      ),
+                                                      tileColor: Colors
+                                                          .white, // Fundo branco
+                                                      leading: CircleAvatar(
+                                                        backgroundColor:
+                                                            Colors.blue,
+                                                        child: Container(
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: Colors.blue,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        4),
+                                                          ),
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 4,
+                                                          ),
+                                                          child: Text(
+                                                            key,
+                                                            style: TextStyle(
+                                                              color: Colors
+                                                                  .white, // Texto branco no fundo azul
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      title: Text(
+                                                        musica,
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors
+                                                              .black, // Título preto
+                                                        ),
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      subtitle: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            'Autor: $author',
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              color: Colors
+                                                                  .black87, // Subtítulo cinza escuro
+                                                            ),
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                          SizedBox(height: 4),
+                                                        ],
+                                                      ),
+                                                      trailing: PopupMenuButton<
+                                                          String>(
+                                                        color: Colors.white,
+                                                        icon: Icon(
+                                                            Icons.more_vert,
+                                                            color:
+                                                                Colors.black),
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                  12), // Borda arredondada
+                                                        ),
+                                                        onSelected: (String
+                                                            value) async {
+                                                          if (value ==
+                                                              'update') {
+                                                            _showUpdateLinkDialog(
+                                                                context,
+                                                                index,
+                                                                link);
+                                                          } else if (value ==
+                                                              'delete') {
+                                                            await _removeItemFromPlaylist(
+                                                              context,
+                                                              index,
+                                                              widget.documentId,
+                                                              musicDocumentId,
+                                                            );
+                                                          }
+                                                        },
+                                                        itemBuilder:
+                                                            (BuildContext
+                                                                    context) =>
+                                                                [
+                                                          PopupMenuItem<String>(
+                                                            value: 'update',
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
                                                               children: [
                                                                 Text(
-                                                                  musica,
-                                                                  style:
-                                                                      TextStyle(
-                                                                    color: Colors
-                                                                        .black,
-                                                                    fontSize:
-                                                                        14,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                  ),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
+                                                                  'Alterar Link do Vídeo',
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .black,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
                                                                 ),
-                                                                SizedBox(
-                                                                  width: 16,
-                                                                ),
-                                                                Container(
-                                                                  color: Colors
-                                                                      .black,
-                                                                  child:
-                                                                      Padding(
-                                                                    padding:
-                                                                        const EdgeInsets
-                                                                            .all(
-                                                                            4.0),
-                                                                    child: Text(
-                                                                      key, // Aqui você pode mostrar o tom da música
-                                                                      style: TextStyle(
-                                                                          color: Colors
-                                                                              .white,
-                                                                          fontSize:
-                                                                              12),
+                                                                Padding(
+                                                                  padding: const EdgeInsets
+                                                                      .only(
+                                                                      left: 8.0,
+                                                                      top: 4.0),
+                                                                  child: Text(
+                                                                    'Clique aqui para atualizar o link do vídeo associado.',
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color: Colors
+                                                                          .black54,
+                                                                      fontSize:
+                                                                          12,
                                                                     ),
                                                                   ),
                                                                 ),
                                                               ],
                                                             ),
-                                                            Text(
-                                                              author,
-                                                              style: TextStyle(
-                                                                color: Colors
-                                                                    .black,
-                                                                fontSize: 12,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .normal,
-                                                              ),
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
+                                                          ),
+                                                          PopupMenuDivider(), // Linha divisória
+                                                          PopupMenuItem<String>(
+                                                            value: 'delete',
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Text(
+                                                                  'Deletar Canção',
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .red,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
+                                                                ),
+                                                                Padding(
+                                                                  padding: const EdgeInsets
+                                                                      .only(
+                                                                      left: 8.0,
+                                                                      top: 4.0),
+                                                                  child: Text(
+                                                                    'Remova esta música da lista de forma permanente.',
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color: Colors
+                                                                          .black54,
+                                                                      fontSize:
+                                                                          12,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
-                                                          ],
-                                                        ),
-                                                        PopupMenuButton<String>(
-                                                          color: Colors.black,
-                                                          iconColor:
-                                                              Colors.black,
-                                                          onSelected: (String
-                                                              value) async {
-                                                            if (value ==
-                                                                'update') {
-                                                              _showUpdateLinkDialog(
-                                                                  context,
-                                                                  index,
-                                                                  link); // Passa o índice para o método
-                                                            } else if (value ==
-                                                                'delete') {
-                                                              // Remover item ao clicar na opção "Deletar Canção"
-                                                              await _removeItemFromPlaylist(
-                                                                  context,
-                                                                  index,
-                                                                  widget
-                                                                      .documentId,
-                                                                  musicDocumentId);
-                                                            }
-                                                          },
-                                                          itemBuilder:
-                                                              (BuildContext
-                                                                      context) =>
-                                                                  [
-                                                            PopupMenuItem<
-                                                                String>(
-                                                              value: 'update',
-                                                              child: Text(
-                                                                'Alterar Link do Vídeo',
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        8),
-                                                              ),
-                                                            ),
-                                                            PopupMenuItem<
-                                                                String>(
-                                                              value: 'delete',
-                                                              child: Text(
-                                                                'Deletar Canção',
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        8),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   );
                                                 },

@@ -9,8 +9,10 @@ class MusiciansPage extends StatefulWidget {
 class _MusiciansPageState extends State<MusiciansPage> {
   @override
   Widget build(BuildContext context) {
+    if (!mounted)
+      return Container(); // Early exit if the widget is no longer mounted
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         foregroundColor: Colors.white,
         backgroundColor: Colors.black,
@@ -87,12 +89,15 @@ class _MusicianTileState extends State<MusicianTile>
         .collection('musicos')
         .doc(widget.musician.id)
         .delete();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Músico excluído com sucesso'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    if (mounted) {
+      // Check if the widget is still mounted before showing the SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Músico excluído com sucesso'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override
@@ -104,22 +109,30 @@ class _MusicianTileState extends State<MusicianTile>
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.white30, width: 1),
       ),
-      color: Colors.grey[850],
+      color: Colors.white,
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Column(
         children: [
           ListTile(
             title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  musicianData['name'],
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                CircleAvatar(
+                  backgroundColor: Color(0xFF1A237E),
+                  child: Text(
+                    musicianData['name'][0],
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    musicianData['name'],
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Icon(
                   _isExpanded ? Icons.expand_less : Icons.expand_more,
-                  color: Colors.white,
+                  color: Colors.grey,
                 ),
               ],
             ),
@@ -177,15 +190,52 @@ class _MusicianTileState extends State<MusicianTile>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Instrumento: ${musicianData['instrument']}',
-                      style: TextStyle(color: Colors.white70)),
-                  Text('Tipo: ${musicianData['tipo']}',
-                      style: TextStyle(color: Colors.white70)),
-                  Text('User ID: ${musicianData['user_id']}',
-                      style: TextStyle(color: Colors.white70)),
+                  SizedBox(height: 12),
+                  Text('Instrumento: ${musicianData['instrument']}'),
+                  Text('Tipo: ${musicianData['tipo']}'),
                   Text(
-                      'Ver Formulário: ${musicianData['ver_formulario'] ? "Sim" : "Não"}',
-                      style: TextStyle(color: Colors.white70)),
+                      'Ver Formulário: ${musicianData['ver_formulario'] ? "Sim" : "Não"}'),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      label:
+                          Text('Excluir', style: TextStyle(color: Colors.red)),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              backgroundColor: Colors.grey[900],
+                              title: Text(
+                                'Excluir Músico',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              content: Text(
+                                'Tem certeza que deseja excluir este músico?',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              actions: [
+                                TextButton(
+                                  child: Text('Cancelar'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text('Excluir'),
+                                  onPressed: () async {
+                                    Navigator.of(context).pop();
+                                    await _deleteMusician();
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),

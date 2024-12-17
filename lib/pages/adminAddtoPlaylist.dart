@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lagoinha_music/pages/login.dart';
 
+//Esse aqui
+
 class AddtoPlaylist extends StatefulWidget {
   final String document_id;
 
@@ -54,7 +56,7 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Selecione o tom'),
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.white,
           content: KeySelectorGrid(
             initialKey: selectedKey,
             onSelect: (String key) {
@@ -392,7 +394,9 @@ class _KeySelectorGridState extends State<KeySelectorGrid> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: key == selectedKey ? Colors.blue : Colors.grey[800],
+                  color: key == selectedKey
+                      ? Colors.blue
+                      : const Color.fromARGB(255, 238, 238, 238),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Center(
