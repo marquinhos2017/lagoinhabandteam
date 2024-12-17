@@ -1121,24 +1121,50 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                             
                     */
 
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Align(
-                                  alignment: AlignmentDirectional.centerStart,
-                                  child: Text(
-                                    "NESSA SEMANA ",
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
-                                  ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24.0, vertical: 0),
+                              child: Container(
+                                margin: EdgeInsets.symmetric(vertical: 0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "NESSA SEMANA",
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        /*
+                                        Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                              color: Color(0xff000000),
+                                              borderRadius:
+                                                  BorderRadius.circular(100)),
+                                          child: Center(
+                                            child: Text(
+                                              cultosCount.toString(),
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),*/
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                             Container(
-                              height: 200,
+                              height: 150,
                               width: 500,
                               margin: EdgeInsets.only(bottom: 0),
                               child: FutureBuilder<QuerySnapshot>(
@@ -1414,6 +1440,18 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                     child: Container(
                                                       width: 250,
                                                       decoration: BoxDecoration(
+                                                          color: Colors.black,
+                                                          /*   gradient:
+                                                              LinearGradient(
+                                                            colors: [
+                                                              Color(0xff4c5be3),
+                                                              Color(0xff6a51b0)
+                                                            ],
+                                                            begin: Alignment
+                                                                .topLeft, // Início do gradiente
+                                                            end: Alignment
+                                                                .bottomRight, // Fim do gradiente
+                                                          ),*/
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(12),
@@ -1434,12 +1472,17 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                                           12),
                                                               child: Row(
                                                                 children: [
+                                                                  /*
                                                                   Container(
                                                                     height: 78,
                                                                     width: 72,
                                                                     decoration: BoxDecoration(
-                                                                        color: Colors
-                                                                            .black,
+                                                                        color: const Color
+                                                                            .fromARGB(
+                                                                            255,
+                                                                            66,
+                                                                            0,
+                                                                            0),
                                                                         borderRadius:
                                                                             BorderRadius.circular(12)),
                                                                     margin: EdgeInsets.only(
@@ -1460,7 +1503,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                                             .cover, // Ajusta a imagem para cobrir o container
                                                                       ),
                                                                     ),
-                                                                  ),
+                                                                  ),*/
                                                                   Column(
                                                                     mainAxisAlignment:
                                                                         MainAxisAlignment
@@ -1477,13 +1520,17 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                                         children: [
                                                                           Text(
                                                                             data['nome'],
-                                                                            style:
-                                                                                TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                                                            style: TextStyle(
+                                                                                fontSize: 13,
+                                                                                fontWeight: FontWeight.bold,
+                                                                                color: Colors.white),
                                                                           ),
                                                                           Text(
                                                                             instrumentText,
-                                                                            style:
-                                                                                TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                                                            style: TextStyle(
+                                                                                fontSize: 10,
+                                                                                fontWeight: FontWeight.normal,
+                                                                                color: Colors.white),
                                                                           ),
                                                                         ],
                                                                       ),
@@ -1494,8 +1541,27 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                                             fontSize:
                                                                                 10,
                                                                             fontWeight:
-                                                                                FontWeight.bold),
+                                                                                FontWeight.normal,
+                                                                            color: Colors.white),
                                                                       ),
+                                                                      ElevatedButton
+                                                                          .icon(
+                                                                        style: ButtonStyle(
+                                                                            backgroundColor:
+                                                                                WidgetStatePropertyAll(Colors.white),
+                                                                            iconColor: WidgetStatePropertyAll(Colors.black)),
+                                                                        icon: Icon(
+                                                                            Icons.info_outline),
+                                                                        onPressed:
+                                                                            () =>
+                                                                                {},
+                                                                        label:
+                                                                            Text(
+                                                                          "Saiba Mais",
+                                                                          style:
+                                                                              TextStyle(color: Colors.black),
+                                                                        ),
+                                                                      )
                                                                     ],
                                                                   )
                                                                 ],
