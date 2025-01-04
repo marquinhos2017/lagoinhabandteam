@@ -55,7 +55,8 @@ dependencies:
   image_picker: ^0.8.5+3
   shared_preferences: ^2.3.2
   flutter_email_sender: ^6.0.3
-  mailer: ^6.2.0
+  mailer: ^6.3.0
+  flutter_mailer: ^2.1.2
 
 
 

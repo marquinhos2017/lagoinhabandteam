@@ -18,6 +18,11 @@ import 'package:path/path.dart' as path;
 
 import 'package:path_provider/path_provider.dart';
 
+import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart'; //For creating the SMTP Server
+
 class GerenciamentoCulto extends StatefulWidget {
   final String documentId;
 
@@ -243,8 +248,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
     }
   }
 
-  Future<void> _removeMusician(
-      int userId, String idCulto, String id, int index) async {
+  Future<void> _removeMusician(int userId, String idCulto, String id, int index,
+      String instrument) async {
     print("Removendo: $userId");
     print("Removendo Culto: $idCulto");
     print("Removendo Documento: $id");
@@ -279,6 +284,37 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             content: Text('Músico removido com sucesso'),
           ),
         );
+
+        final smtpServer =
+            gmail("marcosrodriguescorreiajc@gmail.com", "dpec dpql isvc wkau");
+        // Creating the Gmail server
+
+        // Create our email message.
+        final message = Message()
+          ..from = Address("marcosrodriguescorreiajc@gmail.com")
+          ..recipients.add('marcos.rodrigues2015@yahoo.com.br') //recipent email
+          //   ..ccRecipients.addAll([
+          //      'destCc1@example.com',
+          //      'destCc2@example.com'
+          //    ]) //cc Recipents emails
+          //   ..bccRecipients.add(
+          //       Address('marcos.rodrigues2015@yahoo.com.br')) //bcc Recipents emails
+          ..subject =
+              'Você acabou de ser removido da escala' //subject of the email
+          ..html =
+              '<!doctype html> <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"> <head> <title></title> <!--[if !mso]><!--> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1"> <style type="text/css"> #outlook a { padding:0; } body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; } table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; } img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; } p { display:block;margin:13px 0; } </style> <!--[if mso]> <noscript> <xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings> </xml> </noscript> <![endif]--> <!--[if lte mso 11]> <style type="text/css"> .mj-outlook-group-fix { width:100% !important; } </style> <![endif]--> <!--[if !mso]><!--> <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,700" rel="stylesheet" type="text/css"> <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css"> <link href="https://fonts.googleapis.com/css?family=Bitter:400,700" rel="stylesheet" type="text/css"> <style type="text/css"> @import url(https://fonts.googleapis.com/css?family=Ubuntu:400,700); @import url(https://fonts.googleapis.com/css?family=Cabin:400,700); @import url(https://fonts.googleapis.com/css?family=Bitter:400,700); </style> <!--<![endif]--> <style type="text/css"> @media only screen and (min-width:480px) { .mj-column-per-100 { width:100% !important; max-width: 100%; } } </style> <style media="screen and (min-width:480px)"> .moz-text-html .mj-column-per-100 { width:100% !important; max-width: 100%; } </style> <style type="text/css"> </style> <style type="text/css"> .hide_on_mobile { display: none !important;} @media only screen and (min-width: 480px) { .hide_on_mobile { display: block !important;} } .hide_section_on_mobile { display: none !important;} @media only screen and (min-width: 480px) { .hide_section_on_mobile { display: table !important; } div.hide_section_on_mobile { display: block !important; } } .hide_on_desktop { display: block !important;} @media only screen and (min-width: 480px) { .hide_on_desktop { display: none !important;} } .hide_section_on_desktop { display: table !important; width: 100%; } @media only screen and (min-width: 480px) { .hide_section_on_desktop { display: none !important;} } p, h1, h2, h3 { margin: 0px; } ul, li, ol { font-size: 11px; font-family: Ubuntu, Helvetica, Arial; } a { text-decoration: none; color: inherit; } @media only screen and (max-width:480px) { .mj-column-per-100 { width:100%!important; max-width:100%!important; }.mj-column-per-100 > .mj-column-per-100 { width:100%!important; max-width:100%!important; } } </style> </head> <body style="word-spacing:normal;background-color:#FFFFFF;"> <div style="background-color:#FFFFFF;"> <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]--> <div style="margin:0px auto;max-width:600px;"> <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"> <tbody> <tr> <td style="direction:ltr;font-size:0px;padding:9px 0px 9px 0px;text-align:center;"> <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]--> <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"> <tbody> <tr> <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;"> <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;&nbsp;<br>&nbsp;<br>&nbsp;<br><span style="font-size: 21px;">Voc&ecirc; acabou de ser escalado</span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br><span style="font-size: 12px;"><strong>Voc&ecirc; foi removido do Culto que ocorreria no dia  para a fun&ccedil;&atilde;o $instrument.</strong></span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><span style="font-family: Bitter, Georgia, serif;">Para que voc&ecirc; possa visualizar suas escalas, baixe o aplicativo de acordo com seu smartphone.</span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px;">&nbsp;&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><em>&copy; 2024&nbsp; Lake Music Todos os Direitos Reservados</em></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br>&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]></td></tr></table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]></td></tr></table><![endif]--> </div> <div style="color: #ccc; font-size: 12px; width: 600px; margin: 15px auto; text-align: center;"><a href="https://wordtohtml.net/email/designer">Created with WordToHTML.net Email Designer</a></div> </body> </html>'
+          ..text =
+              'Olá, tudo bem ? Você acabou de ser escalado para o Culto dia: , Horàrio: no instrumento: .\n  This is line 2 of the text part.<!doctype html> <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"> <head> <title></title> <!--[if !mso]><!--> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1"> <style type="text/css"> #outlook a { padding:0; } body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; } table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; } img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; } p { display:block;margin:13px 0; } </style> <!--[if mso]> <noscript> <xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings> </xml> </noscript> <![endif]--> <!--[if lte mso 11]> <style type="text/css"> .mj-outlook-group-fix { width:100% !important; } </style> <![endif]--> <!--[if !mso]><!--> <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,700" rel="stylesheet" type="text/css"> <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css"> <link href="https://fonts.googleapis.com/css?family=Bitter:400,700" rel="stylesheet" type="text/css"> <style type="text/css"> @import url(https://fonts.googleapis.com/css?family=Ubuntu:400,700); @import url(https://fonts.googleapis.com/css?family=Cabin:400,700); @import url(https://fonts.googleapis.com/css?family=Bitter:400,700); </style> <!--<![endif]--> <style type="text/css"> @media only screen and (min-width:480px) { .mj-column-per-100 { width:100% !important; max-width: 100%; } } </style> <style media="screen and (min-width:480px)"> .moz-text-html .mj-column-per-100 { width:100% !important; max-width: 100%; } </style> <style type="text/css"> </style> <style type="text/css"> .hide_on_mobile { display: none !important;} @media only screen and (min-width: 480px) { .hide_on_mobile { display: block !important;} } .hide_section_on_mobile { display: none !important;} @media only screen and (min-width: 480px) { .hide_section_on_mobile { display: table !important; } div.hide_section_on_mobile { display: block !important; } } .hide_on_desktop { display: block !important;} @media only screen and (min-width: 480px) { .hide_on_desktop { display: none !important;} } .hide_section_on_desktop { display: table !important; width: 100%; } @media only screen and (min-width: 480px) { .hide_section_on_desktop { display: none !important;} } p, h1, h2, h3 { margin: 0px; } ul, li, ol { font-size: 11px; font-family: Ubuntu, Helvetica, Arial; } a { text-decoration: none; color: inherit; } @media only screen and (max-width:480px) { .mj-column-per-100 { width:100%!important; max-width:100%!important; }.mj-column-per-100 > .mj-column-per-100 { width:100%!important; max-width:100%!important; } } </style> </head> <body style="word-spacing:normal;background-color:#FFFFFF;"> <div style="background-color:#FFFFFF;"> <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]--> <div style="margin:0px auto;max-width:600px;"> <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"> <tbody> <tr> <td style="direction:ltr;font-size:0px;padding:9px 0px 9px 0px;text-align:center;"> <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]--> <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"> <tbody> <tr> <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;"> <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;&nbsp;<br>&nbsp;<br>&nbsp;<br><span style="font-size: 21px;">Voc&ecirc; acabou de ser escalado</span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br><span style="font-size: 12px;"><strong>Voc&ecirc; foi escalado(a) para o evento Culto Celebra&ccedil;&atilde;o que ocorrer&aacute; no dia 5 de Janeiro de 2025 19h30 para a fun&ccedil;&atilde;o Tecladista.</strong></span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><span style="font-family: Bitter, Georgia, serif;">Para que voc&ecirc; possa visualizar suas escalas, baixe o aplicativo de acordo com seu smartphone.</span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px;">&nbsp;&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><em>&copy; 2024&nbsp; Lake Music Todos os Direitos Reservados</em></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br>&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]></td></tr></table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]></td></tr></table><![endif]--> </div> <div style="color: #ccc; font-size: 12px; width: 600px; margin: 15px auto; text-align: center;"><a href="https://wordtohtml.net/email/designer">Created with WordToHTML.net Email Designer</a></div> </body> </html>'; //body of the email
+
+        try {
+          final sendReport = await send(message, smtpServer);
+          print('Message sent: ' +
+              sendReport.toString()); //print if the email is sent
+        } on MailerException catch (e) {
+          print('Message not sent. \n' +
+              e.toString()); //print if the email is not sent
+          // e.toString() will show why the email is not sending
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -673,7 +709,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
 
                                   // Remove from Firestore
                                   await _removeMusician(
-                                      userId, idCulto, id, index);
+                                      userId, idCulto, id, index, instrument);
 
                                   // Update local list after successful Firestore operation
                                   setState(() {
@@ -845,48 +881,49 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                 "guitarra.png")),
                                                   ),
                                                 ),*/
-                                              Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    // Outras opções: sentences, characters
-                                                    capitalize(name),
-                                                    style: TextStyle(
-                                                      color: Colors.black,
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    decoration: BoxDecoration(
+                                              Container(
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      // Outras opções: sentences, characters
+                                                      capitalize(name),
+                                                      style: TextStyle(
                                                         color: Colors.black,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(6)),
-                                                    margin: EdgeInsets.only(
-                                                        right: 2),
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Text(
-                                                        instrument,
-                                                        style: TextStyle(
-                                                          color: Color.fromARGB(
-                                                              255,
-                                                              255,
-                                                              255,
-                                                              255),
-                                                          fontSize: 10,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                          color: Colors.black,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(6)),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(
+                                                          instrument,
+                                                          style: TextStyle(
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    255,
+                                                                    255,
+                                                                    255),
+                                                            fontSize: 10,
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                               Row(
                                                 children: [
@@ -1032,6 +1069,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                     SizedBox(
                       height: 42,
                     ),
+                    PopupMenuDivider(), // Linha divisória
                     Container(
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
@@ -1039,7 +1077,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                         color: Colors.white,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(24.0),
+                        padding: const EdgeInsets.all(12.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -1076,25 +1114,23 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                       //Navigator.pushNamed(
                                       //    context, '/adminCultoForm');
                                     },
-                                    child: Container(
-                                      // width: MediaQuery.of(context).size.width,
-                                      width: 46,
-                                      // margin:
-                                      //       EdgeInsets.only(top: 24, bottom: 16),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        color: Colors.black,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(0.0),
-                                        child: Center(
-                                          child: Text(
-                                            "+",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 24),
-                                          ),
+                                    child: Center(
+                                      child: Container(
+                                        // width: MediaQuery.of(context).size.width,
+                                        width: 46,
+                                        // margin:
+                                        //       EdgeInsets.only(top: 24, bottom: 16),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          color: Colors.black,
                                         ),
+                                        child: Center(
+                                            child: Icon(
+                                          Icons.add,
+                                          color: Colors.white,
+                                          size: 24,
+                                        )),
                                       ),
                                     ),
                                   ),
@@ -1452,6 +1488,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                     context) =>
                                                                 [
                                                           PopupMenuItem<String>(
+                                                            height: 0.0,
                                                             value: 'update',
                                                             child: Column(
                                                               crossAxisAlignment:
@@ -1465,7 +1502,9 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                           .black,
                                                                       fontWeight:
                                                                           FontWeight
-                                                                              .bold),
+                                                                              .bold,
+                                                                      fontSize:
+                                                                          12),
                                                                 ),
                                                                 Padding(
                                                                   padding: const EdgeInsets
@@ -1479,7 +1518,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                       color: Colors
                                                                           .black54,
                                                                       fontSize:
-                                                                          12,
+                                                                          10,
                                                                     ),
                                                                   ),
                                                                 ),
@@ -1501,7 +1540,9 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                           .red,
                                                                       fontWeight:
                                                                           FontWeight
-                                                                              .bold),
+                                                                              .bold,
+                                                                      fontSize:
+                                                                          12),
                                                                 ),
                                                                 Padding(
                                                                   padding: const EdgeInsets
@@ -1515,7 +1556,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                                       color: Colors
                                                                           .black54,
                                                                       fontSize:
-                                                                          12,
+                                                                          10,
                                                                     ),
                                                                   ),
                                                                 ),

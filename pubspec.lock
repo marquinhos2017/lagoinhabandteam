@@ -331,6 +331,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_mailer:
+    dependency: "direct main"
+    description:
+      name: flutter_mailer
+      sha256: "4fffaa35e911ff5ec2e5a4ebbca62c372e99a154eb3bb2c0bf79f09adf6ecf4c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.2"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -497,10 +505,10 @@ packages:
     dependency: "direct main"
     description:
       name: mailer
-      sha256: "21fde1497c79f402cb5fa7c50abd58927d360139e492546c941ee10767684fac"
+      sha256: e907087cd00719898c493f720dd326af73b00b406ab4af8e79f15d7c5fc24035
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.0"
+    version: "6.3.0"
   matcher:
     dependency: transitive
     description:
