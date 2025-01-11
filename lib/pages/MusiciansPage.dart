@@ -333,26 +333,24 @@ class AddMusicianPage extends StatefulWidget {
 class _AddMusicianPageState extends State<AddMusicianPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _instrumentController = TextEditingController();
-  final _tipoController = TextEditingController();
+  final _emailController = TextEditingController();
   final _userIdController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _emailController = TextEditingController();
 
-  bool _verFormulario = false;
-  String? _selectedAvatar;
   bool _isAdmin = false;
-
-  // Instrumentos disponíveis com checkboxes
+  bool _verFormulario = false;
   List<String> _selectedInstruments = [];
   final List<String> _instruments = [
-    'Bateria',
-    'Violão',
     'Guitarra',
+    'Violão',
+    'Baixo',
+    'Violino',
     'Vocal',
+    'Bateria',
+    'Percussionista',
+    'Teclado',
   ];
 
-  // Avatares disponíveis
   final List<String> _avatars = [
     'assets/profile_drum.png',
     'assets/profile_guitar.png',
@@ -364,28 +362,25 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
     'assets/profile_vocal3.png',
     'assets/profile_vocal4.png',
   ];
+  String? _selectedAvatar = 'assets/profile_vocal1.png';
 
   Future<void> _addMusician() async {
     if (_formKey.currentState!.validate()) {
       String? downloadUrl;
-
       if (_selectedAvatar != null) {
-        // Converte o asset em um arquivo temporário
         File avatarFile = await _getFileFromAsset(_selectedAvatar!);
-        // Faz o upload do arquivo para o Firebase
         downloadUrl = await _uploadImageToFirebase(avatarFile);
       }
 
-      // Adiciona os dados ao Firestore
       await FirebaseFirestore.instance.collection('musicos').add({
         'name': _nameController.text,
-        'instrument': _selectedInstruments.join(', '),
-        'tipo': _isAdmin ? 'Admin' : 'User',
+        'email': _emailController.text,
         'user_id': int.tryParse(_userIdController.text) ?? 0,
         'password': _passwordController.text,
+        'instrument': _selectedInstruments.join(', '),
+        'tipo': _isAdmin ? 'Admin' : 'User',
         'ver_formulario': _verFormulario,
         'photoUrl': downloadUrl,
-        'email': _emailController.text,
       });
 
       Navigator.of(context).pop();
@@ -417,53 +412,33 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
   void _showAvatarSelectionSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.black,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (BuildContext context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Selecione um Avatar',
-                style: TextStyle(color: Colors.white, fontSize: 18),
+        return GridView.builder(
+          padding: EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: _avatars.length,
+          itemBuilder: (context, index) {
+            String avatar = _avatars[index];
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedAvatar = avatar;
+                });
+                Navigator.pop(context);
+              },
+              child: CircleAvatar(
+                radius: 30,
+                backgroundImage: AssetImage(avatar),
+                child: _selectedAvatar == avatar
+                    ? Icon(Icons.check, color: Colors.green)
+                    : null,
               ),
-            ),
-            Divider(color: Colors.white),
-            Expanded(
-              child: GridView.builder(
-                padding: EdgeInsets.all(16),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: _avatars.length,
-                itemBuilder: (BuildContext context, int index) {
-                  String avatar = _avatars[index];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedAvatar = avatar;
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage(avatar),
-                      child: _selectedAvatar == avatar
-                          ? Icon(Icons.check, color: Colors.green, size: 28)
-                          : null,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -472,198 +447,209 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color(0xfff3f3f7),
       appBar: AppBar(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
-        title: Text('Adicionar Músico'),
+        title: Text('Novo Músico'),
+        backgroundColor: Color(0xfff3f3f7),
+        elevation: 0,
+        foregroundColor: Colors.black,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // ... Campos do formulário (email, nome, instrumentos, etc.)
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          children: [
+            GestureDetector(
+              onTap: _showAvatarSelectionSheet,
+              child: Container(
+                width: 100, // Duplicando o raio (2 * radius)
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: _selectedAvatar != null
+                      ? DecorationImage(
+                          image: AssetImage(_selectedAvatar!),
+                          fit: BoxFit
+                              .contain, // Contém a imagem dentro do círculo
+                        )
+                      : null,
+                  color: _selectedAvatar == null
+                      ? Colors.grey[200]
+                      : null, // Cor de fundo para o ícone
                 ),
-                style: TextStyle(color: Colors.white),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o email';
-                  }
-                  // Validação de email simples
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                    return 'Insira um email válido';
-                  }
-                  return null;
-                },
+                child: _selectedAvatar == null
+                    ? Icon(Icons.person, color: Colors.grey) // Ícone padrão
+                    : null,
               ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nome',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
+            ),
+            //       _buildSectionTitle('Informações Básicas'),
+            SizedBox(
+              height: 24,
+            ),
+            Container(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    _buildTextField(
+                      _nameController,
+                      'Nome',
+                      TextInputType.text,
+                      placeholder: 'Nome',
+                    ),
+                    _buildTextField(
+                        _emailController, 'Email', TextInputType.emailAddress,
+                        placeholder: 'Email'),
+                    _buildTextField(
+                        _userIdController, 'User ID', TextInputType.number,
+                        placeholder: 'Number'),
+                    _buildTextField(
+                        _passwordController, 'Senha', TextInputType.text,
+                        obscureText: true, placeholder: 'Senha'),
+                    _buildSectionTitle('Instrumentos'),
+                    _buildInstrumentSelection(),
+                    //   _buildSectionTitle('Avatar'),
+                  ],
                 ),
-                style: TextStyle(color: Colors.white),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o nome';
-                  }
-                  return null;
-                },
               ),
-              SizedBox(height: 16),
-              // Checkboxes para os instrumentos
-              Text(
-                'Selecione os instrumentos:',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            /*
+            ListTile(
+              leading: CircleAvatar(
+                radius: 24,
+                backgroundImage: _selectedAvatar != null
+                    ? AssetImage(_selectedAvatar!)
+                    : null,
+                child: _selectedAvatar == null
+                    ? Icon(Icons.person, color: Colors.grey)
+                    : null,
               ),
-              ..._instruments.map((instrument) {
-                return CheckboxListTile(
-                  title:
-                      Text(instrument, style: TextStyle(color: Colors.white)),
-                  value: _selectedInstruments.contains(instrument),
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        _selectedInstruments.add(instrument);
-                      } else {
-                        _selectedInstruments.remove(instrument);
-                      }
-                    });
-                  },
-                  activeColor: Colors.blue,
-                  checkColor: Colors.white,
-                );
-              }).toList(),
-              SizedBox(height: 16),
-
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _userIdController,
-                decoration: InputDecoration(
-                  labelText: 'User ID',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
-                style: TextStyle(color: Colors.white),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o user ID';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Insira um número válido';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Senha',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
-                style: TextStyle(color: Colors.white),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira a senha';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
-              SwitchListTile(
-                title: Text('Ver Formulário',
-                    style: TextStyle(color: Colors.white)),
-                value: _verFormulario,
-                onChanged: (bool value) {
-                  setState(() {
-                    _verFormulario = value;
-                  });
-                },
-              ),
-              SizedBox(height: 16),
-              SwitchListTile(
-                title: Text('Admin', style: TextStyle(color: Colors.white)),
-                value: _isAdmin,
-                onChanged: (bool value) {
-                  setState(() {
-                    _isAdmin = value;
-                  });
-                },
-              ),
-              SizedBox(height: 16),
-              SizedBox(height: 16),
-              Text(
-                'Avatar Selecionado:',
-                style: TextStyle(color: Colors.white),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 32,
-                    backgroundColor: Colors.white,
-                    backgroundImage: _selectedAvatar != null
-                        ? AssetImage(_selectedAvatar!)
-                        : null,
-                    child: _selectedAvatar == null
-                        ? Icon(Icons.person, color: Colors.white, size: 32)
-                        : null,
-                  ),
-                  SizedBox(width: 16),
-                  IconButton(
-                    icon: Icon(Icons.edit, color: Colors.white),
-                    onPressed: _showAvatarSelectionSheet,
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
+              title: Text('Selecionar Avatar'),
+              trailing: Icon(Icons.arrow_forward_ios),
+              onTap: _showAvatarSelectionSheet,
+            ),*/
+            Divider(),
+            SwitchListTile(
+              title: Text('Admin'),
+              value: _isAdmin,
+              onChanged: (value) => setState(() => _isAdmin = value),
+            ),
+            SwitchListTile(
+              title: Text('Ver Formulário'),
+              value: _verFormulario,
+              onChanged: (value) => setState(() => _verFormulario = value),
+            ),
+            SizedBox(height: 32),
+            /*     Center(
+              child: ElevatedButton(
                 onPressed: _addMusician,
                 child: Text('Adicionar'),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
               ),
-            ],
-          ),
+            ),*/
+          ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _addMusician();
+          // Ação para o botão flutuante
+          print("Botão flutuante pressionado");
+        },
+        child: Icon(Icons.add),
+        backgroundColor: Colors.blue, // Cor de fundo do botão flutuante
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    TextInputType keyboardType, {
+    bool obscureText = false,
+    required String placeholder, // Novo parâmetro opcional
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Text(label, style: TextStyle(fontSize: 16, color: Colors.grey)),
+        TextFormField(
+          style: TextStyle(fontSize: 12),
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          validator: (value) => value == null || value.isEmpty
+              ? 'Por favor, insira $label'
+              : null,
+          decoration: InputDecoration(
+            hintText: placeholder, // Define o placeholder
+            hintStyle: TextStyle(
+                fontSize: 12,
+                color: const Color.fromARGB(
+                    255, 132, 132, 132)), // Estilo do placeholder
+            border: UnderlineInputBorder(),
+            focusedBorder: UnderlineInputBorder(
+              borderSide:
+                  BorderSide(color: const Color.fromARGB(255, 132, 132, 132)),
+            ),
+          ),
+        ),
+        //  SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Text(
+        title,
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildInstrumentSelection() {
+    return Wrap(
+      spacing: 8.0, // Espaçamento horizontal entre os itens
+      runSpacing: 8.0, // Espaçamento vertical entre as linhas
+      children: _instruments.map((instrument) {
+        final isSelected = _selectedInstruments.contains(instrument);
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              if (isSelected) {
+                _selectedInstruments.remove(instrument);
+              } else {
+                _selectedInstruments.add(instrument);
+              }
+            });
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.blue[100] : Colors.grey[200],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected ? Colors.blue : Colors.grey,
+              ),
+            ),
+            child: Text(
+              instrument,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.blue : Colors.grey,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

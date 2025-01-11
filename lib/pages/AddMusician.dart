@@ -80,6 +80,7 @@ class _MusicianSelect2State extends State<MusicianSelect22> {
       );
 
       Navigator.pop(context, true);
+      Navigator.pop(context);
     } catch (e) {
       print('Erro ao adicionar músico: $e');
     }
@@ -233,13 +234,16 @@ class _MusicianSelect2State extends State<MusicianSelect22> {
                             musicoId,
                             widget.instrument,
                           );
+                          Navigator.pop(context);
 
                           // Aguarda o fechamento do SnackBar
                           await Future.delayed(Duration(seconds: 1));
+                          Navigator.pop(context);
 
                           if (!mounted) return;
 
                           Navigator.pop(context, true);
+                          Navigator.pop(context);
                         }
                       },
                       child: Row(
