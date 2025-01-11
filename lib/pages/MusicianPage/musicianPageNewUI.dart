@@ -610,7 +610,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                             : errorMessage ??
                                                 'Bom dia, ${musicianName?.toCapitalized() ?? 'Músico'}',
                                         style: TextStyle(
-                                            fontSize: 24,
+                                            fontSize: 18,
                                             fontWeight: FontWeight.bold),
                                       ),
                                       SizedBox(

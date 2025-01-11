@@ -108,6 +108,11 @@ flutter:
     - assets/profile_piano.png
     - assets/profile_violao.png
 
+    - assets/profile_vocal1.png
+    - assets/profile_vocal2.png
+    - assets/profile_vocal3.png
+    - assets/profile_vocal4.png
+
 
   #   - images/a_dot_ham.jpeg
 

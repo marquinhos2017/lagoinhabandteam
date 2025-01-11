@@ -359,6 +359,10 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
     'assets/profile_bass.png',
     'assets/profile_piano.png',
     'assets/profile_violao.png',
+    'assets/profile_vocal1.png',
+    'assets/profile_vocal2.png',
+    'assets/profile_vocal3.png',
+    'assets/profile_vocal4.png',
   ];
 
   Future<void> _addMusician() async {
@@ -375,14 +379,13 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
       // Adiciona os dados ao Firestore
       await FirebaseFirestore.instance.collection('musicos').add({
         'name': _nameController.text,
-        'instrument': _selectedInstruments
-            .join(', '), // Salva os instrumentos selecionados
-        'tipo': _isAdmin ? 'Admin' : 'User', // Salva o tipo de usuário
+        'instrument': _selectedInstruments.join(', '),
+        'tipo': _isAdmin ? 'Admin' : 'User',
         'user_id': int.tryParse(_userIdController.text) ?? 0,
         'password': _passwordController.text,
         'ver_formulario': _verFormulario,
-        'photoUrl': downloadUrl, // Adiciona o URL do avatar
-        'email': _emailController.text
+        'photoUrl': downloadUrl,
+        'email': _emailController.text,
       });
 
       Navigator.of(context).pop();
@@ -411,6 +414,61 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
     return file;
   }
 
+  void _showAvatarSelectionSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Selecione um Avatar',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ),
+            Divider(color: Colors.white),
+            Expanded(
+              child: GridView.builder(
+                padding: EdgeInsets.all(16),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: _avatars.length,
+                itemBuilder: (BuildContext context, int index) {
+                  String avatar = _avatars[index];
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedAvatar = avatar;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.white,
+                      backgroundImage: AssetImage(avatar),
+                      child: _selectedAvatar == avatar
+                          ? Icon(Icons.check, color: Colors.green, size: 28)
+                          : null,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -426,6 +484,7 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
           key: _formKey,
           child: ListView(
             children: [
+              // ... Campos do formulário (email, nome, instrumentos, etc.)
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -567,44 +626,30 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
                 },
               ),
               SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
-                'Selecione um Avatar:',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                'Avatar Selecionado:',
+                style: TextStyle(color: Colors.white),
               ),
               SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _avatars.map((avatar) {
-                  return GestureDetector(
-                    onTap: () async {
-                      setState(() {
-                        _selectedAvatar = avatar;
-                      });
-
-                      // Converter o asset selecionado para um File
-                      File avatarFile = await _getFileFromAsset(avatar);
-
-                      // Enviar o arquivo para o Firebase Storage
-                      String? downloadUrl =
-                          await _uploadImageToFirebase(avatarFile);
-
-                      if (downloadUrl != null) {
-                        print('Imagem enviada com sucesso: $downloadUrl');
-                      } else {
-                        print('Erro ao enviar imagem.');
-                      }
-                    },
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage(avatar),
-                      child: _selectedAvatar == avatar
-                          ? Icon(Icons.check, color: Colors.green, size: 24)
-                          : null,
-                    ),
-                  );
-                }).toList(),
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.white,
+                    backgroundImage: _selectedAvatar != null
+                        ? AssetImage(_selectedAvatar!)
+                        : null,
+                    child: _selectedAvatar == null
+                        ? Icon(Icons.person, color: Colors.white, size: 32)
+                        : null,
+                  ),
+                  SizedBox(width: 16),
+                  IconButton(
+                    icon: Icon(Icons.edit, color: Colors.white),
+                    onPressed: _showAvatarSelectionSheet,
+                  ),
+                ],
               ),
               SizedBox(height: 16),
               ElevatedButton(
