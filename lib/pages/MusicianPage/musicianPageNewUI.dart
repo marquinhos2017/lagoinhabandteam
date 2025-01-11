@@ -19,6 +19,7 @@ import 'package:pitch_detector_dart/pitch_detector.dart';
 import 'package:pitchupdart/instrument_type.dart';
 import 'package:pitchupdart/pitch_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BoolStringPair {
   bool booleanValue;
@@ -48,6 +49,19 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
   DateTime getEndOfWeek() {
     DateTime startOfWeek = getStartOfWeek();
     return startOfWeek.add(Duration(days: 6));
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    // Remove os dados do usuário do SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Remove todos os dados armazenados
+
+    // Retorna para a página de login
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const login()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   // Função para buscar cultos da semana
@@ -519,7 +533,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Home"),
+        toolbarHeight: 20,
         backgroundColor: Colors.transparent,
       ),
       body: Stack(
@@ -704,6 +718,35 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                     );
                                                   },
                                                 ),
+                                                IconButton(
+                                                  icon: Icon(
+                                                      Icons.notifications,
+                                                      color: Colors.black),
+                                                  onPressed: () {
+                                                    // Lógica para abrir notificações
+                                                    // Você pode adicionar a navegação ou exibir um modal, por exemplo
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      builder: (context) {
+                                                        return Column(
+                                                          children: [
+                                                            ListTile(
+                                                              leading: Icon(Icons
+                                                                  .notifications),
+                                                              title: Text(
+                                                                  'Notificações'),
+                                                              onTap: () {
+                                                                // Ação para visualizar as notificações
+                                                                Navigator.pop(
+                                                                    context);
+                                                              },
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  },
+                                                ),
                                               ],
                                             );
                                           },
@@ -803,7 +846,132 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                         },
                                       ),
                                     ),
-                                  )
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.notifications,
+                                        color: Colors.black),
+                                    onPressed: () {
+                                      // Lógica para abrir notificações
+                                      showModalBottomSheet(
+                                        context: context,
+                                        builder: (context) {
+                                          return Column(
+                                            children: [
+                                              ListTile(
+                                                leading:
+                                                    Icon(Icons.notifications),
+                                                title: Text('Notificações'),
+                                                onTap: () {
+                                                  // Ação para visualizar as notificações
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                              // Lista de notificações
+                                              Expanded(
+                                                child: ListView(
+                                                  children: [
+                                                    // Notificação 1
+                                                    ListTile(
+                                                      leading: Icon(Icons
+                                                          .event_available),
+                                                      title: Text(
+                                                          'Novo evento no culto!'),
+                                                      subtitle: Text(
+                                                          'Não perca a próxima reunião de louvor.'),
+                                                      trailing: Text(
+                                                        formatDateTime(DateTime
+                                                            .now()), // Formata a data e hora
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Colors.grey),
+                                                      ),
+                                                      onTap: () {
+                                                        // Ação ao clicar na notificação
+                                                        Navigator.pop(context);
+                                                        // Por exemplo, navegar para o evento
+                                                      },
+                                                    ),
+                                                    // Notificação 2
+                                                    ListTile(
+                                                      leading:
+                                                          Icon(Icons.group_add),
+                                                      title: Text(
+                                                          'Novo voluntário escalado!'),
+                                                      subtitle: Text(
+                                                          'Você foi escalado para o culto de amanhã.'),
+                                                      trailing: Text(
+                                                        formatDateTime(DateTime
+                                                                .now()
+                                                            .add(Duration(
+                                                                days:
+                                                                    1))), // Formata a data e hora
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Colors.grey),
+                                                      ),
+                                                      onTap: () {
+                                                        // Ação ao clicar na notificação
+                                                        Navigator.pop(context);
+                                                        // Por exemplo, navegar para a página de escalas
+                                                      },
+                                                    ),
+                                                    // Notificação 3
+                                                    ListTile(
+                                                      leading:
+                                                          Icon(Icons.update),
+                                                      title: Text(
+                                                          'Atualização no perfil'),
+                                                      subtitle: Text(
+                                                          'Seu perfil foi atualizado com sucesso.'),
+                                                      trailing: Text(
+                                                        formatDateTime(DateTime
+                                                                .now()
+                                                            .add(Duration(
+                                                                hours:
+                                                                    1))), // Formata a data e hora
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Colors.grey),
+                                                      ),
+                                                      onTap: () {
+                                                        // Ação ao clicar na notificação
+                                                        Navigator.pop(context);
+                                                        // Por exemplo, navegar para a página de perfil
+                                                      },
+                                                    ),
+                                                    // Notificação 4
+                                                    ListTile(
+                                                      leading:
+                                                          Icon(Icons.message),
+                                                      title: Text(
+                                                          'Nova mensagem recebida'),
+                                                      subtitle: Text(
+                                                          'Você tem uma mensagem nova no seu perfil.'),
+                                                      trailing: Text(
+                                                        formatDateTime(DateTime
+                                                                .now()
+                                                            .add(Duration(
+                                                                minutes:
+                                                                    30))), // Formata a data e hora
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Colors.grey),
+                                                      ),
+                                                      onTap: () {
+                                                        // Ação ao clicar na notificação
+                                                        Navigator.pop(context);
+                                                        // Por exemplo, navegar para a página de mensagens
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -2383,4 +2551,9 @@ class ProfileAvatar extends StatelessWidget {
           : null,
     );
   }
+}
+
+// Função para formatar a data e hora
+String formatDateTime(DateTime dateTime) {
+  return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
 }

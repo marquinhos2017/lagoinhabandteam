@@ -1,5 +1,11 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:path_provider/path_provider.dart';
 
 class MusiciansPage extends StatefulWidget {
   @override
@@ -142,31 +148,94 @@ class _MusicianTileState extends State<MusicianTile>
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AlertDialog(
-                      backgroundColor: Colors.grey[900],
-                      title: Text(
-                        'Excluir Músico',
-                        style: TextStyle(color: Colors.white),
+                    return Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      content: Text(
-                        'Tem certeza que deseja excluir este músico?',
-                        style: TextStyle(color: Colors.white),
+                      backgroundColor: Colors.grey[900], // Fundo escuro
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Ícone de confirmação
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.red[
+                                    50], // Fundo vermelho claro para exclusão
+                              ),
+                              padding: const EdgeInsets.all(16),
+                              child: Icon(
+                                Icons.delete_forever,
+                                size: 48,
+                                color: Colors.red, // Ícone vermelho
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            // Título
+                            Text(
+                              'Excluir Músico',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white, // Texto branco
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            // Mensagem
+                            Text(
+                              'Tem certeza que deseja excluir este músico?',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white, // Texto branco
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            // Botões de ação
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // Botão Cancelar
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, false);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: Colors.black,
+                                    backgroundColor:
+                                        Colors.white, // Texto preto
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                          color: Colors.black), // Borda preta
+                                    ),
+                                  ),
+                                  child: Text('Cancelar'),
+                                ),
+                                // Botão Excluir
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context, true);
+                                    await _deleteMusician(); // Ação de exclusão
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    backgroundColor: Colors.red, // Texto branco
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: Text('Excluir'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      actions: [
-                        TextButton(
-                          child: Text('Cancelar'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        TextButton(
-                          child: Text('Excluir'),
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            await _deleteMusician();
-                          },
-                        ),
-                      ],
                     );
                   },
                 );
@@ -192,7 +261,17 @@ class _MusicianTileState extends State<MusicianTile>
                 children: [
                   SizedBox(height: 12),
                   Text('Instrumento: ${musicianData['instrument']}'),
+                  Text('Nome: ${musicianData['name']}'),
+                  Text('Senha: ${musicianData['password']}'),
+                  Text('Foto de Perfil:'),
+                  Image.network(
+                    musicianData['photoUrl'],
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
                   Text('Tipo: ${musicianData['tipo']}'),
+                  Text('ID de Usuário: ${musicianData['user_id']}'),
                   Text(
                       'Ver Formulário: ${musicianData['ver_formulario'] ? "Sim" : "Não"}'),
                   Align(
@@ -239,7 +318,7 @@ class _MusicianTileState extends State<MusicianTile>
                 ],
               ),
             ),
-          ),
+          )
         ],
       ),
     );
@@ -258,21 +337,78 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
   final _tipoController = TextEditingController();
   final _userIdController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+
   bool _verFormulario = false;
+  String? _selectedAvatar;
+  bool _isAdmin = false;
+
+  // Instrumentos disponíveis com checkboxes
+  List<String> _selectedInstruments = [];
+  final List<String> _instruments = [
+    'Bateria',
+    'Violão',
+    'Guitarra',
+    'Vocal',
+  ];
+
+  // Avatares disponíveis
+  final List<String> _avatars = [
+    'assets/profile_drum.png',
+    'assets/profile_guitar.png',
+    'assets/profile_bass.png',
+    'assets/profile_piano.png',
+    'assets/profile_violao.png',
+  ];
 
   Future<void> _addMusician() async {
     if (_formKey.currentState!.validate()) {
+      String? downloadUrl;
+
+      if (_selectedAvatar != null) {
+        // Converte o asset em um arquivo temporário
+        File avatarFile = await _getFileFromAsset(_selectedAvatar!);
+        // Faz o upload do arquivo para o Firebase
+        downloadUrl = await _uploadImageToFirebase(avatarFile);
+      }
+
+      // Adiciona os dados ao Firestore
       await FirebaseFirestore.instance.collection('musicos').add({
         'name': _nameController.text,
-        'instrument': _instrumentController.text,
-        'tipo': _tipoController.text,
+        'instrument': _selectedInstruments
+            .join(', '), // Salva os instrumentos selecionados
+        'tipo': _isAdmin ? 'Admin' : 'User', // Salva o tipo de usuário
         'user_id': int.tryParse(_userIdController.text) ?? 0,
-        'password': _passwordController.text, // Adicionando o campo de senha
+        'password': _passwordController.text,
         'ver_formulario': _verFormulario,
+        'photoUrl': downloadUrl, // Adiciona o URL do avatar
+        'email': _emailController.text
       });
 
       Navigator.of(context).pop();
     }
+  }
+
+  Future<String?> _uploadImageToFirebase(File image) async {
+    try {
+      String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      Reference storageRef =
+          FirebaseStorage.instance.ref().child('profiles/$fileName');
+      UploadTask uploadTask = storageRef.putFile(image);
+      TaskSnapshot snapshot = await uploadTask.whenComplete(() => null);
+      return await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      print('Erro ao enviar imagem: $e');
+      return null;
+    }
+  }
+
+  Future<File> _getFileFromAsset(String assetPath) async {
+    ByteData data = await rootBundle.load(assetPath);
+    Directory tempDir = await getTemporaryDirectory();
+    File file = File('${tempDir.path}/${assetPath.split('/').last}');
+    await file.writeAsBytes(data.buffer.asUint8List());
+    return file;
   }
 
   @override
@@ -290,6 +426,32 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
           key: _formKey,
           child: ListView(
             children: [
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+                style: TextStyle(color: Colors.white),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, insira o email';
+                  }
+                  // Validação de email simples
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'Insira um email válido';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -311,47 +473,31 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
                 },
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _instrumentController,
-                decoration: InputDecoration(
-                  labelText: 'Instrumento',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
-                style: TextStyle(color: Colors.white),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o instrumento';
-                  }
-                  return null;
-                },
+              // Checkboxes para os instrumentos
+              Text(
+                'Selecione os instrumentos:',
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
+              ..._instruments.map((instrument) {
+                return CheckboxListTile(
+                  title:
+                      Text(instrument, style: TextStyle(color: Colors.white)),
+                  value: _selectedInstruments.contains(instrument),
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value == true) {
+                        _selectedInstruments.add(instrument);
+                      } else {
+                        _selectedInstruments.remove(instrument);
+                      }
+                    });
+                  },
+                  activeColor: Colors.blue,
+                  checkColor: Colors.white,
+                );
+              }).toList(),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _tipoController,
-                decoration: InputDecoration(
-                  labelText: 'Tipo',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                ),
-                style: TextStyle(color: Colors.white),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o tipo';
-                  }
-                  return null;
-                },
-              ),
+
               SizedBox(height: 16),
               TextFormField(
                 controller: _userIdController,
@@ -391,7 +537,7 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
                   ),
                 ),
                 style: TextStyle(color: Colors.white),
-                obscureText: true, // Oculta o texto da senha
+                obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira a senha';
@@ -409,6 +555,56 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
                     _verFormulario = value;
                   });
                 },
+              ),
+              SizedBox(height: 16),
+              SwitchListTile(
+                title: Text('Admin', style: TextStyle(color: Colors.white)),
+                value: _isAdmin,
+                onChanged: (bool value) {
+                  setState(() {
+                    _isAdmin = value;
+                  });
+                },
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Selecione um Avatar:',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _avatars.map((avatar) {
+                  return GestureDetector(
+                    onTap: () async {
+                      setState(() {
+                        _selectedAvatar = avatar;
+                      });
+
+                      // Converter o asset selecionado para um File
+                      File avatarFile = await _getFileFromAsset(avatar);
+
+                      // Enviar o arquivo para o Firebase Storage
+                      String? downloadUrl =
+                          await _uploadImageToFirebase(avatarFile);
+
+                      if (downloadUrl != null) {
+                        print('Imagem enviada com sucesso: $downloadUrl');
+                      } else {
+                        print('Erro ao enviar imagem.');
+                      }
+                    },
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.white,
+                      backgroundImage: AssetImage(avatar),
+                      child: _selectedAvatar == avatar
+                          ? Icon(Icons.check, color: Colors.green, size: 24)
+                          : null,
+                    ),
+                  );
+                }).toList(),
               ),
               SizedBox(height: 16),
               ElevatedButton(

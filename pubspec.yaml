@@ -98,6 +98,17 @@ flutter:
     - assets/md.png
     - assets/cantor.png
     - assets/avatar.png
+    
+
+    - assets/profile_drum.png
+
+
+    - assets/profile_guitar.png
+    - assets/profile_bass.png
+    - assets/profile_piano.png
+    - assets/profile_violao.png
+
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

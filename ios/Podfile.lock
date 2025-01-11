@@ -954,11 +954,10 @@ PODS:
   - BoringSSL-GRPC/Implementation (0.0.32):
     - BoringSSL-GRPC/Interface (= 0.0.32)
   - BoringSSL-GRPC/Interface (0.0.32)
-  - cloud_firestore (4.14.0):
+  - cloud_firestore (4.17.5):
     - Firebase/Firestore (= 10.25.0)
     - firebase_core
     - Flutter
-    - nanopb (< 2.30910.0, >= 2.30908.0)
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -1004,7 +1003,7 @@ PODS:
   - firebase_core (2.32.0):
     - Firebase/CoreOnly (= 10.25.0)
     - Flutter
-  - firebase_storage (11.7.7):
+  - firebase_storage (11.6.5):
     - Firebase/Storage (= 10.25.0)
     - firebase_core
     - Flutter
@@ -1050,6 +1049,8 @@ PODS:
   - flutter_audio_capture (1.1.4):
     - Flutter
   - flutter_email_sender (0.0.1):
+    - Flutter
+  - flutter_mailer (0.0.1):
     - Flutter
   - GoogleUtilities/Environment (7.13.3):
     - GoogleUtilities/Privacy
@@ -1172,6 +1173,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_audio_capture (from `.symlinks/plugins/flutter_audio_capture/ios`)
   - flutter_email_sender (from `.symlinks/plugins/flutter_email_sender/ios`)
+  - flutter_mailer (from `.symlinks/plugins/flutter_mailer/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -1221,6 +1223,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_audio_capture/ios"
   flutter_email_sender:
     :path: ".symlinks/plugins/flutter_email_sender/ios"
+  flutter_mailer:
+    :path: ".symlinks/plugins/flutter_mailer/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   path_provider_foundation:
@@ -1236,13 +1240,13 @@ SPEC CHECKSUMS:
   abseil: d121da9ef7e2ff4cab7666e76c5a3e0915ae08c3
   audioplayers_darwin: 877d9a4d06331c5c374595e46e16453ac7eafa40
   BoringSSL-GRPC: 1e2348957acdbcad360b80a264a90799984b2ba6
-  cloud_firestore: 6ef415c8898b823982f480d8c895252d6c24cfdf
+  cloud_firestore: 003d53b6b8b392600b7769acf9421cc4f23e5911
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: 09aa5ec1ab24135ccd7a1621c46c84134bfd6655
   Firebase: 0312a2352584f782ea56f66d91606891d4607f06
   firebase_core: a626d00494efa398e7c54f25f1454a64c8abf197
-  firebase_storage: 5c0f552d6b27d621429d7fd16ebab4be94a3c954
+  firebase_storage: e95eb6e17d4350c1d89091fd304d9ebd795b97da
   FirebaseAppCheckInterop: 6a1757cfd4067d8e00fccd14fcc1b8fd78cfac07
   FirebaseAuthInterop: 17db81e9b198afb0f95ce48c133825727eed55d3
   FirebaseCore: 7ec4d0484817f12c3373955bc87762d96842d483
@@ -1255,6 +1259,7 @@ SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_audio_capture: 93ef890ac148f093d168c33258c3a161b8f5e04b
   flutter_email_sender: 10a22605f92809a11ef52b2f412db806c6082d40
+  flutter_mailer: 2ef5a67087bc8c6c4cefd04a178bf1ae2c94cd83
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   "gRPC-C++": e725ef63c4475d7cdb7e2cf16eb0fde84bd9ee51
   gRPC-Core: eee4be35df218649fe66d721a05a7f27a28f069b
@@ -1272,4 +1277,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 58a6f534e5e30fb26d87ddeae6ebfea707f3a689
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

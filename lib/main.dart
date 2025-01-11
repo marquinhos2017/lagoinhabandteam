@@ -241,7 +241,47 @@ class MyApp extends StatelessWidget {
                           return userMainPage();
                         }
                       } else {
-                        return Text('Usuário não encontrado');
+                        return Center(
+                          child: Container(
+                            color: Colors.white,
+                            child: Column(
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.exit_to_app,
+                                    color: Colors.black,
+                                  ),
+                                  onPressed: () async {
+                                    // Chama a função de logout
+                                    await Provider.of<AuthProvider>(context,
+                                            listen: false)
+                                        .logout();
+                                    // Redireciona para a página de login após o logout
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => login()),
+                                    );
+                                  },
+                                ),
+                                GestureDetector(
+                                    onTap: () async {
+                                      // Chama a função de logout
+                                      await Provider.of<AuthProvider>(context,
+                                              listen: false)
+                                          .logout();
+                                      // Redireciona para a página de login após o logout
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => login()),
+                                      );
+                                    },
+                                    child: Text('Usuário não encontrado')),
+                              ],
+                            ),
+                          ),
+                        );
                       }
                     }
                     return const CircularProgressIndicator();
