@@ -529,7 +529,8 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
           child:
               CircularProgressIndicator()); // Ou qualquer outro indicador de carregamento
     }
-
+// Definindo um número de notificações fictício
+    int notificationCount = 4;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -721,7 +722,12 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                 IconButton(
                                                   icon: Icon(
                                                       Icons.notifications,
-                                                      color: Colors.black),
+                                                      color:
+                                                          const Color.fromARGB(
+                                                              255,
+                                                              248,
+                                                              237,
+                                                              237)),
                                                   onPressed: () {
                                                     // Lógica para abrir notificações
                                                     // Você pode adicionar a navegação ou exibir um modal, por exemplo
@@ -848,8 +854,32 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: Icon(Icons.notifications,
-                                        color: Colors.black),
+                                    icon: Stack(
+                                      children: [
+                                        Container(
+                                          height: 40,
+                                          child: Icon(Icons.notifications,
+                                              color: Colors.black),
+                                        ),
+                                        if (notificationCount > 0)
+                                          Positioned(
+                                            right: 0,
+                                            top: -0,
+                                            child: CircleAvatar(
+                                              radius: 8,
+                                              backgroundColor: Colors.red,
+                                              child: Text(
+                                                '$notificationCount',
+                                                style: TextStyle(
+                                                  fontSize: 8,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                     onPressed: () {
                                       // Lógica para abrir notificações
                                       showModalBottomSheet(
@@ -888,7 +918,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                       onTap: () {
                                                         // Ação ao clicar na notificação
                                                         Navigator.pop(context);
-                                                        // Por exemplo, navegar para o evento
                                                       },
                                                     ),
                                                     // Notificação 2
@@ -900,19 +929,16 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                       subtitle: Text(
                                                           'Você foi escalado para o culto de amanhã.'),
                                                       trailing: Text(
-                                                        formatDateTime(DateTime
-                                                                .now()
-                                                            .add(Duration(
-                                                                days:
-                                                                    1))), // Formata a data e hora
+                                                        formatDateTime(
+                                                            DateTime.now().add(
+                                                                Duration(
+                                                                    days: 1))),
                                                         style: TextStyle(
                                                             fontSize: 12,
                                                             color: Colors.grey),
                                                       ),
                                                       onTap: () {
-                                                        // Ação ao clicar na notificação
                                                         Navigator.pop(context);
-                                                        // Por exemplo, navegar para a página de escalas
                                                       },
                                                     ),
                                                     // Notificação 3
@@ -924,19 +950,16 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                       subtitle: Text(
                                                           'Seu perfil foi atualizado com sucesso.'),
                                                       trailing: Text(
-                                                        formatDateTime(DateTime
-                                                                .now()
-                                                            .add(Duration(
-                                                                hours:
-                                                                    1))), // Formata a data e hora
+                                                        formatDateTime(
+                                                            DateTime.now().add(
+                                                                Duration(
+                                                                    hours: 1))),
                                                         style: TextStyle(
                                                             fontSize: 12,
                                                             color: Colors.grey),
                                                       ),
                                                       onTap: () {
-                                                        // Ação ao clicar na notificação
                                                         Navigator.pop(context);
-                                                        // Por exemplo, navegar para a página de perfil
                                                       },
                                                     ),
                                                     // Notificação 4
@@ -948,19 +971,17 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                       subtitle: Text(
                                                           'Você tem uma mensagem nova no seu perfil.'),
                                                       trailing: Text(
-                                                        formatDateTime(DateTime
-                                                                .now()
-                                                            .add(Duration(
-                                                                minutes:
-                                                                    30))), // Formata a data e hora
+                                                        formatDateTime(
+                                                            DateTime.now().add(
+                                                                Duration(
+                                                                    minutes:
+                                                                        30))),
                                                         style: TextStyle(
                                                             fontSize: 12,
                                                             color: Colors.grey),
                                                       ),
                                                       onTap: () {
-                                                        // Ação ao clicar na notificação
                                                         Navigator.pop(context);
-                                                        // Por exemplo, navegar para a página de mensagens
                                                       },
                                                     ),
                                                   ],
