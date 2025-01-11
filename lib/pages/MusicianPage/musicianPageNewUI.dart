@@ -13,7 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_audio_capture/flutter_audio_capture.dart';
+//import 'package:flutter_audio_capture/flutter_audio_capture.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pitch_detector_dart/pitch_detector.dart';
 import 'package:pitchupdart/instrument_type.dart';
@@ -674,7 +674,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                     _navigateToEditProfile();
                                                   },
                                                 ),
-                                                ListTile(
+                                                /*ListTile(
                                                   leading: Icon(Icons.abc),
                                                   title: Text('Afinador'),
                                                   onTap: () {
@@ -688,7 +688,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                               Afinador()),
                                                     );
                                                   },
-                                                ),
+                                                ),*/
                                                 ListTile(
                                                   leading: Icon(Icons.logout),
                                                   title: Text('Sair'),
@@ -2435,7 +2435,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                 ),
               ),
               Bibliotecamusical(),
-              Afinador(),
+              //  Afinador(),
             ],
           ),
           Align(

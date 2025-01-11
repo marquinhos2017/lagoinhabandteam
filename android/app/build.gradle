@@ -1,12 +1,9 @@
 plugins {
     id "com.android.application"
-    // START: FlutterFire Configuration
-    id 'com.google.gms.google-services'
-    // END: FlutterFire Configuration
     id "kotlin-android"
+    id "com.google.gms.google-services"
     id "dev.flutter.flutter-gradle-plugin"
 }
-
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -25,19 +22,34 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+
+
 android {
     namespace "com.example.lagoinha_music"
-    compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 34 // Alinhe com a versão do Flutter SDK
     ndkVersion flutter.ndkVersion
 
+     
+    defaultConfig {
+        minSdkVersion 21 // ou conforme necessário
+        targetSdkVersion 34
+    }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = "17"
     }
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
