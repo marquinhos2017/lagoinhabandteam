@@ -49,6 +49,131 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
     }
   }
 
+  // Função para adicionar um novo registro
+  Future<void> _addNewRecord(
+      String author, String music, String bpm, String letra) async {
+    try {
+      await _firestore.collection('music_database').add({
+        'Author': author,
+        'Music': music,
+        'bpm': bpm,
+        'letra': letra,
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Novo registro adicionado com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao adicionar registro: $e')),
+      );
+    }
+  }
+
+  void _showAddRecordBottomSheet() {
+    final _authorController = TextEditingController();
+    final _musicController = TextEditingController();
+    final _bpmController = TextEditingController();
+    final _letraController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            top: 16,
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+                Text(
+                  'Adicionar Novo Registro',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: _authorController,
+                  decoration: InputDecoration(labelText: 'Author'),
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  controller: _musicController,
+                  decoration: InputDecoration(labelText: 'Music'),
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  controller: _bpmController,
+                  decoration: InputDecoration(labelText: 'BPM'),
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  controller: _letraController,
+                  decoration: InputDecoration(labelText: 'Letra'),
+                  maxLines: 3,
+                ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Cancelar'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        final author = _authorController.text.trim();
+                        final music = _musicController.text.trim();
+                        final bpm = _bpmController.text.trim();
+                        final letra = _letraController.text.trim();
+
+                        if (author.isNotEmpty &&
+                            music.isNotEmpty &&
+                            bpm.isNotEmpty &&
+                            letra.isNotEmpty) {
+                          _addNewRecord(author, music, bpm, letra);
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Preencha todos os campos.')),
+                          );
+                        }
+                      },
+                      child: Text('Adicionar'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<bool> _checkbpm(String documentId) async {
     try {
       // Obtém o documento específico pelo documentId
@@ -392,6 +517,11 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddRecordBottomSheet,
+        child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
       ),
     );
   }

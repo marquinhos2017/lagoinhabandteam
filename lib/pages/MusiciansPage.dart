@@ -558,13 +558,7 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
             SizedBox(
               height: 24,
             ),
-            GestureDetector(
-              child: Text("Adicionar"),
-              onTap: () => {
-                print("Adicionado"),
-                _addMusician(),
-              },
-            ),
+
             Container(
               color: Colors.white,
               child: Padding(
@@ -633,17 +627,26 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
                 ),
               ),
             ),*/
+            GestureDetector(
+              child: Text(
+                  "Clique aqui para adicionar novo usuario ou no botao flutuante"),
+              onTap: () => {
+                print("Adicionado"),
+                _addMusician(),
+              },
+            ),
           ],
         ),
       ),
-      /* floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Ação para o botão flutuante
+          _addMusician();
           print("Botão flutuante pressionado");
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.blue, // Cor de fundo do botão flutuante
-      ),*/
+      ),
     );
   }
 
