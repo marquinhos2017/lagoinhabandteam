@@ -33,10 +33,87 @@ class GerenciamentoCulto extends StatefulWidget {
 }
 
 class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
+  Map<String, dynamic>? cultoDetails;
+
+  Future<void> fetchCultoDetails() async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('Cultos')
+          .doc(widget.documentId)
+          .get();
+
+      if (snapshot.exists) {
+        setState(() {
+          cultoDetails = {
+            'nome': snapshot.data()?['nome'] ?? 'Sem Nome',
+            'date': snapshot
+                .data()?['date']
+                ?.toDate(), // Converter timestamp para DateTime
+            'horario': snapshot.data()?['horario'] ?? 'Sem Horário',
+          };
+        });
+      } else {
+        setState(() {
+          cultoDetails = {
+            'nome': 'Culto não encontrado',
+            'date': null,
+            'horario': 'Sem Horário',
+          };
+        });
+      }
+    } catch (e) {
+      print('Erro ao buscar os detalhes do culto: $e');
+      setState(() {
+        cultoDetails = {
+          'nome': 'Erro ao carregar',
+          'date': null,
+          'horario': 'Erro',
+        };
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>> getCultoDetails(String documentId) async {
+    try {
+      // Buscar o documento no Firestore
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('Cultos')
+          .doc(documentId)
+          .get();
+
+      if (snapshot.exists) {
+        // Retornar os dados relevantes
+        return {
+          'nome': snapshot.data()?['nome'] ?? 'Sem Nome',
+          'date': snapshot
+              .data()?['date']
+              ?.toDate(), // Converter timestamp para DateTime
+          'horario': snapshot.data()?['horario'] ?? 'Sem Horário',
+        };
+      } else {
+        return {
+          'nome': 'Culto não encontrado',
+          'date': null,
+          'horario': 'Sem Horário',
+        };
+      }
+    } catch (e) {
+      print('Erro ao buscar os detalhes do culto: $e');
+      return {
+        'nome': 'Erro ao carregar',
+        'date': null,
+        'horario': 'Erro',
+      };
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchMusicianNames();
+    fetchCultoDetails();
   }
 
   String? selectedKey; // Armazena o tom selecionado
@@ -1000,6 +1077,27 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
 
   @override
   Widget build(BuildContext context) {
+    Future<String> getCultoName(String documentId) async {
+      try {
+        // Buscar o documento no Firestore
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await FirebaseFirestore.instance
+                .collection('Cultos')
+                .doc(documentId)
+                .get();
+
+        if (snapshot.exists) {
+          // Obter o nome do culto
+          return snapshot.data()?['nome'] ?? 'Sem Nome';
+        } else {
+          return 'Culto não encontrado';
+        }
+      } catch (e) {
+        print('Erro ao buscar o culto: $e');
+        return 'Erro ao carregar';
+      }
+    }
+
     print(widget.documentId);
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
     // final cultosProvider = Provider.of<CultosProvider>(context);
@@ -1008,30 +1106,73 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
       key: scaffoldKey,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: Text(
-          "Gerenciamento",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        // Usar o FutureBuilder para exibir os dados no AppBar
+        title: cultoDetails == null
+            ? Text('Carregando...')
+            : Builder(builder: (context) {
+                final cultoNome = cultoDetails?['nome'] ?? '';
+                final cultoDate = cultoDetails?['date'] as DateTime?;
+                final cultoHorario = cultoDetails?['horario'] ?? '';
+
+                final dateFormatted = cultoDate != null
+                    ? '${cultoDate.day}/${cultoDate.month}'
+                    : 'Sem Data';
+
+                return Column(
+                  children: [
+                    Text(
+                      '$cultoNome',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
+                    ),
+                    SizedBox(
+                      width: 12,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(color: Colors.black),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          '$dateFormatted $cultoHorario',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+
+        //  foregroundColor: Colors.black,
+        //   surfaceTintColor: Colors.black,
+        // shadowColor: Colors.black,
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
+            icon: Icon(Icons.refresh, color: Colors.black),
             onPressed: () {
               setState(() {}); // Atualiza a página
             },
           ),
           IconButton(
-            icon: Icon(Icons.login, color: Colors.white),
+            icon: Icon(Icons.login, color: Colors.black),
             onPressed: () => Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => login()),
             ),
           ),
         ],
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.white,
+        shadowColor: Colors.white,
+        surfaceTintColor: Colors.white,
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(

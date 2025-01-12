@@ -363,6 +363,28 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
     'assets/profile_vocal4.png',
   ];
   String? _selectedAvatar = 'assets/profile_vocal1.png';
+  Future<String?> _uploadImageToFirebase(File image) async {
+    try {
+      String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      Reference storageRef =
+          FirebaseStorage.instance.ref().child('profiles/$fileName');
+
+      // Adicionando metadata explícita
+      SettableMetadata metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+      );
+
+      // Enviando com metadata
+      UploadTask uploadTask = storageRef.putFile(image, metadata);
+
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Erro ao enviar imagem: $e');
+      return null;
+    }
+  }
 
   Future<void> _addMusician() async {
     if (_formKey.currentState!.validate()) {
@@ -372,34 +394,84 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
         downloadUrl = await _uploadImageToFirebase(avatarFile);
       }
 
-      await FirebaseFirestore.instance.collection('musicos').add({
-        'name': _nameController.text,
-        'email': _emailController.text,
-        'user_id': int.tryParse(_userIdController.text) ?? 0,
-        'password': _passwordController.text,
-        'instrument': _selectedInstruments.join(', '),
-        'tipo': _isAdmin ? 'Admin' : 'User',
-        'ver_formulario': _verFormulario,
-        'photoUrl': downloadUrl,
-      });
+      if (downloadUrl != null) {
+        await FirebaseFirestore.instance.collection('musicos').add({
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'user_id': int.tryParse(_userIdController.text) ?? 0,
+          'password': _passwordController.text,
+          'instrument': _selectedInstruments.join(', '),
+          'tipo': _isAdmin ? 'Admin' : 'user',
+          'ver_formulario': _verFormulario,
+          'photoUrl':
+              downloadUrl, // Agora você só salva se o downloadUrl não for nulo
+        });
 
-      Navigator.of(context).pop();
+        // Exibindo o AlertDialog
+        await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Sucesso"),
+              content: Text("Músico adicionado com sucesso!"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Fecha o diálogo
+                    Navigator.of(context).pop(); // Fecha a página atual
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Caso não tenha foto de avatar
+        await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Erro"),
+              content: Text(
+                  "Não foi possível fazer o upload da imagem. Tente novamente."),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Fecha o diálogo
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
   }
 
+/* se usar apenas esse, no android nao funciona o upload de photos ou acesso ao firestore, apenas no ios
   Future<String?> _uploadImageToFirebase(File image) async {
     try {
+      // Gerando o nome do arquivo com timestamp
       String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
       Reference storageRef =
           FirebaseStorage.instance.ref().child('profiles/$fileName');
+
+      // Fazendo o upload do arquivo
       UploadTask uploadTask = storageRef.putFile(image);
-      TaskSnapshot snapshot = await uploadTask.whenComplete(() => null);
-      return await snapshot.ref.getDownloadURL();
+
+      // Esperando o upload finalizar
+      TaskSnapshot snapshot = await uploadTask;
+
+      // Obtendo o URL de download do arquivo
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
     } catch (e) {
       print('Erro ao enviar imagem: $e');
       return null;
     }
-  }
+  }*/
 
   Future<File> _getFileFromAsset(String assetPath) async {
     ByteData data = await rootBundle.load(assetPath);
@@ -449,7 +521,7 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
     return Scaffold(
       backgroundColor: Color(0xfff3f3f7),
       appBar: AppBar(
-        title: Text('Novo Músico'),
+        centerTitle: true,
         backgroundColor: Color(0xfff3f3f7),
         elevation: 0,
         foregroundColor: Colors.black,
@@ -486,6 +558,13 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
             SizedBox(
               height: 24,
             ),
+            GestureDetector(
+              child: Text("Adicionar"),
+              onTap: () => {
+                print("Adicionado"),
+                _addMusician(),
+              },
+            ),
             Container(
               color: Colors.white,
               child: Padding(
@@ -514,6 +593,7 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
                 ),
               ),
             ),
+
             /*
             ListTile(
               leading: CircleAvatar(
@@ -541,6 +621,7 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
               onChanged: (value) => setState(() => _verFormulario = value),
             ),
             SizedBox(height: 32),
+
             /*     Center(
               child: ElevatedButton(
                 onPressed: _addMusician,
@@ -555,15 +636,14 @@ class _AddMusicianPageState extends State<AddMusicianPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      /* floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _addMusician();
           // Ação para o botão flutuante
           print("Botão flutuante pressionado");
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.blue, // Cor de fundo do botão flutuante
-      ),
+      ),*/
     );
   }
 
