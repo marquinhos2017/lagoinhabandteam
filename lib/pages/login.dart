@@ -210,9 +210,13 @@ class _LoginStateState extends State<login> {
                                               horizontal: 24, vertical: 16),
                                           child: TextFormField(
                                             style: const TextStyle(
-                                                color: Colors.black),
+                                                color: Colors.black,
+                                                fontSize: 18),
                                             controller: passwordController,
                                             obscureText: true,
+                                            obscuringCharacter:
+                                                '*', // defaults to *
+
                                             decoration: const InputDecoration(
                                               border: InputBorder.none,
                                               filled: true,
