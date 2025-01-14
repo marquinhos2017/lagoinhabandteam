@@ -262,13 +262,40 @@ class _userMainPageState extends State<userMainPage> {
                 ),
               ),
               child: Center(
-                child: Text(
-                  'Menu',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Menu',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // Ação para Opção 2
+                        // Usando Provider.of com listen: false para evitar reconstruções desnecessárias
+                        final authProvider =
+                            Provider.of<AuthProvider>(context, listen: false);
+
+                        // Acessa o authProvider e faz algo com ele
+                        if (authProvider.userId != null) {
+                          // Faça algo com authProvider.userId
+                          authProvider.logout();
+                        }
+                        Navigator.pop(context);
+
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => login()),
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                      child: Icon(Icons.logout),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1039,14 +1066,14 @@ class _userMainPageState extends State<userMainPage> {
     return Column(
       children: [
         Container(
-          height: 200,
+          height: 250,
           child: GridView.builder(
             physics: NeverScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
             itemCount: daysInMonth + daysBefore,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               childAspectRatio: 1.2,
-              crossAxisCount: 8,
+              crossAxisCount: 7,
               mainAxisSpacing:
                   0.0, // Espaçamento vertical mínimo entre as células
               crossAxisSpacing:
@@ -1672,7 +1699,7 @@ class _userMainPageState extends State<userMainPage> {
                             ),*/
             Container(
               margin: EdgeInsets.only(top: 12, bottom: 24),
-              height: 300,
+              height: 360,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(24)),

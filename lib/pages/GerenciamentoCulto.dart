@@ -1226,7 +1226,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.login, color: Colors.black),
+            icon: Icon(Icons.logout, color: Colors.black),
             onPressed: () => Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => login()),

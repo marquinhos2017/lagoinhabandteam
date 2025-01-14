@@ -9,6 +9,7 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:lagoinha_music/pages/MusicianPage/VerCifraUser.dart';
 import 'package:lagoinha_music/pages/MusicianPage/VerLetra.dart';
+import 'package:lagoinha_music/pages/MusicianPage/VerLetraUser.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart'; // Pacote para reproduzir som (adicionar no pubspec.yaml)
@@ -1332,7 +1333,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => Verletra(
+                                              builder: (context) =>
+                                                  VerLetraUser(
                                                 documentId:
                                                     musica['document_id'],
                                                 isAdmin: false,
