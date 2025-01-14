@@ -36,12 +36,64 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
 
       List<dynamic> playlist = cultoDoc['playlist'] ?? [];
       _addedMusics = playlist
-          .map((item) => {'id': item['music_document'], 'key': item['key']})
+          .map((item) => {
+                'id': item['music_document'],
+                'key': item['key'],
+              })
           .toList();
 
       return playlist.map((item) => item['music_document'] as String).toList();
     } catch (e) {
       print('Erro ao obter IDs das músicas na playlist: $e');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, String>>> _getPlaylistMusicsDetails() async {
+    try {
+      // Referência para o documento de culto
+      DocumentReference cultoRef =
+          _firestore.collection('Cultos').doc(widget.document_id);
+      DocumentSnapshot cultoDoc = await cultoRef.get();
+
+      if (!cultoDoc.exists) {
+        throw Exception('Documento de culto não encontrado');
+      }
+
+      // Pegando a playlist do culto
+      List<dynamic> playlist = cultoDoc['playlist'] ?? [];
+
+      // A lista para armazenar as músicas com os detalhes
+      List<Map<String, String>> musicsDetails = [];
+
+      for (var item in playlist) {
+        String musicDocument = item['music_document'];
+        print("Documento");
+        print(musicDocument);
+
+        // Buscar o documento da música na coleção music_database
+        DocumentSnapshot musicSnapshot = await FirebaseFirestore.instance
+            .collection('music_database')
+            .doc(musicDocument)
+            .get();
+
+        if (musicSnapshot.exists) {
+          var musicData = musicSnapshot.data() as Map<String, dynamic>;
+
+          // Adicionando os detalhes da música à lista
+          musicsDetails.add({
+            'id': musicDocument,
+            'key': item['key'],
+            'Author': musicData['Author'] ?? 'Autor desconhecido',
+            'Music': musicData['Music'] ?? 'Título não disponível',
+          });
+        }
+      }
+
+      // Retorna a lista com os detalhes das músicas
+      return musicsDetails;
+    } catch (e) {
+      print('Erro ao obter detalhes das músicas na playlist: $e');
       return [];
     }
   }
@@ -55,7 +107,14 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Selecione o tom'),
+          title: Align(
+            alignment: Alignment.center,
+            child: const Text(
+              'Selecione o tom',
+            ),
+          ),
+          titleTextStyle: TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black),
           backgroundColor: Colors.white,
           content: KeySelectorGrid(
             initialKey: selectedKey,
@@ -112,7 +171,7 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
         });
 
         // Atualiza a lista de músicas adicionadas
-        await _getPlaylistMusicIds();
+        await _getPlaylistMusicsDetails();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -135,31 +194,47 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
     }
   }
 
-  void _showAddedMusics() {
-    showDialog(
+  void _showAddedMusics() async {
+    // Chama o método assíncrono que retorna os detalhes das músicas
+    List<Map<String, String>> musicsDetails = await _getPlaylistMusicsDetails();
+
+    // Mostra o bottom sheet com as músicas
+    showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Músicas Adicionadas'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: _addedMusics.map((music) {
-                return ListTile(
-                  title: Text(music['id']),
-                  subtitle: Text('Tom: ${music['key']}'),
-                );
-              }).toList(),
-            ),
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Músicas Adicionadas',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              // Exibe as músicas usando um ListView
+              Expanded(
+                child: ListView.builder(
+                  itemCount: musicsDetails.length,
+                  itemBuilder: (context, index) {
+                    var music = musicsDetails[index];
+                    return ListTile(
+                      title: Text(music['Music'] ?? 'Título não disponível'),
+                      subtitle:
+                          Text('Autor: ${music['Author'] ?? 'Desconhecido'}'),
+                    );
+                  },
+                ),
+              ),
+              TextButton(
+                child:
+                    const Text('FECHAR', style: TextStyle(color: Colors.black)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child:
-                  const Text('FECHAR', style: TextStyle(color: Colors.black)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );
@@ -169,6 +244,8 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.white,
+        shadowColor: Colors.transparent,
         leading: Container(
           child: GestureDetector(
               onTap: () => Navigator.pop(context),
@@ -179,8 +256,9 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
         ),
         centerTitle: true,
         title: Text(
-          "Adicionar Canção",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          "Adicionar à Playlist",
+          style: TextStyle(
+              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         actions: [
           IconButton(
@@ -188,15 +266,6 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
             color: Colors.black,
             onPressed: _showAddedMusics,
           ),
-          GestureDetector(
-              onTap: () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => login()),
-                  ),
-              child: Icon(
-                Icons.login,
-                color: Colors.black,
-              )),
         ],
         foregroundColor: Colors.black,
         elevation: 0,
@@ -209,7 +278,7 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(0.0),
               child: TextField(
                 controller: _searchController,
                 onChanged: (value) {
@@ -232,6 +301,9 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                 ),
                 style: TextStyle(color: Colors.black),
               ),
+            ),
+            SizedBox(
+              height: 20,
             ),
             Expanded(
               child: FutureBuilder<List<String>>(
@@ -270,53 +342,97 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                         },
                       ).toList();
 
-                      return ListView.builder(
-                        padding: EdgeInsets.all(0),
-                        itemCount: filteredDocuments.length,
-                        itemBuilder: (context, index) {
-                          final data = filteredDocuments[index].data()
-                              as Map<String, dynamic>;
-                          var documentId = filteredDocuments[index].id;
+                      return LayoutBuilder(
+                        // Adicionado para garantir que o ListView preencha o espaço disponível
+                        builder: (context, constraints) {
+                          return ListView.builder(
+                            padding: EdgeInsets.all(0),
+                            itemCount: filteredDocuments.length,
+                            itemBuilder: (context, index) {
+                              final data = filteredDocuments[index].data()
+                                  as Map<String, dynamic>;
+                              var documentId = filteredDocuments[index].id;
 
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                child: Expanded(
-                                  child: ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    trailing: GestureDetector(
-                                      onTap: () async {
-                                        await _showKeyDialog(documentId);
-                                      },
-                                      child: Icon(
-                                        Icons.add,
-                                        color: _selectedMusicIds
-                                                .contains(documentId)
-                                            ? Colors.green
-                                            : Color(0xff4465D9),
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            const Color.fromARGB(17, 0, 0, 0),
+                                        spreadRadius: 2,
+                                        blurRadius: 15,
+                                        offset: Offset(0, 8),
                                       ),
-                                    ),
-                                    title: Text(
-                                      data['Author'] ?? 'No title',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
+                                    ],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: ListTile(
+                                            leading: Container(
+                                              width:
+                                                  40, // Defina a largura do quadrado
+                                              height:
+                                                  40, // Defina a altura do quadrado para ser igual à largura
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  image: NetworkImage(
+                                                      'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/7caaae22728159.56317655cb7d8.jpg',
+                                                      scale: 1.0),
+                                                  fit: BoxFit
+                                                      .cover, // Define o ajuste da imagem
+                                                ),
+                                                borderRadius: BorderRadius.circular(
+                                                    8), // Opcional: bordas arredondadas
+                                              ),
+                                            ),
+                                            contentPadding: EdgeInsets.zero,
+                                            trailing: GestureDetector(
+                                              onTap: () async {
+                                                await _showKeyDialog(
+                                                    documentId);
+                                              },
+                                              child: Icon(
+                                                Icons.add,
+                                                color: _selectedMusicIds
+                                                        .contains(documentId)
+                                                    ? Colors.green
+                                                    : Color(0xff4465D9),
+                                              ),
+                                            ),
+                                            title: Text(
+                                              data['Author'] ?? 'No title',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            subtitle: Text(
+                                              data['Music'] ?? 'No artist',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w200,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    subtitle: Text(
-                                      data['Music'] ?? 'No artist',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w200,
-                                      ),
-                                    ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ],
+                              );
+                            },
                           );
                         },
                       );
@@ -394,10 +510,15 @@ class _KeySelectorGridState extends State<KeySelectorGrid> {
               },
               child: Container(
                 decoration: BoxDecoration(
+                  border: Border.all(
+                    color: key == selectedKey
+                        ? Colors.blue
+                        : const Color.fromARGB(255, 238, 238, 238),
+                  ),
                   color: key == selectedKey
-                      ? Colors.blue
+                      ? Colors.white
                       : const Color.fromARGB(255, 238, 238, 238),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 child: Center(
                   child: Text(

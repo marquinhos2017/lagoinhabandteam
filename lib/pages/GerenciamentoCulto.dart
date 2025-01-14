@@ -645,10 +645,27 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
           }
         }),
         child: Container(
+          height: 100,
+          width: 100,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: Colors.white,
+              border: Border.all(
+                color: Color(0xff0A7AFF),
+              )),
           margin: EdgeInsets.only(right: 24),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Image(height: 50, image: AssetImage("assets/" + a)),
+          child: Column(
+            children: [
+              Icon(
+                Icons.music_off_sharp,
+                color: Colors.white,
+              ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image(
+                    height: 50, width: 50, image: AssetImage("assets/" + a)),
+              ),
+            ],
           ),
         ),
       ),
@@ -708,366 +725,413 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
 
             final musicoList = futureSnapshot.data!;
 
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(60),
-                color: Colors.white,
-                //     border: Border.all(color: Colors.black, width: 1)),
-              ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0),
-                child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 6.0,
-                        mainAxisSpacing: 6.0,
-                        childAspectRatio: 2.5,
-                        mainAxisExtent: 60),
-                    padding: EdgeInsets.zero,
-                    itemCount: musicoList.length,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      if (index >= musicoList.length) {
-                        return SizedBox(); // Or another widget to handle empty cases
-                      }
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                      // borderRadius: BorderRadius.circular(60),
+                      //  color: Colors.white,
+                      //     border: Border.all(color: Colors.black, width: 1)),
+                      ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 0.0, vertical: 0),
+                    child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 0.0,
+                            mainAxisSpacing: 0.0,
+                            childAspectRatio: 0.1,
+                            mainAxisExtent: 35),
+                        padding: EdgeInsets.zero,
+                        itemCount: musicoList.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) {
+                          if (index >= musicoList.length) {
+                            return SizedBox(); // Or another widget to handle empty cases
+                          }
 
-                      final musico = musicoList[index];
-                      final name = musico['name'] ?? 'Nome não disponível';
-                      final instrument =
-                          musico['instrument'] ?? 'Instrumento não disponível';
-                      final id = musico['item'] ?? 'Instrumento não disponível';
-                      print(musicoList);
+                          final musico = musicoList[index];
+                          final name = musico['name'] ?? 'Nome não disponível';
+                          final instrument = musico['instrument'] ??
+                              'Instrumento não disponível';
+                          final id =
+                              musico['item'] ?? 'Instrumento não disponível';
+                          print(musicoList);
 
-                      return Padding(
-                        padding: const EdgeInsets.all(0.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                              border: Border.all(color: Colors.transparent)),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  print("Index: " + index.toString());
+                          return Padding(
+                            padding: const EdgeInsets.all(0.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  border:
+                                      Border.all(color: Colors.transparent)),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      print("Index: " + index.toString());
 
-                                  final musicoToRemove = musicoList[index];
-                                  print(musicoToRemove);
+                                      final musicoToRemove = musicoList[index];
+                                      print(musicoToRemove);
 
-                                  final userId =
-                                      musicoToRemove['user_id'] as int? ?? 0;
+                                      final userId =
+                                          musicoToRemove['user_id'] as int? ??
+                                              0;
 
-                                  print("UserID: " + userId.toString());
-                                  final idCulto = widget.documentId;
+                                      print("UserID: " + userId.toString());
+                                      final idCulto = widget.documentId;
 
-                                  print("ID Culto: " + idCulto);
-                                  print("asdasdasdasdasdasdasda" +
-                                      userId.toString());
-                                },
-                                onDoubleTap: () async {
-                                  if (_isProcessing || !mounted) return;
+                                      print("ID Culto: " + idCulto);
+                                      print("asdasdasdasdasdasdasda" +
+                                          userId.toString());
+                                    },
+                                    onDoubleTap: () async {
+                                      if (_isProcessing || !mounted) return;
 
-                                  setState(() {
-                                    _isProcessing = true;
-                                  });
+                                      setState(() {
+                                        _isProcessing = true;
+                                      });
 
-                                  final musicoToRemove = musicoList[index];
+                                      final musicoToRemove = musicoList[index];
 
-                                  final userId =
-                                      musicoToRemove['user_id'] as int? ?? 0;
-                                  final idCulto = widget.documentId;
-                                  print("asdasdasdasdasdasdasda" +
-                                      userId.toString());
+                                      final userId =
+                                          musicoToRemove['user_id'] as int? ??
+                                              0;
+                                      final idCulto = widget.documentId;
+                                      print("asdasdasdasdasdasdasda" +
+                                          userId.toString());
 
-                                  // Perform removal operation
-                                  print(
-                                      "Removing da tabela culto_user_isntrument: $id");
+                                      // Perform removal operation
+                                      print(
+                                          "Removing da tabela culto_user_isntrument: $id");
 
-                                  // Remove from Firestore
-                                  await _removeMusician(
-                                      userId, idCulto, id, index, instrument);
+                                      // Remove from Firestore
+                                      await _removeMusician(userId, idCulto, id,
+                                          index, instrument);
 
-                                  // Update local list after successful Firestore operation
-                                  setState(() {
-                                    musicoList.removeAt(index);
-                                    _isProcessing = false;
-                                  });
-                                },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Expanded(
-                                      child: Dismissible(
-                                        key: UniqueKey(), // Ensure a unique key
-                                        direction: DismissDirection.endToStart,
-                                        background: Container(
-                                          color: Colors.red,
-                                          alignment: Alignment.centerRight,
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 20),
-                                          child: Icon(Icons.delete,
-                                              color: Colors.black),
-                                        ),
-                                        onDismissed: (direction) async {
-                                          if (_isProcessing || !mounted) return;
+                                      // Update local list after successful Firestore operation
+                                      setState(() {
+                                        musicoList.removeAt(index);
+                                        _isProcessing = false;
+                                      });
+                                    },
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Dismissible(
+                                            key:
+                                                UniqueKey(), // Ensure a unique key
+                                            direction:
+                                                DismissDirection.endToStart,
+                                            background: Container(
+                                              color: Colors.red,
+                                              alignment: Alignment.centerRight,
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 20),
+                                              child: Icon(Icons.delete,
+                                                  color: Colors.black),
+                                            ),
+                                            onDismissed: (direction) async {
+                                              if (_isProcessing || !mounted)
+                                                return;
 
-                                          setState(() {
-                                            _isProcessing = true;
-                                          });
+                                              setState(() {
+                                                _isProcessing = true;
+                                              });
 
-                                          // Ensure we're working with the correct list
-                                          final musicoToRemove =
-                                              musicoList[index];
-                                          print("Musico to Remvoe: " +
-                                              musicoToRemove[index]);
-                                          final userId =
-                                              musicoToRemove['user_id']
-                                                      as int? ??
-                                                  0;
-                                          final idCulto = widget.documentId;
-                                          print("Delete this + " +
-                                              musicoToRemove.toString());
+                                              // Ensure we're working with the correct list
+                                              final musicoToRemove =
+                                                  musicoList[index];
+                                              print("Musico to Remvoe: " +
+                                                  musicoToRemove[index]);
+                                              final userId =
+                                                  musicoToRemove['user_id']
+                                                          as int? ??
+                                                      0;
+                                              final idCulto = widget.documentId;
+                                              print("Delete this + " +
+                                                  musicoToRemove.toString());
 
-                                          // Perform removal operation
-                                          print("Removing $id");
+                                              // Perform removal operation
+                                              print("Removing $id");
 
-                                          // Assuming you want to also remove the item from the list
-                                          // (You should do this only after successfully removing from the database)
-                                          // setState(() {
-                                          //   musicoList.removeAt(index);
-                                          // });
+                                              // Assuming you want to also remove the item from the list
+                                              // (You should do this only after successfully removing from the database)
+                                              // setState(() {
+                                              //   musicoList.removeAt(index);
+                                              // });
 
-                                          // Remove from Firestore
-                                          // await _removeMusician(userId, id);
+                                              // Remove from Firestore
+                                              // await _removeMusician(userId, id);
 
-                                          setState(() {
-                                            _isProcessing = false;
-                                          });
-                                        },
-                                        child: ClipRect(
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              /*    if (instrument == "Piano")
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      right: 24),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    child: Image(
-                                                        height: 50,
-                                                        image: AssetImage(
-                                                            "assets/" +
-                                                                "keyboard.png")),
-                                                  ),
-                                                ),
-                                              if (instrument == "Bateria")
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      right: 24),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    child: Image(
-                                                        height: 25,
-                                                        image: AssetImage(
-                                                            "assets/" +
-                                                                "drum.png")),
-                                                  ),
-                                                ),
-                                              if (instrument == "Ministro")
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      right: 24),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    child: Image(
-                                                        height: 50,
-                                                        image: AssetImage(
-                                                            "assets/" +
-                                                                "cantor.png")),
-                                                  ),
-                                                ),
-                                              if (instrument == "BV 1")
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      right: 24),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    child: Image(
-                                                        height: 50,
-                                                        image: AssetImage(
-                                                            "assets/" +
-                                                                "cantor.png")),
-                                                  ),
-                                                ),
-                                              if (instrument == "BV 2")
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      right: 24),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    child: Image(
-                                                        height: 50,
-                                                        image: AssetImage(
-                                                            "assets/" +
-                                                                "cantor.png")),
-                                                  ),
-                                                ),
-                                              if (instrument == "Violão")
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      right: 24),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    child: Image(
-                                                        height: 50,
-                                                        image: AssetImage(
-                                                            "assets/" +
-                                                                "violao.png")),
-                                                  ),
-                                                ),
-                                              if (instrument == "Guitarra")
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      right: 24),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    child: Image(
-                                                        height: 50,
-                                                        image: AssetImage(
-                                                            "assets/" +
-                                                                "guitarra.png")),
-                                                  ),
-                                                ),*/
-                                              Container(
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      // Outras opções: sentences, characters
-                                                      capitalize(name),
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.bold,
+                                              setState(() {
+                                                _isProcessing = false;
+                                              });
+                                            },
+                                            child: ClipRect(
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  /*    if (instrument == "Piano")
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 24),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                12),
+                                                        child: Image(
+                                                            height: 50,
+                                                            image: AssetImage(
+                                                                "assets/" +
+                                                                    "keyboard.png")),
                                                       ),
                                                     ),
+                                                  if (instrument == "Bateria")
                                                     Container(
-                                                      decoration: BoxDecoration(
-                                                          color: Colors.black,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(6)),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
+                                                      margin: EdgeInsets.only(
+                                                          right: 24),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                12),
+                                                        child: Image(
+                                                            height: 25,
+                                                            image: AssetImage(
+                                                                "assets/" +
+                                                                    "drum.png")),
+                                                      ),
+                                                    ),
+                                                  if (instrument == "Ministro")
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 24),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                12),
+                                                        child: Image(
+                                                            height: 50,
+                                                            image: AssetImage(
+                                                                "assets/" +
+                                                                    "cantor.png")),
+                                                      ),
+                                                    ),
+                                                  if (instrument == "BV 1")
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 24),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                12),
+                                                        child: Image(
+                                                            height: 50,
+                                                            image: AssetImage(
+                                                                "assets/" +
+                                                                    "cantor.png")),
+                                                      ),
+                                                    ),
+                                                  if (instrument == "BV 2")
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 24),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                12),
+                                                        child: Image(
+                                                            height: 50,
+                                                            image: AssetImage(
+                                                                "assets/" +
+                                                                    "cantor.png")),
+                                                      ),
+                                                    ),
+                                                  if (instrument == "Violão")
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 24),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                12),
+                                                        child: Image(
+                                                            height: 50,
+                                                            image: AssetImage(
+                                                                "assets/" +
+                                                                    "violao.png")),
+                                                      ),
+                                                    ),
+                                                  if (instrument == "Guitarra")
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 24),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                12),
+                                                        child: Image(
+                                                            height: 50,
+                                                            image: AssetImage(
+                                                                "assets/" +
+                                                                    "guitarra.png")),
+                                                      ),
+                                                    ),*/
+                                                  Container(
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Container(
+                                                          decoration: BoxDecoration(
+                                                              border: Border.all(
+                                                                  color: Colors
+                                                                      .blueAccent),
+                                                              color:
+                                                                  Colors.white,
+                                                              borderRadius: BorderRadius.only(
+                                                                  bottomLeft: Radius
+                                                                      .circular(
+                                                                          5),
+                                                                  topLeft: Radius
+                                                                      .circular(
+                                                                          5))),
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Text(
+                                                              // Outras opções: sentences, characters
+                                                              capitalize(name),
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .black,
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Container(
+                                                          decoration: BoxDecoration(
+                                                              border: Border.all(
+                                                                  color: Colors
+                                                                      .blueAccent),
+                                                              color:
+                                                                  Colors.blue,
+                                                              borderRadius: BorderRadius.only(
+                                                                  bottomRight: Radius
+                                                                      .circular(
+                                                                          0),
+                                                                  topRight: Radius
+                                                                      .circular(
+                                                                          0))),
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Text(
+                                                              instrument,
+                                                              style: TextStyle(
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        255,
+                                                                        255,
+                                                                        255),
+                                                                fontSize: 10,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      /*  Container(
+                                                        margin: EdgeInsets.only(
+                                                            right: 20),
                                                         child: Text(
                                                           instrument,
                                                           style: TextStyle(
-                                                            color:
-                                                                Color.fromARGB(
-                                                                    255,
-                                                                    255,
-                                                                    255,
-                                                                    255),
-                                                            fontSize: 10,
+                                                            color: Color(0xff558FFF),
+                                                            fontSize: 12,
                                                           ),
                                                         ),
+                                                      ),*/
+                                                      /*            IconButton(
+                                                        icon: Icon(Icons.delete,
+                                                            color: Colors.red),
+                                                        onPressed: () async {
+                                                          if (_isProcessing ||
+                                                              !mounted) return;
+                
+                                                          setState(() {
+                                                            _isProcessing = true;
+                                                          });
+                
+                                                          final musicoToRemove =
+                                                              musicoList[index];
+                                                          final userId =
+                                                              musicoToRemove[
+                                                                          'user_id']
+                                                                      as int? ??
+                                                                  0;
+                                                          final idCulto =
+                                                              widget.documentId;
+                
+                                                          // Perform removal operation
+                                                          print("Removing $id");
+                
+                                                          // Remove from Firestore
+                                                          await _removeMusician(
+                                                              userId, idCulto, id);
+                
+                                                          // Update local list after successful Firestore operation
+                                                          setState(() {
+                                                            musicoList
+                                                                .removeAt(index);
+                                                            _isProcessing = false;
+                                                          });
+                                                        },
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Row(
-                                                children: [
-                                                  /*  Container(
-                                                    margin: EdgeInsets.only(
-                                                        right: 20),
-                                                    child: Text(
-                                                      instrument,
-                                                      style: TextStyle(
-                                                        color: Color(0xff558FFF),
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                  ),*/
-                                                  /*            IconButton(
-                                                    icon: Icon(Icons.delete,
-                                                        color: Colors.red),
-                                                    onPressed: () async {
-                                                      if (_isProcessing ||
-                                                          !mounted) return;
-
-                                                      setState(() {
-                                                        _isProcessing = true;
-                                                      });
-
-                                                      final musicoToRemove =
-                                                          musicoList[index];
-                                                      final userId =
-                                                          musicoToRemove[
-                                                                      'user_id']
-                                                                  as int? ??
-                                                              0;
-                                                      final idCulto =
-                                                          widget.documentId;
-
-                                                      // Perform removal operation
-                                                      print("Removing $id");
-
-                                                      // Remove from Firestore
-                                                      await _removeMusician(
-                                                          userId, idCulto, id);
-
-                                                      // Update local list after successful Firestore operation
-                                                      setState(() {
-                                                        musicoList
-                                                            .removeAt(index);
-                                                        _isProcessing = false;
-                                                      });
-                                                    },
+                                            */
+                                                    ],
                                                   ),
-                                        */
                                                 ],
                                               ),
-                                            ],
+                                            ),
                                           ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
-              ),
+                            ),
+                          );
+                        }),
+                  ),
+                ),
+              ],
             );
           },
         );
@@ -1179,7 +1243,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(0.0),
               child: Container(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1188,28 +1252,32 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          child: Text(
-                            "Band",
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Container(
+                            child: Text(
+                              "Band",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
                         SizedBox(
                           height: 20,
                         ),
-                        _buildInstrumentButtons(context),
+                        Padding(
+                          padding: EdgeInsets.zero,
+                          child: _buildInstrumentButtons(context),
+                        ),
                         SizedBox(
                           height: 20,
                         ),
                         _buildMusicianList(),
                       ],
                     ),
-                    SizedBox(
-                      height: 42,
-                    ),
+
                     PopupMenuDivider(), // Linha divisória
                     Container(
                       width: MediaQuery.of(context).size.width,
@@ -1514,7 +1582,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                           'Autor Desconhecido';
 
                                                   return Card(
-                                                    elevation: 3,
+                                                    elevation: 0,
                                                     margin: const EdgeInsets
                                                         .symmetric(
                                                         horizontal: 0,
@@ -1532,8 +1600,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                                                         horizontal: 16,
                                                         vertical: 10,
                                                       ),
-                                                      tileColor: Colors
-                                                          .white, // Fundo branco
+                                                      tileColor: Color(
+                                                          0xfff9fafc), // Fundo branco
                                                       leading: CircleAvatar(
                                                         backgroundColor:
                                                             Colors.blue,
@@ -1791,9 +1859,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: 24,
-                    ),
+
+                    PopupMenuDivider(), // Linh
                     Container(
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(

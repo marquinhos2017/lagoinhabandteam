@@ -810,6 +810,7 @@ class _userMainPageState extends State<userMainPage> {
             Listmove(
               onMonthSelected:
                   _onMonthSelected, // Passa a função de callback para Listmove
+              selectedDate: _selectedDate, // Passa o mês selecionado
             ),
             //    _buildMonthSelector(),
             _Calendario(),
@@ -2968,8 +2969,13 @@ Widget _createMenuItem({
 class Listmove extends StatelessWidget {
   final Function(DateTime)
       onMonthSelected; // Callback para comunicação com CalendarPage
+  final DateTime selectedDate; // Data atualmente selecionada
 
-  const Listmove({super.key, required this.onMonthSelected});
+  const Listmove({
+    super.key,
+    required this.onMonthSelected,
+    required this.selectedDate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2990,42 +2996,44 @@ class Listmove extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        children: [
-          // Usando o PageStorageKey para manter o estado de rolagem horizontal
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            key: PageStorageKey<String>(
-                'monthsScroll'), // Isso vai preservar o estado de rolagem
-            child: Row(
-              children: months.sublist(0).map((month) {
-                int monthIndex = months.indexOf(month);
-                DateTime monthDate =
-                    DateTime(DateTime.now().year, monthIndex + 1, 1);
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        key: const PageStorageKey<String>('monthsScroll'),
+        child: Row(
+          children: months.map((month) {
+            int monthIndex = months.indexOf(month);
+            DateTime monthDate = DateTime(selectedDate.year, monthIndex + 1, 1);
 
-                return GestureDetector(
-                  onTap: () {
-                    // Ao clicar no mês, chama o callback para passar a data selecionada para CalendarPage
-                    onMonthSelected(monthDate);
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    margin: EdgeInsets.symmetric(horizontal: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      month,
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
+            return GestureDetector(
+              onTap: () {
+                // Passa o mês selecionado para a função de callback
+                onMonthSelected(monthDate);
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: BoxDecoration(
+                  color: selectedDate.month == monthIndex + 1
+                      ? Colors.blueAccent
+                      : Colors.grey.shade300, // Destaque para o mês selecionado
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  month,
+                  style: TextStyle(
+                    color: selectedDate.month == monthIndex + 1
+                        ? Colors.white
+                        : Colors.black,
+                    fontWeight: selectedDate.month == monthIndex + 1
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
