@@ -13,6 +13,9 @@ class MusiciansPage extends StatefulWidget {
 }
 
 class _MusiciansPageState extends State<MusiciansPage> {
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
   @override
   Widget build(BuildContext context) {
     if (!mounted)
@@ -34,23 +37,61 @@ class _MusiciansPageState extends State<MusiciansPage> {
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('musicos').snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Buscar por nome',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance.collection('musicos').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
 
-          var musicians = snapshot.data!.docs;
+                var musicians = snapshot.data!.docs;
 
-          return ListView.builder(
-            itemCount: musicians.length,
-            itemBuilder: (context, index) {
-              var musician = musicians[index];
-              return MusicianTile(musician);
-            },
-          );
-        },
+                // Filtrar músicos com base na consulta de pesquisa
+                var filteredMusicians = musicians.where((doc) {
+                  var musicianData = doc.data() as Map<String, dynamic>;
+                  var name = musicianData['name'].toString().toLowerCase();
+                  return name.contains(_searchQuery);
+                }).toList();
+
+                if (filteredMusicians.isEmpty) {
+                  return Center(
+                    child: Text('Nenhum músico encontrado.'),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: filteredMusicians.length,
+                  itemBuilder: (context, index) {
+                    var musician = filteredMusicians[index];
+                    return MusicianTile(musician);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

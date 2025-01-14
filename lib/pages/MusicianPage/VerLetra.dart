@@ -207,7 +207,8 @@ class _VerCifraUserState extends State<Verletra> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_isEditing,
+      // Faz com que nao consiga voltar caso eu esteja editando a letra
+      canPop: !_isEditing, //
       child: Scaffold(
         backgroundColor: _isDarkMode ? Colors.black : Colors.white,
         appBar: AppBar(

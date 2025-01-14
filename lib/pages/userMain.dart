@@ -16,6 +16,15 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+class MusicianCountProvider with ChangeNotifier {
+  int count = 0;
+
+  void updateCount(int newCount) {
+    count = newCount;
+    notifyListeners();
+  }
+}
+
 class userMainPage extends StatefulWidget {
   const userMainPage({super.key});
 
@@ -24,6 +33,11 @@ class userMainPage extends StatefulWidget {
 }
 
 class _userMainPageState extends State<userMainPage> {
+  int _musicianCount = 0; // Valor inicial (pode ser 0 ou o valor anterior)
+  bool _isLoading = true; // Para saber se estamos carregando ou não
+
+  int _musicsCount = 0; // Valor inicial (pode ser 0 ou o valor anterior)
+
   Widget _createDrawerItem({
     required IconData icon,
     required String text,
@@ -32,12 +46,12 @@ class _userMainPageState extends State<userMainPage> {
     return ListTile(
       leading: Icon(
         icon,
-        color: Colors.white,
+        color: Colors.black,
         size: 24,
       ),
       title: Text(
         text,
-        style: TextStyle(color: Colors.white, fontSize: 16),
+        style: TextStyle(color: Colors.black, fontSize: 16),
       ),
       onTap: onTap,
       contentPadding: EdgeInsets.symmetric(horizontal: 24),
@@ -69,7 +83,25 @@ class _userMainPageState extends State<userMainPage> {
 
     //_stream = _getProximosCultos();
     print("Pagina Atualizada");
+    _fetchMusicianCount(); // Chama a função para carregar o número de músicos uma vez
     //  _loadProximosCultos();
+  }
+
+  Future<void> _fetchMusicianCount() async {
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('musicos').get();
+    setState(() {
+      _musicianCount =
+          querySnapshot.docs.length; // Atualiza o número de músicos
+    });
+  }
+
+  Future<void> _fetchMusicCount() async {
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('music_database').get();
+    setState(() {
+      _musicsCount = querySnapshot.docs.length; // Atualiza o número de músicos
+    });
   }
 
   Future<void> _loadProximosCultos() async {
@@ -135,7 +167,16 @@ class _userMainPageState extends State<userMainPage> {
           _events = events;
         });
       }
+      print("Eventos");
+      print(_events);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Atualiza a contagem de músicos sempre que a página é reconstruída
+    _fetchMusicianCount();
   }
 
   void _previousMonth() {
@@ -175,13 +216,13 @@ class _userMainPageState extends State<userMainPage> {
         title: Text(
           "Lagoinha Music Faro",
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
         leading: IconButton(
           icon: Icon(
             Icons.menu,
-            color: Colors.white,
+            color: Colors.black,
           ),
           onPressed: () => scaffoldKey.currentState?.openDrawer(),
         ),
@@ -197,18 +238,20 @@ class _userMainPageState extends State<userMainPage> {
               )),
         ],
         foregroundColor: Colors.black,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
+        shadowColor: Colors.white,
+        surfaceTintColor: Colors.white,
       ),
       drawer: Drawer(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
         child: Column(
           children: [
             // Drawer Header
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blueGrey[800],
+                color: Colors.white,
                 gradient: LinearGradient(
-                  colors: [Colors.blueGrey[900]!, Colors.blueGrey[600]!],
+                  colors: [Colors.white, Colors.white],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -217,7 +260,7 @@ class _userMainPageState extends State<userMainPage> {
                 child: Text(
                   'Menu',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -270,7 +313,7 @@ class _userMainPageState extends State<userMainPage> {
             ),
             // Footer
             Container(
-              color: Colors.blueGrey[800],
+              color: Colors.blue,
               child: ListTile(
                 leading: Icon(
                   Icons.info_outline,
@@ -289,322 +332,482 @@ class _userMainPageState extends State<userMainPage> {
           ],
         ),
       ),
-      backgroundColor: const Color(0xff171717),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         controller: _scrollController,
-        child: Container(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /*
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 170,
-                      height: 154,
-                      decoration: BoxDecoration(
-                        color: Color(0xff0A7AFF),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+            /*
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  Container(
+                    width: 170,
+                    height: 154,
+                    decoration: BoxDecoration(
+                      color: Color(0xff0A7AFF),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Center(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.zero,
+                            child: Text(
+                              '18',
+                              style: TextStyle(
+                                fontSize: 24,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w200,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.zero,
+                            child: Container(
                               child: Text(
-                                '18',
+                                "Voluntarios ",
                                 style: TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w200,
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: EdgeInsets.zero,
-                              child: Container(
-                                child: Text(
-                                  "Voluntarios ",
-                                  style: TextStyle(
-                                    fontSize: 14,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),*/
+            Container(
+              child: Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    /*      proximoCulto != null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Próximo culto",
+                                style: TextStyle(
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                                    color: Colors.black),
+                              ),
+                              SizedBox(
+                                height: 12,
+                              ),
+            
+                              Container(
+                                margin: EdgeInsets.only(bottom: 10),
+                                decoration: BoxDecoration(
+                                  color: Color(0xff010101),
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blue.withOpacity(
+                                          1), // Cor da sombra com opacidade
+                                      spreadRadius:
+                                          2, // Opção para aumentar o tamanho da sombra
+                                      blurRadius:
+                                          3, // Intensidade do desfoque da sombra
+                                      offset: Offset(2,
+                                          2), // Deslocamento da sombra (horizontal, vertical)
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0, vertical: 16),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calendar_today,
+                                                color: Colors.white,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                "${DateFormat('dd/MM/yyyy').format((proximoCulto['date'] as Timestamp).toDate())}",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            proximoCulto['horario'] ??
+                                                'Nome do Culto Indisponível',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w300,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          SizedBox(height: 8),
+                                          Container(
+                                            height: 30,
+                                            width: 320,
+                                            child: ListView.builder(
+                                              scrollDirection:
+                                                  Axis.horizontal,
+                                              itemCount:
+                                                  (proximoCulto['playlist']
+                                                          as List<dynamic>)
+                                                      .length,
+                                              itemBuilder: (context, idx) {
+                                                final musicDocumentId =
+                                                    proximoCulto['playlist']
+                                                                [idx]
+                                                            ['music_document']
+                                                        as String;
+            
+                                                return FutureBuilder<
+                                                    DocumentSnapshot>(
+                                                  future: FirebaseFirestore
+                                                      .instance
+                                                      .collection(
+                                                          'music_database')
+                                                      .doc(musicDocumentId)
+                                                      .get(),
+                                                  builder: (context,
+                                                      musicSnapshot) {
+                                                    if (musicSnapshot
+                                                            .connectionState ==
+                                                        ConnectionState
+                                                            .waiting) {
+                                                      return Center(
+                                                          child:
+                                                              CircularProgressIndicator());
+                                                    }
+            
+                                                    if (musicSnapshot
+                                                        .hasError) {
+                                                      return Text(
+                                                          'Erro ao carregar música');
+                                                    }
+            
+                                                    if (!musicSnapshot
+                                                            .hasData ||
+                                                        !musicSnapshot
+                                                            .data!.exists) {
+                                                      return Text(
+                                                          'Música não encontrada');
+                                                    }
+            
+                                                    final musicData =
+                                                        musicSnapshot.data!
+                                                                .data()
+                                                            as Map<String,
+                                                                dynamic>;
+                                                    final nomeMusica = musicData[
+                                                            'Music'] ??
+                                                        'Nome da Música Desconhecido';
+            
+                                                    return Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 8),
+                                                      decoration:
+                                                          BoxDecoration(
+                                                        color:
+                                                            Color(0xff0075FF),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(0),
+                                                      ),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                          horizontal: 32.0,
+                                                          vertical: 6,
+                                                        ),
+                                                        child: Text(
+                                                          nomeMusica,
+                                                          style: TextStyle(
+                                                            color:
+                                                                Colors.white,
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            )
-                          ],
-                        ),
+            
+                              /*  Text(
+                                "Data: ${DateFormat('dd/MM/yyyy').format((proximoCulto['date'] as Timestamp).toDate())}",
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),*/
+                              SizedBox(height: 8),
+                              Text(
+                                "Horário: ${proximoCulto['horario']}",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              // Outras informações do culto, se necessário
+                            ],
+                          )
+                        : Visibility(
+                            visible: false,
+                            child: Text(
+                              // Aqui mostra caso a tabela de cultos esteja vazia
+                              "Nenhum culto futuro encontrado.",
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.white),
+                            ),
+                          ),
+                    */
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          //   Text("Membros cadastrados"),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Column(
+                                children: [
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Membros ",
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        "cadastrados",
+                                        style: TextStyle(
+                                            fontSize: 10, color: Colors.blue),
+                                      ),
+                                    ],
+                                  ),
+                                  StreamBuilder<QuerySnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('musicos')
+                                        .snapshots(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        // Enquanto estiver esperando os dados, mantenha o valor anterior
+                                        return Text(
+                                          "$_musicianCount",
+                                          style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold),
+                                        );
+                                      }
+
+                                      if (!snapshot.hasData ||
+                                          snapshot.data!.docs.isEmpty) {
+                                        // Caso não tenha dados, exibe 0
+                                        return Text(
+                                          "0",
+                                          style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold),
+                                        );
+                                      }
+
+                                      // Obtém a contagem de músicos e atualiza apenas após a construção da UI
+                                      int count = snapshot.data!.docs.length;
+
+                                      // Usar addPostFrameCallback para atualizar o estado após a construção do widget
+                                      if (_musicianCount != count) {
+                                        WidgetsBinding.instance!
+                                            .addPostFrameCallback((_) {
+                                          setState(() {
+                                            _musicianCount =
+                                                count; // Atualiza o valor da contagem
+                                          });
+                                        });
+                                      }
+
+                                      return Text(
+                                        "$count",
+                                        style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Musicas ",
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        "cadastrados",
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.blueAccent),
+                                      ),
+                                    ],
+                                  ),
+                                  StreamBuilder<QuerySnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('music_database')
+                                        .snapshots(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        // Enquanto estiver esperando os dados, mantenha o valor anterior
+                                        return Text(
+                                          "$_musicsCount",
+                                          style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold),
+                                        );
+                                      }
+
+                                      if (!snapshot.hasData ||
+                                          snapshot.data!.docs.isEmpty) {
+                                        // Caso não tenha dados, exibe 0
+                                        return Text(
+                                          "0",
+                                          style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold),
+                                        );
+                                      }
+
+                                      // Obtém a contagem de músicos e atualiza apenas após a construção da UI
+                                      int count = snapshot.data!.docs.length;
+
+                                      // Usar addPostFrameCallback para atualizar o estado após a construção do widget
+                                      if (_musicsCount != count) {
+                                        WidgetsBinding.instance!
+                                            .addPostFrameCallback((_) {
+                                          setState(() {
+                                            _musicsCount =
+                                                count; // Atualiza o valor da contagem
+                                          });
+                                        });
+                                      }
+
+                                      return Text(
+                                        "$count",
+                                        style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          /*          StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('musicos')
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                // Enquanto estiver esperando os dados, mantenha o valor anterior
+                                return Text(
+                                  "$_musicianCount",
+                                  style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold),
+                                );
+                              }
+
+                              if (!snapshot.hasData ||
+                                  snapshot.data!.docs.isEmpty) {
+                                // Caso não tenha dados, exibe 0
+                                return Text(
+                                  "0",
+                                  style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold),
+                                );
+                              }
+
+                              // Obtém a contagem de músicos e atualiza apenas após a construção da UI
+                              int count = snapshot.data!.docs.length;
+
+                              // Usar addPostFrameCallback para atualizar o estado após a construção do widget
+                              if (_musicianCount != count) {
+                                WidgetsBinding.instance!
+                                    .addPostFrameCallback((_) {
+                                  setState(() {
+                                    _musicianCount =
+                                        count; // Atualiza o valor da contagem
+                                  });
+                                });
+                              }
+
+                              return Text(
+                                "$count",
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              );
+                            },
+                          ),
+                  */
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),*/
-              Container(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      proximoCulto != null
-                          ? Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Próximo culto",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
-                                SizedBox(
-                                  height: 12,
-                                ),
-
-                                Container(
-                                  margin: EdgeInsets.only(bottom: 10),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xff010101),
-                                    borderRadius: BorderRadius.circular(24),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.blue.withOpacity(
-                                            1), // Cor da sombra com opacidade
-                                        spreadRadius:
-                                            2, // Opção para aumentar o tamanho da sombra
-                                        blurRadius:
-                                            3, // Intensidade do desfoque da sombra
-                                        offset: Offset(2,
-                                            2), // Deslocamento da sombra (horizontal, vertical)
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16.0, vertical: 16),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.calendar_today,
-                                                  color: Colors.white,
-                                                ),
-                                                SizedBox(width: 8),
-                                                Text(
-                                                  "${DateFormat('dd/MM/yyyy').format((proximoCulto['date'] as Timestamp).toDate())}",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              proximoCulto['horario'] ??
-                                                  'Nome do Culto Indisponível',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w300,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Container(
-                                              height: 30,
-                                              width: 320,
-                                              child: ListView.builder(
-                                                scrollDirection:
-                                                    Axis.horizontal,
-                                                itemCount:
-                                                    (proximoCulto['playlist']
-                                                            as List<dynamic>)
-                                                        .length,
-                                                itemBuilder: (context, idx) {
-                                                  final musicDocumentId =
-                                                      proximoCulto['playlist']
-                                                                  [idx]
-                                                              ['music_document']
-                                                          as String;
-
-                                                  return FutureBuilder<
-                                                      DocumentSnapshot>(
-                                                    future: FirebaseFirestore
-                                                        .instance
-                                                        .collection(
-                                                            'music_database')
-                                                        .doc(musicDocumentId)
-                                                        .get(),
-                                                    builder: (context,
-                                                        musicSnapshot) {
-                                                      if (musicSnapshot
-                                                              .connectionState ==
-                                                          ConnectionState
-                                                              .waiting) {
-                                                        return Center(
-                                                            child:
-                                                                CircularProgressIndicator());
-                                                      }
-
-                                                      if (musicSnapshot
-                                                          .hasError) {
-                                                        return Text(
-                                                            'Erro ao carregar música');
-                                                      }
-
-                                                      if (!musicSnapshot
-                                                              .hasData ||
-                                                          !musicSnapshot
-                                                              .data!.exists) {
-                                                        return Text(
-                                                            'Música não encontrada');
-                                                      }
-
-                                                      final musicData =
-                                                          musicSnapshot.data!
-                                                                  .data()
-                                                              as Map<String,
-                                                                  dynamic>;
-                                                      final nomeMusica = musicData[
-                                                              'Music'] ??
-                                                          'Nome da Música Desconhecido';
-
-                                                      return Container(
-                                                        margin: EdgeInsets.only(
-                                                            right: 8),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color:
-                                                              Color(0xff0075FF),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(0),
-                                                        ),
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                            horizontal: 32.0,
-                                                            vertical: 6,
-                                                          ),
-                                                          child: Text(
-                                                            nomeMusica,
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 12,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                /*  Text(
-                                  "Data: ${DateFormat('dd/MM/yyyy').format((proximoCulto['date'] as Timestamp).toDate())}",
-                                  style: TextStyle(
-                                      fontSize: 16, color: Colors.white),
-                                ),*/
-                                SizedBox(height: 8),
-                                Text(
-                                  "Horário: ${proximoCulto['horario']}",
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                // Outras informações do culto, se necessário
-                              ],
-                            )
-                          : Visibility(
-                              visible: false,
-                              child: Text(
-                                // Aqui mostra caso a tabela de cultos esteja vazia
-                                "Nenhum culto futuro encontrado.",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.white),
-                              ),
-                            ),
-                      Text(
-                        "Calendário",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 12, bottom: 24),
-                        height: 270,
-                        decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(24))),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildHeader(),
-                            _buildDaysOfWeek(),
-                            _buildDays(),
-                          ],
-                        ),
-                      ),
-                      /* ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _showEvents =
-                                !_showEvents; // Alternar entre mostrar e ocultar eventos
-                          });
-                        },
-                        child: Text(_showEvents
-                            ? 'Ocultar Eventos'
-                            : 'Mostrar Eventos'),
-                      ),
-                      SizedBox(height: 20),
-                      // Lista de eventos da data selecionada
-                      if (_showEvents) ..._buildEventList(),
-*/
-                      if (_events.isNotEmpty)
-                        Column(
-                          children: [
-                            if (_buildEventList2().isNotEmpty)
-                              ..._buildEventList2(),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
               ),
-              /* if (_proximosCultos.isNotEmpty)
-                ..._proximosCultos
-                    .map((culto) => _buildEventItem(culto))
-                    .toList(),*/
-            ],
-          ),
+            ),
+            _Calendario(),
+            /* if (_proximosCultos.isNotEmpty)
+              ..._proximosCultos
+                  .map((culto) => _buildEventItem(culto))
+                  .toList(),*/
+          ],
         ),
       ),
     );
@@ -665,7 +868,7 @@ class _userMainPageState extends State<userMainPage> {
           IconButton(
             icon: Icon(
               Icons.arrow_back,
-              color: Colors.white,
+              color: Colors.black,
             ),
             onPressed: _previousMonth,
           ),
@@ -674,13 +877,13 @@ class _userMainPageState extends State<userMainPage> {
             style: TextStyle(
               fontSize: 12.0,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
           IconButton(
             icon: Icon(
               Icons.arrow_forward,
-              color: Colors.white,
+              color: Colors.black,
             ),
             onPressed: _nextMonth,
           ),
@@ -713,7 +916,7 @@ class _userMainPageState extends State<userMainPage> {
                 weekdays[index],
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 10),
               ),
             ),
@@ -739,18 +942,18 @@ class _userMainPageState extends State<userMainPage> {
     return Column(
       children: [
         Container(
-          height: 180,
+          height: 200,
           child: GridView.builder(
             physics: NeverScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
             itemCount: daysInMonth + daysBefore,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              childAspectRatio: 2,
-              crossAxisCount: 7,
+              childAspectRatio: 1.2,
+              crossAxisCount: 8,
               mainAxisSpacing:
-                  1.0, // Espaçamento vertical mínimo entre as células
+                  0.0, // Espaçamento vertical mínimo entre as células
               crossAxisSpacing:
-                  4.0, // Espaçamento horizontal mínimo entre as células
+                  0.0, // Espaçamento horizontal mínimo entre as células
             ),
             itemBuilder: (context, index) {
               if (index < daysBefore || index >= totalDays + daysBefore) {
@@ -792,6 +995,11 @@ class _userMainPageState extends State<userMainPage> {
                       Timestamp timestamp = Timestamp.fromDate(_selectedDate);
                       print(timestamp);
 
+                      _loadEvents();
+
+                      // Na funcao abaixo ele abre o form para adiconar um culto, ao clicar em um dia em que nao tem culto
+
+                      /* 
                       showDialog<String>(
                           context: context,
                           builder: (BuildContext context) {
@@ -853,7 +1061,7 @@ class _userMainPageState extends State<userMainPage> {
                                               Text(
                                                 "Selecione o Culto",
                                                 style: TextStyle(
-                                                    color: Colors.white,
+                                                    color: Colors.black,
                                                     fontWeight:
                                                         FontWeight.bold),
                                               ),
@@ -862,7 +1070,7 @@ class _userMainPageState extends State<userMainPage> {
                                                     DateFormat('dd/MMM')
                                                         .format(currentDate),
                                                 style: TextStyle(
-                                                    color: Colors.white),
+                                                    color: Colors.black),
                                               ),
                                             ],
                                           ),
@@ -1137,6 +1345,7 @@ class _userMainPageState extends State<userMainPage> {
                             });
                           });
 
+                  */
                       setState(() {
                         //  click = false;
                       });
@@ -1146,13 +1355,16 @@ class _userMainPageState extends State<userMainPage> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: hasEvent ? Color(0xff0A7AFF) : Colors.transparent,
-                      border: Border.all(color: Colors.transparent),
+                      border: Border.all(
+                          color: _selectedDate.day == day.toInt()
+                              ? Colors.blue
+                              : Colors.white),
                       borderRadius: BorderRadius.circular(4.0),
                     ),
                     child: Text(day.toString(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: hasEvent ? Colors.white : Colors.black,
                           fontSize: 10.0,
                         )),
                   ),
@@ -1250,6 +1462,96 @@ class _userMainPageState extends State<userMainPage> {
         ),
       );
     }).toList();
+  }
+
+  Widget _Calendario() {
+    return Container(
+      //   height: 700,
+      // color: Colors.green,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+          color: Colors.white),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            /*
+                            Text(
+                              "Calendário",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16),
+                            ),*/
+            Container(
+              margin: EdgeInsets.only(top: 12, bottom: 24),
+              height: 300,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1), // Sombra mais clara
+                    spreadRadius: 4, // Tamanho da propagação
+                    blurRadius: 15, // Suavidade da sombra
+                    offset: Offset(0, 8), // Deslocamento horizontal e vertical
+                  ),
+                  BoxShadow(
+                    color: Colors.black
+                        .withOpacity(0.05), // Sombra adicional mais sutil
+                    spreadRadius: -4,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildHeader(),
+                    _buildDaysOfWeek(),
+                    _buildDays(),
+                  ],
+                ),
+              ),
+            ),
+
+            /* ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _showEvents =
+                                  !_showEvents; // Alternar entre mostrar e ocultar eventos
+                            });
+                          },
+                          child: Text(_showEvents
+                              ? 'Ocultar Eventos'
+                              : 'Mostrar Eventos'),
+                        ),
+                        SizedBox(height: 20),
+                        // Lista de eventos da data selecionada
+                        if (_showEvents) ..._buildEventList(),
+                        */
+            if (_events.isEmpty)
+              Column(
+                children: [
+                  // Text("Clique em um culto"),
+                  ..._buildEventList2(),
+                ],
+              ),
+            if (_events.isNotEmpty)
+              Column(
+                children: [
+                  if (_buildEventList2().isNotEmpty) ..._buildEventList2(),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildEventItem(DocumentSnapshot culto) {
@@ -1385,6 +1687,465 @@ class _userMainPageState extends State<userMainPage> {
           ),
         ),
       );*/
+
+      eventWidgets.add(
+        Column(
+          children: [
+            /* Mostra data clicada
+            Text(
+              selectedDateFormatted,
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 12,
+              ),
+            ),*/
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  'Nenhum culto encontrado para esta data',
+                  style: TextStyle(color: Colors.black54),
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      String horario = "";
+                      String culto = "";
+                      DateTime data = _selectedDate;
+                      String servicename = "";
+
+                      final currentDate = DateTime(_selectedDate.year,
+                          _selectedDate.month, _selectedDate.day);
+                      final formattedDate =
+                          DateFormat('yyyy-MM-dd').format(currentDate);
+
+                      Timestamp timestamp = Timestamp.fromDate(data);
+
+                      print(horario);
+                      print(culto);
+                      return StatefulBuilder(builder: (context, setState) {
+                        return AlertDialog(
+                          title: Text("Adicionar culto"),
+                          shadowColor: Colors.black,
+                          surfaceTintColor: Colors.black,
+                          backgroundColor: Colors.white,
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 0.0),
+                                child: Container(
+                                  height: 1.0,
+                                  width: double.infinity,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 32,
+                              ),
+                              Form(
+                                key: _formKey,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Selecione o Culto",
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          "" +
+                                              DateFormat('dd/MMM')
+                                                  .format(currentDate),
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 12,
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              culto = "Adoração";
+                                            });
+                                            print("Culto1: " + culto);
+                                          },
+                                          child: Container(
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                width: 1,
+                                                color: culto == "Adoração"
+                                                    ? Colors.blue
+                                                    : Colors.white,
+                                              ),
+                                              color: culto == "Adoração"
+                                                  ? Colors.white
+                                                  : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(24.0),
+                                              child: Center(
+                                                child: Text(
+                                                  "Adoração",
+                                                  style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 14),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 12,
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              culto = "Fé";
+                                            });
+                                            print("culto1: " + culto);
+                                          },
+                                          child: Container(
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                width: 1,
+                                                color: culto == "Fé"
+                                                    ? Colors.blue
+                                                    : Colors.white,
+                                              ),
+                                              color: culto == "Fé"
+                                                  ? Colors.white
+                                                  : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Center(
+                                                child: Text(
+                                                  "Fé",
+                                                  style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 12,
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              culto = "Familia";
+                                            });
+                                            print("culto1: " + culto);
+                                          },
+                                          child: Container(
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                width: 1,
+                                                color: culto == "Familia"
+                                                    ? Colors.blue
+                                                    : Colors.white,
+                                              ),
+                                              color: culto == "Familia"
+                                                  ? Colors.white
+                                                  : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Center(
+                                                child: Text(
+                                                  "Familia",
+                                                  style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 18,
+                                    ),
+                                    Text(
+                                      "Selecione o horário",
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(
+                                      height: 12,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              horario = "10:30";
+                                            });
+                                            print("Horario1: " + horario);
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                width: 2,
+                                                color: horario == "10:30"
+                                                    ? Color(0xff2266ee)
+                                                    : Colors.white,
+                                              ),
+                                              color: horario == "10:30"
+                                                  ? Colors.white
+                                                  : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                "10:30",
+                                                style: TextStyle(
+                                                  color: horario == "10:30"
+                                                      ? Color(0xff2266ee)
+                                                      : Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              horario = "19:30";
+                                            });
+                                            print("Horario1: " + horario);
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                width: 1,
+                                                color: horario == "19:30"
+                                                    ? Color(0xff2266ee)
+                                                    : Colors.white,
+                                              ),
+                                              color: horario == "19:30"
+                                                  ? Colors.white
+                                                  : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                "19:30",
+                                                style: TextStyle(
+                                                  color: horario == "19:30"
+                                                      ? Color(0xff2266ee)
+                                                      : Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              horario = "20:30";
+                                            });
+                                            print("Horario1: " + horario);
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                width: 1,
+                                                color: horario == "20:30"
+                                                    ? Colors.blue
+                                                    : Colors.white,
+                                              ),
+                                              color: horario == "20:30"
+                                                  ? Colors.white
+                                                  : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                "20:30",
+                                                style: TextStyle(
+                                                  color: horario == "20:30"
+                                                      ? Color(0xff2266ee)
+                                                      : Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          actions: <Widget>[
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context, 'Cancel'),
+                              child: const Text(
+                                'Cancelar',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                      Color(0xff2266ee))),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                // Verifica se o formulário é válido
+                                if (_formKey.currentState!.validate()) {
+                                  // Salva o valor do input
+                                  _formKey.currentState!.save();
+
+                                  try {
+                                    // Adiciona o culto ao Firestore
+                                    DocumentReference docRef =
+                                        await FirebaseFirestore.instance
+                                            .collection('Cultos')
+                                            .add({
+                                      'nome': culto != "Adoração"
+                                          ? "Culto da " + culto
+                                          : "Culto de " + culto,
+                                      'musicos': [],
+                                      'playlist': [],
+                                      'date': timestamp,
+                                      'horario': horario,
+                                    });
+
+                                    // Recarregar os próximos cultos após adicionar um novo culto
+                                    await _loadProximosCultos();
+
+                                    // Fecha o diálogo
+                                    Navigator.pop(context);
+
+                                    // Navega para a página de detalhes do culto
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              GerenciamentoCulto(
+                                                  documentId: docRef.id)),
+                                    );
+                                    // Exibir uma mensagem de sucesso ou outro feedback ao usuário
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            'Novo culto adicionado com sucesso.'),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    print('Erro ao adicionar culto: $e');
+                                  }
+                                }
+                              },
+                              child: const Text(
+                                'OK',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                      Color(0xff2266ee))),
+                            ),
+                          ],
+                        );
+                      });
+                    });
+              },
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  margin: EdgeInsets.only(top: 16),
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blueAccent.withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      "+ Adicionar outro",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     } else {
       // Mapeia os eventos para uma lista de widgets
       eventWidgets.addAll(events.map((culto) {
@@ -1406,56 +2167,78 @@ class _userMainPageState extends State<userMainPage> {
             );
           },
           child: Container(
-            margin: EdgeInsets.only(bottom: 10),
+            margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
-              color: Color(0xff010101),
-              borderRadius: BorderRadius.circular(0),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1), // Sombra mais clara
+                  spreadRadius: 4, // Tamanho da propagação
+                  blurRadius: 15, // Suavidade da sombra
+                  offset: Offset(0, 8), // Deslocamento horizontal e vertical
+                ),
+                BoxShadow(
+                  color: Colors.black
+                      .withOpacity(0.05), // Sombra adicional mais sutil
+                  spreadRadius: -4,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 30.0, vertical: 12),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 4),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         cultoNome,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black87,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 16,
                         ),
                       ),
                       Text(
-                        DateFormat('dd/MM/yyyy').format(cultoDate) +
-                            " às " +
-                            cultoHorario,
+                        cultoHorario,
                         style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w300,
-                          fontSize: 10,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      _deleteCulto(culto.id);
-                    },
-                    child: Icon(
-                      Icons.delete_outline,
-                      color: Colors.red,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${DateFormat('dd/MM/yyyy').format(cultoDate)}",
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            _deleteCulto(culto.id);
+                          },
+                          child: Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -1486,10 +2269,21 @@ class _userMainPageState extends State<userMainPage> {
                   print(culto);
                   return StatefulBuilder(builder: (context, setState) {
                     return AlertDialog(
-                      backgroundColor: Color(0xff171717),
+                      title: Text("Adicionar culto"),
+                      shadowColor: Colors.black,
+                      surfaceTintColor: Colors.black,
+                      backgroundColor: Colors.white,
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 0.0),
+                            child: Container(
+                              height: 1.0,
+                              width: double.infinity,
+                              color: Colors.black,
+                            ),
+                          ),
                           SizedBox(
                             height: 32,
                           ),
@@ -1506,21 +2300,21 @@ class _userMainPageState extends State<userMainPage> {
                                     Text(
                                       "Selecione o Culto",
                                       style: TextStyle(
-                                          color: Colors.white,
+                                          color: Colors.black,
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
                                       "" +
                                           DateFormat('dd/MMM')
                                               .format(currentDate),
-                                      style: TextStyle(color: Colors.white),
+                                      style: TextStyle(color: Colors.black),
                                     ),
                                   ],
                                 ),
                                 SizedBox(
                                   height: 12,
                                 ),
-                                Row(
+                                Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -1533,23 +2327,35 @@ class _userMainPageState extends State<userMainPage> {
                                         print("Culto1: " + culto);
                                       },
                                       child: Container(
+                                        width: double.infinity,
                                         decoration: BoxDecoration(
+                                          border: Border.all(
+                                            width: 1,
+                                            color: culto == "Adoração"
+                                                ? Colors.blue
+                                                : Colors.white,
+                                          ),
                                           color: culto == "Adoração"
-                                              ? Colors.blue
-                                              : Colors.black,
+                                              ? Colors.white
+                                              : Colors.white,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
                                         child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Text(
-                                            "Adoração",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14),
+                                          padding: const EdgeInsets.all(24.0),
+                                          child: Center(
+                                            child: Text(
+                                              "Adoração",
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 14),
+                                            ),
                                           ),
                                         ),
                                       ),
+                                    ),
+                                    SizedBox(
+                                      height: 12,
                                     ),
                                     GestureDetector(
                                       onTap: () {
@@ -1559,23 +2365,36 @@ class _userMainPageState extends State<userMainPage> {
                                         print("culto1: " + culto);
                                       },
                                       child: Container(
+                                        width: double.infinity,
                                         decoration: BoxDecoration(
+                                          border: Border.all(
+                                            width: 1,
+                                            color: culto == "Fé"
+                                                ? Colors.blue
+                                                : Colors.white,
+                                          ),
                                           color: culto == "Fé"
-                                              ? Colors.blue
-                                              : Colors.black,
+                                              ? Colors.white
+                                              : Colors.white,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: Text(
-                                            "Fé",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14),
+                                          child: Center(
+                                            child: Text(
+                                              "Fé",
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
                                           ),
                                         ),
                                       ),
+                                    ),
+                                    SizedBox(
+                                      height: 12,
                                     ),
                                     GestureDetector(
                                       onTap: () {
@@ -1585,20 +2404,30 @@ class _userMainPageState extends State<userMainPage> {
                                         print("culto1: " + culto);
                                       },
                                       child: Container(
+                                        width: double.infinity,
                                         decoration: BoxDecoration(
+                                          border: Border.all(
+                                            width: 1,
+                                            color: culto == "Familia"
+                                                ? Colors.blue
+                                                : Colors.white,
+                                          ),
                                           color: culto == "Familia"
-                                              ? Colors.blue
-                                              : Colors.black,
+                                              ? Colors.white
+                                              : Colors.white,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: Text(
-                                            "Familia",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14),
+                                          child: Center(
+                                            child: Text(
+                                              "Familia",
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -1611,7 +2440,7 @@ class _userMainPageState extends State<userMainPage> {
                                 Text(
                                   "Selecione o horário",
                                   style: TextStyle(
-                                      color: Colors.white,
+                                      color: Colors.black,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(
@@ -1631,9 +2460,15 @@ class _userMainPageState extends State<userMainPage> {
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
+                                          border: Border.all(
+                                            width: 2,
+                                            color: horario == "10:30"
+                                                ? Color(0xff2266ee)
+                                                : Colors.white,
+                                          ),
                                           color: horario == "10:30"
-                                              ? Colors.blue
-                                              : Colors.black,
+                                              ? Colors.white
+                                              : Colors.white,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
@@ -1641,8 +2476,11 @@ class _userMainPageState extends State<userMainPage> {
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
                                             "10:30",
-                                            style:
-                                                TextStyle(color: Colors.white),
+                                            style: TextStyle(
+                                              color: horario == "10:30"
+                                                  ? Color(0xff2266ee)
+                                                  : Colors.black,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -1656,9 +2494,15 @@ class _userMainPageState extends State<userMainPage> {
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
+                                          border: Border.all(
+                                            width: 1,
+                                            color: horario == "19:30"
+                                                ? Color(0xff2266ee)
+                                                : Colors.white,
+                                          ),
                                           color: horario == "19:30"
-                                              ? Colors.blue
-                                              : Colors.black,
+                                              ? Colors.white
+                                              : Colors.white,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
@@ -1666,8 +2510,11 @@ class _userMainPageState extends State<userMainPage> {
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
                                             "19:30",
-                                            style:
-                                                TextStyle(color: Colors.white),
+                                            style: TextStyle(
+                                              color: horario == "19:30"
+                                                  ? Color(0xff2266ee)
+                                                  : Colors.black,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -1681,9 +2528,15 @@ class _userMainPageState extends State<userMainPage> {
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
+                                          border: Border.all(
+                                            width: 1,
+                                            color: horario == "20:30"
+                                                ? Colors.blue
+                                                : Colors.white,
+                                          ),
                                           color: horario == "20:30"
-                                              ? Colors.blue
-                                              : Colors.black,
+                                              ? Colors.white
+                                              : Colors.white,
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
@@ -1691,8 +2544,11 @@ class _userMainPageState extends State<userMainPage> {
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
                                             "20:30",
-                                            style:
-                                                TextStyle(color: Colors.white),
+                                            style: TextStyle(
+                                              color: horario == "20:30"
+                                                  ? Color(0xff2266ee)
+                                                  : Colors.black,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -1705,11 +2561,17 @@ class _userMainPageState extends State<userMainPage> {
                         ],
                       ),
                       actions: <Widget>[
-                        TextButton(
+                        ElevatedButton(
                           onPressed: () => Navigator.pop(context, 'Cancel'),
-                          child: const Text('Cancelar'),
+                          child: const Text(
+                            'Cancelar',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ButtonStyle(
+                              backgroundColor:
+                                  WidgetStatePropertyAll(Color(0xff2266ee))),
                         ),
-                        TextButton(
+                        ElevatedButton(
                           onPressed: () async {
                             // Verifica se o formulário é válido
                             if (_formKey.currentState!.validate()) {
@@ -1756,7 +2618,13 @@ class _userMainPageState extends State<userMainPage> {
                               }
                             }
                           },
-                          child: const Text('OK'),
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ButtonStyle(
+                              backgroundColor:
+                                  WidgetStatePropertyAll(Color(0xff2266ee))),
                         ),
                       ],
                     );
@@ -1766,17 +2634,26 @@ class _userMainPageState extends State<userMainPage> {
           child: Align(
             alignment: Alignment.centerRight,
             child: Container(
-              width: 70,
+              margin: EdgeInsets.only(top: 16),
+              padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(25)),
                 color: Colors.blue,
-                border: Border.all(color: Colors.blue),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               child: Center(
                 child: Text(
-                  "+",
+                  "+ Adicionar outro",
                   style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -1796,4 +2673,109 @@ void _deleteCulto(String cultoId) async {
   } catch (e) {
     print('Erro ao deletar culto: $e');
   }
+}
+
+void _showMenuBottomSheet(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            // Menu Header (similar ao DrawerHeader)
+            Container(
+              color: Colors.white,
+              padding: EdgeInsets.all(16),
+              child: Center(
+                child: Text(
+                  'Menu',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            // Menu Items
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _createMenuItem(
+                    icon: Icons.library_add,
+                    text: 'Formulários Mensais',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => forms_disponiblidade()),
+                      );
+                    },
+                  ),
+                  _createMenuItem(
+                    icon: Icons.person,
+                    text: 'Voluntários',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MusiciansPage()),
+                      );
+                    },
+                  ),
+                  _createMenuItem(
+                    icon: Icons.music_note,
+                    text: 'Banco de Canções',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MainMusicDataBase()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // Footer (similar ao Footer do Drawer)
+            Container(
+              color: Colors.blue,
+              child: ListTile(
+                leading: Icon(
+                  Icons.info_outline,
+                  color: Colors.white,
+                ),
+                title: Text(
+                  'Sobre',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Handle the 'Sobre' navigation
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+// Método para criar o item do menu
+Widget _createMenuItem({
+  required IconData icon,
+  required String text,
+  required GestureTapCallback onTap,
+}) {
+  return ListTile(
+    leading: Icon(icon),
+    title: Text(text),
+    onTap: onTap,
+  );
 }
