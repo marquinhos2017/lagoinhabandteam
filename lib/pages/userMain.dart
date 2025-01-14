@@ -37,6 +37,8 @@ class _userMainPageState extends State<userMainPage> {
   bool _isLoading = true; // Para saber se estamos carregando ou não
 
   int _musicsCount = 0; // Valor inicial (pode ser 0 ou o valor anterior)
+  final ScrollController _scrollController =
+      ScrollController(); // Controlador de rolagem
 
   Widget _createDrawerItem({
     required IconData icon,
@@ -62,6 +64,8 @@ class _userMainPageState extends State<userMainPage> {
   // StreamSubscription para controlar a inscrição no snapshot do Firestore
   late StreamSubscription<QuerySnapshot> _snapshotSubscription;
 
+  double _scrollPosition = 0.0; // Variável para armazenar a posição do scroll
+
   late bool click = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   List<DocumentSnapshot> _proximosCultos = [];
@@ -71,14 +75,13 @@ class _userMainPageState extends State<userMainPage> {
   Map<String, List<QueryDocumentSnapshot>> _events = {};
   late Stream<QuerySnapshot> _stream;
   bool _showEvents = false; // Estado para controlar a exibição dos eventos
-  ScrollController _scrollController =
-      ScrollController(); // Controlador de rolagem
 
   @override
   void initState() {
     super.initState();
     _loadEvents();
     _scrollController.addListener(() {});
+
     _loadProximosCultos(); // Carregar os próximos cultos ao inicializar o estado
 
     //_stream = _getProximosCultos();
@@ -183,12 +186,14 @@ class _userMainPageState extends State<userMainPage> {
     setState(() {
       _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1);
     });
+    // Após atualizar o estado, restaura a posição do scroll
   }
 
   void _nextMonth() {
     setState(() {
       _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1);
     });
+    // Após atualizar o estado, restaura a posição do scroll
   }
 
   /*
@@ -334,7 +339,6 @@ class _userMainPageState extends State<userMainPage> {
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        controller: _scrollController,
         child: Column(
           children: [
             /*
@@ -802,6 +806,12 @@ class _userMainPageState extends State<userMainPage> {
                 ),
               ),
             ),
+            // Exibe a lista de meses (usando o Listmove)
+            Listmove(
+              onMonthSelected:
+                  _onMonthSelected, // Passa a função de callback para Listmove
+            ),
+            //    _buildMonthSelector(),
             _Calendario(),
             /* if (_proximosCultos.isNotEmpty)
               ..._proximosCultos
@@ -857,6 +867,92 @@ class _userMainPageState extends State<userMainPage> {
         ),
       );
     });
+  }
+
+// Função para navegar até o mês selecionado
+  void _goToSelectedMonth(DateTime selectedMonth) {
+    setState(() {
+      _selectedDate = selectedMonth;
+    });
+  }
+
+  // Função para atualizar o mês ao clicar no mês
+  void _onMonthSelected(DateTime monthDate) {
+    setState(() {
+      _selectedDate = monthDate;
+    });
+  }
+
+  // Função para construir a linha com os meses do ano
+  Widget _buildMonthSelector() {
+    List<String> months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+
+    // Dividir os meses em duas linhas
+    List<List<String>> monthRows = [
+      months.sublist(0, 6), // Meses de Jan a Jun
+      months.sublist(6), // Meses de Jul a Dez
+    ];
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        children: monthRows.map((monthRow) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: monthRow.map((month) {
+              int monthIndex = months.indexOf(month);
+              DateTime monthDate =
+                  DateTime(_selectedDate.year, monthIndex + 1, 1);
+
+              return GestureDetector(
+                onTap: () {
+                  // Atualiza o mês selecionado
+                  _onMonthSelected(monthDate);
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  margin: EdgeInsets.symmetric(horizontal: 5),
+                  decoration: BoxDecoration(
+                    color: _selectedDate.month == monthIndex + 1
+                        ? Colors.blueAccent
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      month,
+                      style: TextStyle(
+                        color: _selectedDate.month == monthIndex + 1
+                            ? Colors.white
+                            : Colors.black,
+                        fontSize: 10,
+                        fontWeight: _selectedDate.month == monthIndex + 1
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          );
+        }).toList(),
+      ),
+    );
   }
 
   Widget _buildHeader() {
@@ -1462,6 +1558,95 @@ class _userMainPageState extends State<userMainPage> {
         ),
       );
     }).toList();
+  }
+
+  // Cabeçalho do calendário
+  Widget _buildHeader2() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: _previousMonth,
+          ),
+          Text(
+            DateFormat.yMMMM().format(_selectedDate),
+            style: TextStyle(
+                fontSize: 12.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.black),
+          ),
+          IconButton(
+            icon: Icon(Icons.arrow_forward, color: Colors.black),
+            onPressed: _nextMonth,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _Calendario2() {
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+          color: Colors.white),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            Container(
+              margin: EdgeInsets.only(top: 12, bottom: 24),
+              height: 300,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 4,
+                    blurRadius: 15,
+                    offset: Offset(0, 8),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    spreadRadius: -4,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildHeader(),
+                    _buildDaysOfWeek(),
+                    _buildDays(),
+                  ],
+                ),
+              ),
+            ),
+            if (_events.isEmpty)
+              Column(
+                children: [
+                  ..._buildEventList2(),
+                ],
+              ),
+            if (_events.isNotEmpty)
+              Column(
+                children: [
+                  if (_buildEventList2().isNotEmpty) ..._buildEventList2(),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _Calendario() {
@@ -2778,4 +2963,70 @@ Widget _createMenuItem({
     title: Text(text),
     onTap: onTap,
   );
+}
+
+class Listmove extends StatelessWidget {
+  final Function(DateTime)
+      onMonthSelected; // Callback para comunicação com CalendarPage
+
+  const Listmove({super.key, required this.onMonthSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    List<String> months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        children: [
+          // Usando o PageStorageKey para manter o estado de rolagem horizontal
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            key: PageStorageKey<String>(
+                'monthsScroll'), // Isso vai preservar o estado de rolagem
+            child: Row(
+              children: months.sublist(0).map((month) {
+                int monthIndex = months.indexOf(month);
+                DateTime monthDate =
+                    DateTime(DateTime.now().year, monthIndex + 1, 1);
+
+                return GestureDetector(
+                  onTap: () {
+                    // Ao clicar no mês, chama o callback para passar a data selecionada para CalendarPage
+                    onMonthSelected(monthDate);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    margin: EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      month,
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
