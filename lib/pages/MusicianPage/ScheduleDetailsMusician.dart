@@ -1106,6 +1106,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     for (var item in playlist) {
       // Cada item é um mapa, então pegamos a chave 'music_document'
       var musicDocumentId = item['music_document'];
+      var tone = item['key'];
 
       // Passo 4: Buscar os dados da música na collection 'music_database'
       var musicSnapshot = await FirebaseFirestore.instance
@@ -1115,16 +1116,38 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
 
       if (musicSnapshot.exists) {
         var musicData = musicSnapshot.data();
-        String musicName = musicData?['Music'] ??
-            'Unknown Music'; // Substitua 'name' pelo nome correto do campo
-        String musicAuthor = musicData?['Author'] ??
-            'Unknown Author'; // Substitua 'author' pelo campo correto
+        String musicName = musicData?['Music'] ?? 'Unknown Music';
+        String musicAuthor = musicData?['Author'] ?? 'Unknown Author';
+        String musicBpm = musicData?['bpm'] ?? 'Unknown BPM';
+        String key = item['key'] ?? 'Unknown key';
 
-        // Passo 5: Adicionar os dados da música à lista
+        // Passo 5: Buscar o campo 'content' relacionado na coleção 'songs'
+        var songsQuerySnapshot = await FirebaseFirestore.instance
+            .collection('songs')
+            .where('SongId', isEqualTo: musicDocumentId)
+            .get();
+
+        String content = 'Content not found';
+        String songDocumentId = 'Document ID not found';
+
+        if (songsQuerySnapshot.docs.isNotEmpty) {
+          var firstDoc = songsQuerySnapshot.docs.first;
+          content = firstDoc['content'] ?? 'No content';
+          songDocumentId = firstDoc.id; // ID do documento
+        }
+
+        // Adicionar os dados da música à lista
         musicDataList.add({
           'author': musicAuthor,
           'music': musicName,
+          'id': musicDocumentId,
+          'bpm': musicBpm,
+          'content': content,
+          'songDocumentId': songDocumentId, // Adicionando o ID do documento
+          'tone': key, // Adicionando o ID do documento
         });
+        print(key);
+        print(songDocumentId);
       }
     }
 
@@ -1135,38 +1158,171 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     switch (selectedMenu) {
       case 'Musicas':
         return FutureBuilder<List<Map<String, String>>>(
-          future: fetchCultosAndMusic(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            }
+            future: fetchCultosAndMusic(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-            if (snapshot.hasError) {
-              return Center(child: Text('Erro ao carregar os dados.'));
-            }
+              if (snapshot.hasError) {
+                return Center(child: Text('Erro ao carregar os dados.'));
+              }
 
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('Nenhuma música encontrada.'));
-            }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('Nenhuma música encontrada.'));
+              }
 
-            var musicData = snapshot.data!;
-            return Scaffold(
-              appBar: AppBar(
-                title: Text('Músicas do Culto'),
-              ),
-              body: ListView.builder(
+              var musicData = snapshot.data!;
+              return ListView.builder(
                 itemCount: musicData.length,
                 itemBuilder: (context, index) {
                   var music = musicData[index];
-                  return ListTile(
-                    title: Text(music['music']!),
-                    subtitle: Text('Autor: ${music['author']}'),
+                  bool isExpanded = false;
+
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: StatefulBuilder(
+                      builder: (context, setState) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                              color: isExpanded
+                                  ? Colors.blue
+                                  : Colors.grey.shade300,
+                              width: isExpanded ? 1.0 : 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(12.0),
+                            boxShadow: [
+                              if (isExpanded)
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.2),
+                                  blurRadius: 8.0,
+                                  spreadRadius: 2.0,
+                                  offset: Offset(0, 4),
+                                ),
+                            ],
+                          ),
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              dividerColor: Colors
+                                  .transparent, // Remove a linha entre o título e os filhos
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ExpansionTile(
+                                onExpansionChanged: (expanded) {
+                                  setState(() {
+                                    isExpanded = expanded;
+                                  });
+                                },
+                                tilePadding: EdgeInsets
+                                    .zero, // Remove o padding do título
+                                childrenPadding: EdgeInsets
+                                    .zero, // Remove o padding dos filhos
+
+                                title: Text(
+                                  music['music'] ?? 'Música não disponível',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  'Autor: ${music['author'] ?? 'Autor desconhecido'}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Detalhes Adicionais:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        music['tone'] ?? "Sem Tom",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.lyrics),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      VerLetraUser(
+                                                    documentId:
+                                                        music['id'] ?? '',
+                                                    isAdmin: false,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            tooltip: 'Ver Letra',
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.music_note),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      VerCifraUserNewUI(
+                                                    documentId:
+                                                        music['id'] ?? '',
+                                                    tone: music['tone'] ?? '',
+                                                    isAdmin: false,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            tooltip: 'Ver Cifra',
+                                          ),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                  Icons.hourglass_bottom_sharp),
+                                              Text("${music['bpm']}")
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          print(
+                                              'Ver detalhes de ${music['music']}');
+                                        },
+                                        child: Text('Ver Detalhes'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   );
                 },
-              ),
-            );
-          },
-        );
+              );
+            });
       case 'Teams':
         return FutureBuilder<List<Map<String, dynamic>>>(
           future: _getEscalados(widget.id),
@@ -1189,9 +1345,110 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
               itemCount: escalados.length,
               itemBuilder: (context, index) {
                 var escalado = escalados[index];
-                return ListTile(
-                  title: Text(escalado['nome']),
-                  subtitle: Text('Instrumento: ${escalado['instrument']}'),
+                bool isExpanded = false;
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: StatefulBuilder(
+                    builder: (context, setState) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color:
+                                isExpanded ? Colors.blue : Colors.grey.shade300,
+                            width: isExpanded ? 1.0 : 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(12.0),
+                          boxShadow: [
+                            if (isExpanded)
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.2),
+                                blurRadius: 8.0,
+                                spreadRadius: 2.0,
+                                offset: Offset(0, 4),
+                              ),
+                          ],
+                        ),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            dividerColor: Colors
+                                .transparent, // Remove a linha entre o título e os filhos
+                          ),
+                          child: ExpansionTile(
+                            onExpansionChanged: (expanded) {
+                              setState(() {
+                                isExpanded = expanded;
+                              });
+                            },
+                            tilePadding:
+                                EdgeInsets.zero, // Remove o padding do título
+                            childrenPadding:
+                                EdgeInsets.zero, // Remove o padding dos filhos
+                            title: Text(
+                              escalado['nome'] ?? 'Nome não disponível',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Instrumento: ${escalado['instrument'] ?? 'Instrumento não definido'}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0, vertical: 8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Detalhes Adicionais:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'ID do Escalado: ${escalado['id'] ?? 'ID não disponível'}',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade700),
+                                    ),
+                                    Text(
+                                      'Outro Dado: ${escalado['outroDado'] ?? 'Não informado'}',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade700),
+                                    ),
+                                    SizedBox(height: 8),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ScheduleDetailsMusician(
+                                                    id: escalado['id']),
+                                          ),
+                                        );
+                                      },
+                                      child: Text('Ver Mais Detalhes'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             );
@@ -1280,7 +1537,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       appBar: AppBar(
         foregroundColor: Colors.black,
         title: Text(
-          "Service Details" + widget.id,
+          "Detalhes",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
@@ -1309,37 +1566,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                       // Centraliza o texto
                       Column(
                         children: [
-                          Row(
-                            children: [
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(6))),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: Text("asd"),
-                                    ),
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border.all(color: Colors.black),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(6))),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: Text(""),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
                           Row(
                             children: [],
                           ),

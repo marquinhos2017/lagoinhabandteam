@@ -619,10 +619,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
     int notificationCount = 4;
     return Scaffold(
       backgroundColor: Color(0xfffafcff),
-      appBar: AppBar(
-        toolbarHeight: 20,
-        backgroundColor: Colors.transparent,
-      ),
       body: Stack(
         children: [
           PageView(
@@ -1373,9 +1369,12 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                 },
                               ),
                             ),
+                            SizedBox(
+                              height: 24,
+                            ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 24.0, vertical: 0),
+                                  horizontal: 24.0, vertical: 24),
                               child: Container(
                                 margin: EdgeInsets.symmetric(vertical: 0),
                                 child: Row(
@@ -1499,6 +1498,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                           cultosSnapshot.data!;
 
                                       return ListView.builder(
+                                        padding: EdgeInsets.zero,
                                         itemCount: cultosComInstrumentos.length,
                                         itemBuilder: (context, index) {
                                           final cultoData =
@@ -1548,8 +1548,8 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                     ),
                                                   ],
                                                 ),
-                                                height: 220,
-                                                width: 200,
+                                                height: 170,
+                                                width: 100,
                                                 child: Padding(
                                                   padding: const EdgeInsets.all(
                                                       24.0),
@@ -1587,34 +1587,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                               ),
                                                               const SizedBox(
                                                                   width: 16),
-                                                              const Text(
-                                                                "Lagoinha Music Faro",
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize: 14,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          Row(
-                                                            children: [
-                                                              buildTagBasedOnTime(
-                                                                  horario),
-                                                              SizedBox(
-                                                                  width: 8),
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      const SizedBox(
-                                                          height: 16),
-                                                      Row(
-                                                        children: [
-                                                          Row(
-                                                            children: [
                                                               Text(
                                                                 cultoDate.day
                                                                         .toString() +
@@ -1671,6 +1643,27 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                               ),
                                                             ],
                                                           ),
+                                                          Row(
+                                                            children: [
+                                                              buildTagBasedOnTime(
+                                                                  horario),
+                                                              SizedBox(
+                                                                  width: 8),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 16),
+                                                      Row(
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              SizedBox(
+                                                                width: 24,
+                                                              ),
+                                                            ],
+                                                          ),
                                                         ],
                                                       ),
                                                       Text(
@@ -1691,23 +1684,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                           fontSize: 12,
                                                         ),
                                                       ),
-                                                      Container(
-                                                        width: double.infinity,
-                                                        child: ElevatedButton(
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                            backgroundColor:
-                                                                Colors.black,
-                                                          ),
-                                                          onPressed: () => {},
-                                                          child: Text(
-                                                            "Mais Informações",
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white),
-                                                          ),
-                                                        ),
-                                                      )
                                                     ],
                                                   ),
                                                 ),
@@ -1947,6 +1923,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
               //  Afinador(),
             ],
           ),
+          /*
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -1956,7 +1933,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                 onTap: onNavBarTapped,
               ),
             ),
-          ),
+          ),*/
         ],
       ),
       floatingActionButton: Visibility(
