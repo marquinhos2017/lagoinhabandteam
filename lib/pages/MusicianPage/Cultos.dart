@@ -71,6 +71,8 @@ class _CultosScreenState extends State<CultosScreen> {
     });
   }
 
+  String _selectedOption = "semana";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -412,6 +414,38 @@ class _CultosScreenState extends State<CultosScreen> {
                   return ListView(
                     children: [
                       if (cultosDaSemana.isNotEmpty) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _selectedOption == "semana"
+                                    ? Colors.blue
+                                    : Colors.grey[300],
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _selectedOption = "semana";
+                                });
+                              },
+                              child: const Text("Essa Semana"),
+                            ),
+                            const SizedBox(width: 10),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _selectedOption == "total"
+                                    ? Colors.blue
+                                    : Colors.grey[300],
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _selectedOption = "total";
+                                });
+                              },
+                              child: const Text("Total"),
+                            ),
+                          ],
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(

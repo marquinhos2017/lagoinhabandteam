@@ -521,6 +521,63 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
     }
   }
 
+  Widget buildTagBasedOnTime(String horario) {
+    // Converter o horário para um DateTime
+    final timeParts = horario.split(':');
+    if (timeParts.length < 2) {
+      return Text(
+        'Horário inválido',
+        style: TextStyle(color: Colors.red),
+      );
+    }
+
+    int hour = int.parse(timeParts[0]);
+
+    // Verificar o intervalo do horário e retornar o widget correspondente
+    if (hour >= 7 && hour < 12) {
+      return Row(
+        children: [
+          Icon(
+            Icons.wb_sunny, // Ícone de "Manhã"
+            color: Colors.orange,
+            size: 14,
+          ),
+          SizedBox(width: 8),
+          Text(
+            "Manhã",
+            style: TextStyle(
+              color: Colors.orange,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      );
+    } else if (hour >= 18 && hour <= 24) {
+      return Row(
+        children: [
+          Icon(
+            Icons.nights_stay, // Ícone de "Noite"
+            color: Colors.blue,
+            size: 14,
+          ),
+          SizedBox(width: 8),
+          Text(
+            "Noite",
+            style: TextStyle(
+              color: Colors.blue,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Text(
+        'Horário fora dos intervalos',
+        style: TextStyle(color: Colors.grey),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Obtenha a data atual
@@ -561,7 +618,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 // Definindo um número de notificações fictício
     int notificationCount = 4;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xfffafcff),
       appBar: AppBar(
         toolbarHeight: 20,
         backgroundColor: Colors.transparent,
@@ -992,7 +1049,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               ),
                             ),
                             Container(
-                              height: 150,
+                              height: 230,
                               width: 500,
                               margin: EdgeInsets.only(bottom: 0),
                               child: FutureBuilder<QuerySnapshot>(
@@ -1026,17 +1083,31 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                       snapshot.data!.docs;
 
                                   // Agora vamos buscar os cultos na coleção 'Cultos' que correspondem aos cultos escalados
-                                  List<Future<DocumentSnapshot>> cultosFutures =
-                                      userCultosDocs.map((userCultoDoc) {
+                                  List<Future<Map<String, dynamic>>>
+                                      cultosFutures =
+                                      userCultosDocs.map((userCultoDoc) async {
                                     final cultoId = userCultoDoc[
-                                        'idCulto']; // Supondo que o campo cultoId está armazenado no documento
-                                    return FirebaseFirestore.instance
-                                        .collection('Cultos')
-                                        .doc(cultoId)
-                                        .get();
+                                        'idCulto']; // Supondo que o campo idCulto está armazenado no documento
+                                    final instrumento =
+                                        userCultoDoc['Instrument'] ??
+                                            'Instrumento não definido';
+
+                                    DocumentSnapshot cultoDoc =
+                                        await FirebaseFirestore.instance
+                                            .collection('Cultos')
+                                            .doc(cultoId)
+                                            .get();
+
+                                    Map<String, dynamic> cultoData =
+                                        cultoDoc.data() as Map<String, dynamic>;
+                                    cultoData['instrumento'] =
+                                        instrumento; // Adiciona o instrumento ao culto
+                                    cultoData['idCulto'] = cultoId;
+                                    return cultoData;
                                   }).toList();
 
-                                  return FutureBuilder<List<DocumentSnapshot>>(
+                                  return FutureBuilder<
+                                      List<Map<String, dynamic>>>(
                                     future: Future.wait(cultosFutures),
                                     builder: (context, cultosSnapshot) {
                                       if (cultosSnapshot.connectionState ==
@@ -1058,19 +1129,17 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                 'Nenhum culto encontrado para o usuário.'));
                                       }
 
-                                      // Agora você tem todos os cultos escalados para o usuário
-                                      List<DocumentSnapshot> cultos =
+                                      // Agora você tem todos os cultos escalados para o usuário com informações adicionais
+                                      List<Map<String, dynamic>> cultos =
                                           cultosSnapshot.data!;
 
                                       // Filtra os cultos para exibir apenas os da semana atual
                                       DateTime startOfWeek = getStartOfWeek();
                                       DateTime endOfWeek = getEndOfWeek();
 
-                                      List<DocumentSnapshot> filteredCultos =
-                                          cultos.where((cultoDoc) {
-                                        Map<String, dynamic> cultoData =
-                                            cultoDoc.data()
-                                                as Map<String, dynamic>;
+                                      List<Map<String, dynamic>>
+                                          filteredCultos =
+                                          cultos.where((cultoData) {
                                         DateTime cultoDate =
                                             (cultoData['date'] as Timestamp)
                                                 .toDate();
@@ -1085,35 +1154,216 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                       }
 
                                       return ListView.builder(
+                                        scrollDirection: Axis.horizontal,
                                         itemCount: filteredCultos.length,
                                         itemBuilder: (context, index) {
                                           Map<String, dynamic> cultoData =
-                                              filteredCultos[index].data()
-                                                  as Map<String, dynamic>;
+                                              filteredCultos[index];
                                           String cultoName =
                                               cultoData['nome'] ??
                                                   'Culto sem nome';
                                           DateTime cultoDate =
                                               (cultoData['date'] as Timestamp)
                                                   .toDate();
+                                          String horario =
+                                              cultoData['horario'] ??
+                                                  'Horário não definido';
+                                          String instrument =
+                                              cultoData['instrumento'];
 
-                                          return Card(
-                                            child: ListTile(
-                                              title: Text(cultoName),
-                                              subtitle: Text(
-                                                  'Data: ${cultoDate.toLocal()}'),
-                                              onTap: () {
-                                                // Ao clicar, você pode navegar para a tela de detalhes do culto
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        ScheduleDetailsMusician(
-                                                      id: 'asdas',
-                                                    ),
+                                          String idCulto = cultoData['idCulto'];
+
+                                          return GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ScheduleDetailsMusician(
+                                                    id: idCulto,
                                                   ),
-                                                );
-                                              },
+                                                ),
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                      spreadRadius: 3,
+                                                      blurRadius: 5,
+                                                      offset: Offset(0, 4),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: 240,
+                                                width: 350,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      24.0),
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Container(
+                                                                width: 40,
+                                                                height: 40,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
+                                                                  image:
+                                                                      DecorationImage(
+                                                                    image:
+                                                                        NetworkImage(
+                                                                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiomxFAA1cgas1K_PPfGc-4pkW1sLUc3Anog&s",
+                                                                    ),
+                                                                    fit: BoxFit
+                                                                        .cover,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                  width: 16),
+                                                              const Text(
+                                                                "Lagoinha Music Faro",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize: 14,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          Row(
+                                                            children: [
+                                                              buildTagBasedOnTime(
+                                                                  horario),
+                                                              SizedBox(
+                                                                  width: 8),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 16),
+                                                      Row(
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Text(
+                                                                cultoDate.day
+                                                                        .toString() +
+                                                                    "/",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: const Color
+                                                                      .fromARGB(
+                                                                      255,
+                                                                      135,
+                                                                      135,
+                                                                      135),
+                                                                  fontSize: 12,
+                                                                ),
+                                                              ),
+                                                              Text(
+                                                                cultoDate.month
+                                                                    .toString(),
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: const Color
+                                                                      .fromARGB(
+                                                                      255,
+                                                                      135,
+                                                                      135,
+                                                                      135),
+                                                                  fontSize: 12,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          SizedBox(
+                                                            width: 23,
+                                                          ),
+                                                          Text(
+                                                            horario,
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: const Color
+                                                                  .fromARGB(
+                                                                  255,
+                                                                  135,
+                                                                  135,
+                                                                  135),
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Text(
+                                                        cultoName,
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black,
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        "Instrumento: $instrument",
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        width: double.infinity,
+                                                        child: ElevatedButton(
+                                                          style: ElevatedButton
+                                                              .styleFrom(
+                                                            backgroundColor:
+                                                                Colors.black,
+                                                          ),
+                                                          onPressed: () => {},
+                                                          child: Text(
+                                                            "Mais Informações",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           );
                                         },
@@ -1165,7 +1415,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               ),
                             ),
                             Container(
-                              height: 150,
+                              height: 400,
                               width: 500,
                               margin: EdgeInsets.only(bottom: 0),
                               child: FutureBuilder<QuerySnapshot>(
@@ -1198,18 +1448,30 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                   List<DocumentSnapshot> userCultosDocs =
                                       snapshot.data!.docs;
 
-                                  // Agora vamos buscar os cultos na coleção 'Cultos' que correspondem aos cultos escalados
-                                  List<Future<DocumentSnapshot>> cultosFutures =
-                                      userCultosDocs.map((userCultoDoc) {
-                                    final cultoId = userCultoDoc[
-                                        'idCulto']; // Supondo que o campo cultoId está armazenado no documento
-                                    return FirebaseFirestore.instance
+                                  // Buscar cultos e incluir informações de instrumento
+                                  List<Future<Map<String, dynamic>>>
+                                      cultosFutures =
+                                      userCultosDocs.map((userCultoDoc) async {
+                                    final cultoId = userCultoDoc['idCulto'];
+                                    final instrument =
+                                        userCultoDoc['Instrument'];
+
+                                    // Buscar o culto correspondente
+                                    final cultoDoc = await FirebaseFirestore
+                                        .instance
                                         .collection('Cultos')
                                         .doc(cultoId)
                                         .get();
+
+                                    return {
+                                      'culto': cultoDoc.data(),
+                                      'instrument': instrument,
+                                      'cultoId': cultoId,
+                                    };
                                   }).toList();
 
-                                  return FutureBuilder<List<DocumentSnapshot>>(
+                                  return FutureBuilder<
+                                      List<Map<String, dynamic>>>(
                                     future: Future.wait(cultosFutures),
                                     builder: (context, cultosSnapshot) {
                                       if (cultosSnapshot.connectionState ==
@@ -1231,40 +1493,225 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                 'Nenhum culto encontrado para o usuário.'));
                                       }
 
-                                      // Agora você tem todos os cultos escalados para o usuário
-                                      List<DocumentSnapshot> cultos =
+                                      // Lista de cultos com instrumentos
+                                      List<Map<String, dynamic>>
+                                          cultosComInstrumentos =
                                           cultosSnapshot.data!;
 
                                       return ListView.builder(
-                                        itemCount: cultos.length,
+                                        itemCount: cultosComInstrumentos.length,
                                         itemBuilder: (context, index) {
-                                          Map<String, dynamic> cultoData =
-                                              cultos[index].data()
-                                                  as Map<String, dynamic>;
+                                          final cultoData =
+                                              cultosComInstrumentos[index]
+                                                  ['culto'];
+                                          final instrument =
+                                              cultosComInstrumentos[index]
+                                                  ['instrument'];
+                                          final cultoId =
+                                              cultosComInstrumentos[index]
+                                                  ['cultoId'];
+
                                           String cultoName =
-                                              cultoData['nome'] ??
+                                              cultoData?['nome'] ??
                                                   'Culto sem nome';
                                           DateTime cultoDate =
-                                              (cultoData['date'] as Timestamp)
+                                              (cultoData?['date'] as Timestamp)
                                                   .toDate();
+                                          String horario =
+                                              cultoData?['horario'] ?? '';
 
-                                          return Card(
-                                            child: ListTile(
-                                              title: Text(cultoName),
-                                              subtitle: Text(
-                                                  'Data: ${cultoDate.toLocal()}'),
-                                              onTap: () {
-                                                // Ao clicar, você pode navegar para a tela de detalhes do culto
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        ScheduleDetailsMusician(
-                                                      id: cultos[index].id,
-                                                    ),
+                                          return GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ScheduleDetailsMusician(
+                                                    id: cultoId,
                                                   ),
-                                                );
-                                              },
+                                                ),
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                      spreadRadius: 3,
+                                                      blurRadius: 5,
+                                                      offset: Offset(0, 4),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: 220,
+                                                width: 200,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      24.0),
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Container(
+                                                                width: 40,
+                                                                height: 40,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
+                                                                  image:
+                                                                      DecorationImage(
+                                                                    image:
+                                                                        NetworkImage(
+                                                                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiomxFAA1cgas1K_PPfGc-4pkW1sLUc3Anog&s",
+                                                                    ),
+                                                                    fit: BoxFit
+                                                                        .cover,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                  width: 16),
+                                                              const Text(
+                                                                "Lagoinha Music Faro",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize: 14,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          Row(
+                                                            children: [
+                                                              buildTagBasedOnTime(
+                                                                  horario),
+                                                              SizedBox(
+                                                                  width: 8),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 16),
+                                                      Row(
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Text(
+                                                                cultoDate.day
+                                                                        .toString() +
+                                                                    "/",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: const Color
+                                                                      .fromARGB(
+                                                                      255,
+                                                                      135,
+                                                                      135,
+                                                                      135),
+                                                                  fontSize: 12,
+                                                                ),
+                                                              ),
+                                                              Text(
+                                                                cultoDate.month
+                                                                    .toString(),
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: const Color
+                                                                      .fromARGB(
+                                                                      255,
+                                                                      135,
+                                                                      135,
+                                                                      135),
+                                                                  fontSize: 12,
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                width: 24,
+                                                              ),
+                                                              Text(
+                                                                horario,
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: const Color
+                                                                      .fromARGB(
+                                                                      255,
+                                                                      135,
+                                                                      135,
+                                                                      135),
+                                                                  fontSize: 12,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Text(
+                                                        cultoName,
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black,
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        "Instrumento: $instrument",
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        width: double.infinity,
+                                                        child: ElevatedButton(
+                                                          style: ElevatedButton
+                                                              .styleFrom(
+                                                            backgroundColor:
+                                                                Colors.black,
+                                                          ),
+                                                          onPressed: () => {},
+                                                          child: Text(
+                                                            "Mais Informações",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           );
                                         },

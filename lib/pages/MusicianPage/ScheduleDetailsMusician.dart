@@ -1280,7 +1280,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       appBar: AppBar(
         foregroundColor: Colors.black,
         title: Text(
-          "Service Details",
+          "Service Details" + widget.id,
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,

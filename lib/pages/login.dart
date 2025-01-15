@@ -44,7 +44,9 @@ class _LoginStateState extends State<login> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CultosScreen(),
+            builder: (context) => MusicianPageNewUI(
+              id: userId,
+            ),
           ),
         );
       } else {
@@ -311,7 +313,11 @@ class _LoginStateState extends State<login> {
                                                     context,
                                                     MaterialPageRoute(
                                                       builder: (context) =>
-                                                          CultosScreen(),
+                                                          MusicianPageNewUI(
+                                                        id: musicianData[
+                                                                'user_id']
+                                                            .toString(),
+                                                      ),
                                                     ),
                                                     (Route<dynamic> route) =>
                                                         false,
