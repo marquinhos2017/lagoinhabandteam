@@ -64,40 +64,56 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
     );
   }
 
-  // Função para buscar cultos da semana
+  // Função para buscar cultos da semana com base em userId
   Future<void> fetchCultos(int userId) async {
-    DateTime startOfWeek = getStartOfWeek();
+    try {
+      // Determinar o início e o fim da semana
+      DateTime startOfWeek = getStartOfWeek();
+      DateTime endOfWeek = getEndOfWeek();
 
-    DateTime endOfWeek = getEndOfWeek();
+      // Formatar as datas para Timestamp
+      Timestamp startTimestamp = Timestamp.fromDate(startOfWeek);
+      Timestamp endTimestamp = Timestamp.fromDate(endOfWeek);
 
-    // Formatar as datas para Timestamp
-    Timestamp startTimestamp = Timestamp.fromDate(startOfWeek);
-    Timestamp endTimestamp = Timestamp.fromDate(endOfWeek);
+      // Buscar documentos em 'user_culto_instrument' para o userId
+      var userCultoSnapshot = await FirebaseFirestore.instance
+          .collection('user_culto_instrument')
+          .where('idUser', isEqualTo: userId)
+          .get();
 
-    // Realizando a consulta no Firestore
-    var querySnapshot = await FirebaseFirestore.instance
-        .collection('Cultos')
-        .where('date', isGreaterThanOrEqualTo: startTimestamp)
-        .where('date', isLessThanOrEqualTo: endTimestamp)
-        .get();
-    print("Query");
-    print(querySnapshot.docs);
+      // Coletar os IDs dos cultos onde o usuário está escalado
+      List<String> idCultos = userCultoSnapshot.docs
+          .map((doc) => doc['idCulto'] as String)
+          .toList();
 
-    // Filtrando os cultos que contêm o user_id no array de músicos
-    List<QueryDocumentSnapshot> filteredCultos =
-        querySnapshot.docs.where((doc) {
-      List<dynamic> musicos = doc['musicos'];
-      return musicos.any((musico) => musico['user_id'] == userId);
-    }).toList();
-    print("Filtrdo");
-    print(filteredCultos);
+      if (idCultos.isEmpty) {
+        setState(() {
+          cultosDaSemana = [];
+        });
+        return; // Não há cultos associados a este usuário
+      }
 
-    setState(() {
-      cultosDaSemana =
-          filteredCultos; // Atualiza o estado com os cultos filtrados
-    });
-    print("Da Semna");
-    print(cultosDaSemana);
+      // Buscar os cultos dentro do intervalo de datas
+      var querySnapshot = await FirebaseFirestore.instance
+          .collection('Cultos')
+          .where('date', isGreaterThanOrEqualTo: startTimestamp)
+          .where('date', isLessThanOrEqualTo: endTimestamp)
+          .get();
+
+      // Filtrar os cultos que correspondem aos IDs encontrados
+      List<QueryDocumentSnapshot> filteredCultos =
+          querySnapshot.docs.where((doc) => idCultos.contains(doc.id)).toList();
+
+      // Atualizar o estado com os cultos encontrados
+      setState(() {
+        cultosDaSemana = filteredCultos;
+      });
+
+      print("Cultos da semana:");
+      print(cultosDaSemana);
+    } catch (e) {
+      print("Erro ao buscar cultos da semana: $e");
+    }
   }
 
   String photoo = "";
@@ -238,24 +254,34 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
   Future<void> _fetchMusicianByUsrId() async {
     try {
-      // Busca o documento do músico no Firestore onde o campo usr_id é igual ao widget.id
+      // Verifica se o widget.id é numérico antes de converter para int
+      int? userId = int.tryParse(widget.id);
+      if (userId == null) {
+        setState(() {
+          errorMessage = 'ID de usuário inválido.';
+          isLoading = false;
+        });
+        return;
+      }
+
+      // Busca o documento do músico no Firestore onde o campo usr_id é igual ao userId
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('musicos')
-          .where('user_id', isEqualTo: int.parse(widget.id))
+          .where('user_id', isEqualTo: userId)
           .get();
 
       if (querySnapshot.docs.isEmpty) {
         // Tratamento de erro caso nenhum documento seja encontrado
         setState(() {
-          errorMessage =
-              'Nenhum músico com usr_id ${widget.id} foi encontrado.';
+          errorMessage = 'Nenhum músico com user_id $userId foi encontrado.';
           isLoading = false;
         });
       } else {
-        // Extrai o campo "nome" do primeiro documento encontrado
+        // Extrai os campos "name" e "photoUrl" do primeiro documento encontrado
         setState(() {
           musicianName = querySnapshot.docs.first['name'];
-          avatar = querySnapshot.docs.first['photoUrl'];
+          avatar = querySnapshot.docs.first['photoUrl'] ??
+              ''; // Usando um valor padrão caso 'photoUrl' seja nulo
           print(musicianName);
           isLoading = false;
         });
@@ -271,19 +297,21 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
   Future<void> encontrarDocumentos(String userID) async {
     try {
-      // Faz a consulta no Firestore
+      // Faz a consulta na coleção 'user_culto_instrument'
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Cultos')
-          .where('musicos', arrayContains: userID)
+          .collection('user_culto_instrument')
+          .where('idUser', isEqualTo: int.parse(userID))
           .get();
 
       // Itera sobre os documentos encontrados
-      querySnapshot.docs.forEach((doc) {
+      for (var doc in querySnapshot.docs) {
         // Aqui você pode acessar os dados de cada documento
-        Object? data = doc.data();
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         print('ID do documento: ${doc.id}');
         print('Dados do documento: $data');
-      });
+        print("documentos");
+        print(doc);
+      }
     } catch (e) {
       print('Erro ao encontrar documentos: $e');
     }
@@ -394,20 +422,21 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
   Future<void> contarCultosDoUsuario() async {
     try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Cultos')
-          .get(); // Obtém todos os documentos da coleção Cultos
+      // Obtém todos os cultos em que o usuário está escalado através da coleção 'user_culto_instrument'
+      var userCultoSnapshot = await FirebaseFirestore.instance
+          .collection('user_culto_instrument')
+          .where('idUser',
+              isEqualTo: int.parse(widget.id)) // A busca é pelo idUser
+          .get();
 
-      // Filtra os documentos localmente
-      int count = querySnapshot.docs.where((doc) {
-        List<dynamic> musicos = doc['musicos'];
-        return musicos
-            .any((musico) => musico['user_id'] == int.parse(widget.id));
-      }).length;
+      // A quantidade de cultos é igual ao número de documentos encontrados
+      int count = userCultoSnapshot.docs.length;
 
       setState(() {
         cultosCount = count; // Armazena a contagem de cultos
       });
+
+      print("Total de cultos do usuário: $count");
     } catch (e) {
       print('Erro ao contar cultos: $e');
     }
@@ -559,32 +588,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                         padding: const EdgeInsets.all(0.0),
                         child: Column(
                           children: [
-                            /*
-                            Container(
-                              height: 200,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: cultosDaSemana.map((document) {
-                                  // Supondo que cada documento tenha campos como 'nome' e 'data'
-                                  final data =
-                                      document.data() as Map<String, dynamic>;
-                                  final nome =
-                                      data['nome'] ?? 'Nome não disponível';
-                                  final dataCulto =
-                                      data['date']?.toDate() ?? DateTime.now();
-
-                                  final horarioCulto = data['horario'];
-
-                                  return GestureDetector(
-                                    child: ListTile(
-                                      title: Text(nome),
-                                      subtitle: Text(dataCulto.toString()),
-                                      trailing: Text(horarioCulto),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),*/
                             Padding(
                               padding: const EdgeInsets.all(24.0),
                               child: Row(
@@ -616,38 +619,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                       SizedBox(
                                         height: 24,
                                       ),
-                                      /*Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8.0,
-                                                      vertical: 2),
-                                              child: Text("Verso do Dia"),
-                                            ),
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                border: Border.all(
-                                                    color: Colors.black)),
-                                          ),
-                                          Container(
-                                            width: 180,
-                                            child: Text(
-                                              getDailyVerse(),
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey[700],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),*/
                                     ],
                                   ),
                                   Container(
@@ -996,320 +967,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                 ],
                               ),
                             ),
-                            /*          Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 24.0),
-                              child: Text(
-                                "NESSA SEMANA ",
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Container(
-                              height: 220,
-                              margin: EdgeInsets.only(top: 20),
-                              child: FutureBuilder<QuerySnapshot>(
-                                future: FirebaseFirestore.instance
-                                    .collection('Cultos')
-                                    .orderBy("date")
-                                    .get(),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Center(
-                                        child: CircularProgressIndicator());
-                                  }
-
-                                  if (snapshot.hasError) {
-                                    return Center(
-                                        child: Text('Erro: ${snapshot.error}'));
-                                  }
-
-                                  if (!snapshot.hasData ||
-                                      snapshot.data!.docs.isEmpty) {
-                                    return Center(
-                                        child:
-                                            Text('Nenhum culto encontrado.'));
-                                  }
-
-                                  // Obtém todos os documentos
-                                  List<DocumentSnapshot> docs =
-                                      snapshot.data!.docs;
-
-                                  // Obtém o intervalo da semana atual
-                                  DateTime now = DateTime.now();
-                                  DateTime startOfWeek = now.subtract(
-                                      Duration(days: now.weekday - 1));
-                                  DateTime endOfWeek =
-                                      startOfWeek.add(Duration(days: 6));
-
-                                  // Filtra os documentos para obter apenas os cultos desta semana
-                                  List<DocumentSnapshot> weeklyDocs =
-                                      docs.where((doc) {
-                                    DateTime cultoDate =
-                                        (doc['date'] as Timestamp).toDate();
-                                    return cultoDate.isAfter(startOfWeek
-                                            .subtract(Duration(seconds: 1))) &&
-                                        cultoDate.isBefore(
-                                            endOfWeek.add(Duration(days: 1)));
-                                  }).toList();
-
-                                  // Filtra os cultos onde o user_id do músico logado está no array 'musicos'
-                                  final authProvider =
-                                      Provider.of<AuthProvider>(context,
-                                          listen: false);
-                                  int loggedInUserId = authProvider.userid!;
-
-                                  List<DocumentSnapshot> filteredDocs =
-                                      weeklyDocs.where((doc) {
-                                    Map<String, dynamic> data =
-                                        doc.data() as Map<String, dynamic>;
-                                    List<dynamic> musicos =
-                                        data['musicos'] ?? [];
-
-                                    // Verifica se o user_id do músico logado está no array 'musicos'
-                                    return musicos.any((musico) =>
-                                        musico['user_id'] == loggedInUserId);
-                                  }).toList();
-
-                                  if (filteredDocs.isEmpty) {
-                                    return Center(
-                                        child: Text(
-                                            'Nenhum culto para este músico encontrado.'));
-                                  }
-
-                                  // Lista para armazenar todas as músicas de todos os cultos filtrados
-                                  List<List<Map<String, dynamic>>>
-                                      allMusicDataList = List.generate(
-                                          filteredDocs.length, (_) => []);
-
-                                  // Função para carregar as músicas de um culto específico
-                                  Future<void> loadMusicsForDocument(
-                                      int docIndex) async {
-                                    final doc = filteredDocs[docIndex];
-                                    final data =
-                                        doc.data() as Map<String, dynamic>;
-                                    final playlist =
-                                        data['playlist'] as List<dynamic>?;
-
-                                    if (playlist != null) {
-                                      List<Future<DocumentSnapshot>>
-                                          musicFutures = playlist.map((song) {
-                                        String musicDocumentId =
-                                            song['music_document'] as String;
-                                        return FirebaseFirestore.instance
-                                            .collection('music_database')
-                                            .doc(musicDocumentId)
-                                            .get();
-                                      }).toList();
-
-                                      List<DocumentSnapshot> musicSnapshots =
-                                          await Future.wait(musicFutures);
-                                      List<Map<String, dynamic>> musicDataList =
-                                          musicSnapshots.map((musicSnapshot) {
-                                        if (musicSnapshot.exists) {
-                                          Map<String, dynamic> musicData =
-                                              musicSnapshot.data()
-                                                  as Map<String, dynamic>;
-                                          musicData['document_id'] =
-                                              musicSnapshot.id;
-
-                                          // Adiciona o campo 'bpm', 'letra', 'link_audio', e 'key'
-                                          musicData['bpm'] =
-                                              musicData['bpm'] ?? 'Unknown';
-                                          musicData['letra'] =
-                                              musicData['letra'] ?? 'Unknown';
-                                          musicData['link_audio'] =
-                                              musicData['link_audio'] ??
-                                                  'Desconhecido';
-                                          musicData[
-                                              'key'] = playlist.firstWhere(
-                                                  (song) =>
-                                                      song['music_document'] ==
-                                                      musicSnapshot.id,
-                                                  orElse: () => {
-                                                        'key':
-                                                            'Key Desconhecida'
-                                                      })['key'] ??
-                                              'Key Desconhecida';
-
-                                          return musicData;
-                                        } else {
-                                          return {
-                                            'Music': 'Música Desconhecida',
-                                            'Author': 'Autor Desconhecido',
-                                            'key': 'Key Desconhecida',
-                                            'link': 'Link não disponível',
-                                            'document_id': '',
-                                          };
-                                        }
-                                      }).toList();
-
-                                      allMusicDataList[docIndex] =
-                                          musicDataList;
-                                    }
-                                  }
-
-                                  // Carregar as músicas para todos os documentos
-                                  Future<void> loadAllMusics() async {
-                                    for (int i = 0;
-                                        i < filteredDocs.length;
-                                        i++) {
-                                      await loadMusicsForDocument(i);
-                                    }
-                                  }
-
-                                  return FutureBuilder<void>(
-                                    future: loadAllMusics(),
-                                    builder: (context, musicSnapshot) {
-                                      if (musicSnapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return Center(
-                                            child: CircularProgressIndicator());
-                                      }
-
-                                      if (musicSnapshot.hasError) {
-                                        return Center(
-                                            child: Text(
-                                                'Erro ao carregar músicas'));
-                                      }
-
-                                      return SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 24.0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: List.generate(
-                                                filteredDocs.length, (index) {
-                                              bool isSelected =
-                                                  _selectedIndex == index;
-                                              DocumentSnapshot doc =
-                                                  filteredDocs[index];
-                                              Map<String, dynamic> data =
-                                                  doc.data()
-                                                      as Map<String, dynamic>;
-                                              DateTime cultoDate =
-                                                  (data['date'] as Timestamp)
-                                                      .toDate();
-
-                                              String horario =
-                                                  data['horario'] ?? '';
-
-                                              return FutureBuilder<String>(
-                                                future:
-                                                    loadInstrumentForDocument(
-                                                        widget.id, doc.id),
-                                                builder: (context,
-                                                    instrumentSnapshot) {
-                                                  String instrumentText =
-                                                      'Instrumento Desconhecido';
-                                                  if (instrumentSnapshot
-                                                          .connectionState ==
-                                                      ConnectionState.waiting) {
-                                                    return Center(
-                                                        child:
-                                                            CircularProgressIndicator());
-                                                  }
-
-                                                  if (instrumentSnapshot
-                                                      .hasData) {
-                                                    instrumentText =
-                                                        instrumentSnapshot
-                                                            .data!;
-                                                  } else if (instrumentSnapshot
-                                                      .hasError) {
-                                                    print(
-                                                        'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
-                                                  }
-
-                                                  return GestureDetector(
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        PageRouteBuilder(
-                                                          pageBuilder: (context,
-                                                                  animation,
-                                                                  secondaryAnimation) =>
-                                                              ScheduleDetailsMusician(
-                                                            documents:
-                                                                filteredDocs,
-                                                            id: doc.id,
-                                                            currentIndex: index,
-                                                            musics:
-                                                                allMusicDataList,
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: Container(
-                                                      margin:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 8.0),
-                                                      padding:
-                                                          EdgeInsets.all(8.0),
-                                                      decoration: BoxDecoration(
-                                                        color: isSelected
-                                                            ? Colors.blue
-                                                            : Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8.0),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: Colors.grey
-                                                                .withOpacity(
-                                                                    0.3),
-                                                            spreadRadius: 2,
-                                                            blurRadius: 5,
-                                                            offset:
-                                                                Offset(0, 3),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            DateFormat(
-                                                                    'dd MMMM yyyy')
-                                                                .format(
-                                                                    cultoDate),
-                                                            style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                          Text(
-                                                              'Horário: $horario'),
-                                                          Text(
-                                                              'Instrumento: $instrumentText'),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              );
-                                            }),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                            
-                    */
-
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 24.0, vertical: 0),
@@ -1328,24 +985,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold),
                                         ),
-                                        /*
-                                        Container(
-                                          width: 30,
-                                          height: 30,
-                                          decoration: BoxDecoration(
-                                              color: Color(0xff000000),
-                                              borderRadius:
-                                                  BorderRadius.circular(100)),
-                                          child: Center(
-                                            child: Text(
-                                              cultosCount.toString(),
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),*/
                                       ],
                                     ),
                                   ],
@@ -1358,14 +997,12 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               margin: EdgeInsets.only(bottom: 0),
                               child: FutureBuilder<QuerySnapshot>(
                                 future: FirebaseFirestore.instance
-                                    .collection('Cultos')
-                                    .where('date',
-                                        isGreaterThanOrEqualTo:
-                                            getStartOfWeek())
-                                    .where('date',
-                                        isLessThanOrEqualTo: getEndOfWeek())
-                                    .orderBy('date') // Ordena por data
-                                    .get(), // Obtém todos os documentos que estão dentro da semana atual
+                                    .collection(
+                                        'user_culto_instrument') // Coleção onde está o relacionamento entre usuários e cultos
+                                    .where('idUser',
+                                        isEqualTo: int.parse(widget
+                                            .id)) // Filtra pelo userId do músico
+                                    .get(),
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
@@ -1381,391 +1018,105 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                   if (!snapshot.hasData ||
                                       snapshot.data!.docs.isEmpty) {
                                     return Center(
-                                        child:
-                                            Text('Nenhum culto encontrado.'));
+                                        child: Text(
+                                            'Nenhum culto escalado encontrado.'));
                                   }
 
-                                  List<DocumentSnapshot> docs =
+                                  List<DocumentSnapshot> userCultosDocs =
                                       snapshot.data!.docs;
 
-                                  // Filtra os documentos para encontrar aqueles que contêm o user_id específico
-                                  List<DocumentSnapshot> filteredDocs =
-                                      docs.where((doc) {
-                                    final musicos =
-                                        (doc['musicos'] as List<dynamic>?) ??
-                                            [];
-                                    return musicos.any((musico) {
-                                      return (musico as Map<String, dynamic>)[
-                                              'user_id'] ==
-                                          int.parse(widget.id);
-                                    });
+                                  // Agora vamos buscar os cultos na coleção 'Cultos' que correspondem aos cultos escalados
+                                  List<Future<DocumentSnapshot>> cultosFutures =
+                                      userCultosDocs.map((userCultoDoc) {
+                                    final cultoId = userCultoDoc[
+                                        'idCulto']; // Supondo que o campo cultoId está armazenado no documento
+                                    return FirebaseFirestore.instance
+                                        .collection('Cultos')
+                                        .doc(cultoId)
+                                        .get();
                                   }).toList();
 
-                                  if (filteredDocs.isEmpty) {
-                                    return Center(
-                                        child: Text(
-                                            'Nenhum culto encontrado para o usuário.'));
-                                  }
-
-                                  // Lista para armazenar todas as músicas de todos os cultos
-                                  List<List<Map<String, dynamic>>>
-                                      allMusicDataList = List.generate(
-                                          filteredDocs.length, (_) => []);
-
-                                  // Função para carregar as músicas de um culto específico
-                                  Future<void> loadMusicsForDocument(
-                                      int docIndex) async {
-                                    final doc = filteredDocs[docIndex];
-                                    final data =
-                                        doc.data() as Map<String, dynamic>;
-                                    final playlist =
-                                        data['playlist'] as List<dynamic>?;
-
-                                    if (playlist != null) {
-                                      List<Future<DocumentSnapshot>>
-                                          musicFutures = playlist.map((song) {
-                                        String musicDocumentId =
-                                            song['music_document'] as String;
-                                        return FirebaseFirestore.instance
-                                            .collection('music_database')
-                                            .doc(musicDocumentId)
-                                            .get();
-                                      }).toList();
-
-                                      List<DocumentSnapshot> musicSnapshots =
-                                          await Future.wait(musicFutures);
-                                      List<Map<String, dynamic>> musicDataList =
-                                          musicSnapshots.map((musicSnapshot) {
-                                        if (musicSnapshot.exists) {
-                                          Map<String, dynamic> musicData =
-                                              musicSnapshot.data()
-                                                  as Map<String, dynamic>;
-                                          musicData['document_id'] =
-                                              musicSnapshot
-                                                  .id; // Adiciona o documentId
-
-                                          // Adiciona o campo 'bpm' se estiver disponível no documento
-                                          musicData['bpm'] =
-                                              musicData.containsKey('bpm')
-                                                  ? musicData['bpm']
-                                                  : 'Unkown';
-                                          musicData['letra'] =
-                                              musicData.containsKey('letra')
-                                                  ? musicData['letra']
-                                                  : 'Unkown';
-                                          musicData['link_audio'] = musicData
-                                                  .containsKey('link_audio')
-                                              ? musicData['link_audio']
-                                              : 'Desconhecido';
-                                          musicData['id_musica'] =
-                                              musicSnapshot.id;
-
-                                          // Encontra o item correspondente no playlist para adicionar a key e link
-                                          var song = playlist.firstWhere(
-                                            (song) =>
-                                                song['music_document'] ==
-                                                musicSnapshot.id,
-                                            orElse: () => null,
-                                          );
-
-                                          if (song != null) {
-                                            musicData['key'] = song['key'] ??
-                                                'Key Desconhecida'; // Adiciona o campo key
-                                            musicData['link'] = song['link'] ??
-                                                'Link não disponível'; // Adiciona o campo link
-                                          } else {
-                                            // Caso não encontre a música no playlist, define valores padrão para key e link
-                                            musicData['key'] =
-                                                'Key Desconhecida';
-                                            musicData['link'] =
-                                                'Link não disponível';
-                                          }
-
-                                          return musicData;
-                                        } else {
-                                          return {
-                                            'Music': 'Música Desconhecida',
-                                            'Author': 'Autor Desconhecido',
-                                            'key': 'Key Desconhecida',
-                                            'link': 'Link não disponível',
-                                            'document_id':
-                                                '', // Adiciona um campo vazio se o documento não existir
-                                          };
-                                        }
-                                      }).toList();
-
-                                      allMusicDataList[docIndex] =
-                                          musicDataList;
-                                    }
-                                  }
-
-                                  // Carregar as músicas para todos os documentos
-                                  Future<void> loadAllMusics() async {
-                                    for (int i = 0;
-                                        i < filteredDocs.length;
-                                        i++) {
-                                      await loadMusicsForDocument(i);
-                                    }
-                                  }
-
-                                  return FutureBuilder<void>(
-                                    future: loadAllMusics(),
-                                    builder: (context, musicSnapshot) {
-                                      if (musicSnapshot.connectionState ==
+                                  return FutureBuilder<List<DocumentSnapshot>>(
+                                    future: Future.wait(cultosFutures),
+                                    builder: (context, cultosSnapshot) {
+                                      if (cultosSnapshot.connectionState ==
                                           ConnectionState.waiting) {
                                         return Center(
                                             child: CircularProgressIndicator());
                                       }
 
-                                      if (musicSnapshot.hasError) {
+                                      if (cultosSnapshot.hasError) {
                                         return Center(
                                             child: Text(
-                                                'Erro ao carregar músicas'));
+                                                'Erro ao carregar os cultos.'));
                                       }
 
-                                      return Container(
-                                        margin: EdgeInsets.only(bottom: 0),
-                                        child: ListView.builder(
-                                          scrollDirection: Axis.horizontal,
-                                          padding: EdgeInsets.zero,
-                                          itemCount: filteredDocs.length,
-                                          itemBuilder: (context, index) {
-                                            Map<String, dynamic> data =
-                                                filteredDocs[index].data()
-                                                    as Map<String, dynamic>;
-                                            String idDocument =
-                                                filteredDocs[index].id;
+                                      if (!cultosSnapshot.hasData ||
+                                          cultosSnapshot.data!.isEmpty) {
+                                        return Center(
+                                            child: Text(
+                                                'Nenhum culto encontrado para o usuário.'));
+                                      }
 
-                                            DateTime? dataDocumento;
-                                            try {
-                                              dataDocumento =
-                                                  (data['date'] as Timestamp?)
-                                                      ?.toDate();
-                                            } catch (e) {
-                                              print(
-                                                  'Erro ao converter data: $e');
-                                              dataDocumento = null;
-                                            }
+                                      // Agora você tem todos os cultos escalados para o usuário
+                                      List<DocumentSnapshot> cultos =
+                                          cultosSnapshot.data!;
 
-                                            return FutureBuilder<String>(
-                                              future: loadInstrumentForDocument(
-                                                  widget.id, idDocument),
-                                              builder: (context,
-                                                  instrumentSnapshot) {
-                                                String instrumentText =
-                                                    'Instrumento Desconhecido';
-                                                if (instrumentSnapshot
-                                                        .connectionState ==
-                                                    ConnectionState.waiting) {
-                                                  return Center(
-                                                      child:
-                                                          CircularProgressIndicator());
-                                                }
+                                      // Filtra os cultos para exibir apenas os da semana atual
+                                      DateTime startOfWeek = getStartOfWeek();
+                                      DateTime endOfWeek = getEndOfWeek();
 
-                                                if (instrumentSnapshot
-                                                    .hasData) {
-                                                  instrumentText =
-                                                      instrumentSnapshot.data!;
-                                                } else if (instrumentSnapshot
-                                                    .hasError) {
-                                                  print(
-                                                      'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
-                                                }
+                                      List<DocumentSnapshot> filteredCultos =
+                                          cultos.where((cultoDoc) {
+                                        Map<String, dynamic> cultoData =
+                                            cultoDoc.data()
+                                                as Map<String, dynamic>;
+                                        DateTime cultoDate =
+                                            (cultoData['date'] as Timestamp)
+                                                .toDate();
+                                        return cultoDate.isAfter(startOfWeek) &&
+                                            cultoDate.isBefore(endOfWeek);
+                                      }).toList();
 
-                                                return GestureDetector(
-                                                  onTap: () {
-                                                    print("O Index");
-                                                    print(index);
-                                                    Navigator.push(
-                                                      context,
-                                                      PageRouteBuilder(
-                                                        pageBuilder: (context,
-                                                                animation,
-                                                                secondaryAnimation) =>
-                                                            ScheduleDetailsMusician(
-                                                          documents:
-                                                              filteredDocs,
-                                                          id: idDocument,
-                                                          currentIndex: index,
-                                                          musics:
-                                                              allMusicDataList,
-                                                        ),
-                                                        transitionsBuilder:
-                                                            (context,
-                                                                animation,
-                                                                secondaryAnimation,
-                                                                child) {
-                                                          const begin = Offset(
-                                                              1.0,
-                                                              0.0); // Início do movimento (fora da tela, à direita)
-                                                          const end = Offset
-                                                              .zero; // Fim do movimento (posição final)
-                                                          const curve =
-                                                              Curves.easeInOut;
+                                      if (filteredCultos.isEmpty) {
+                                        return Center(
+                                            child: Text(
+                                                'Nenhum culto escalado esta semana.'));
+                                      }
 
-                                                          var tween = Tween(
-                                                                  begin: begin,
-                                                                  end: end)
-                                                              .chain(CurveTween(
-                                                                  curve:
-                                                                      curve));
-                                                          var offsetAnimation =
-                                                              animation
-                                                                  .drive(tween);
+                                      return ListView.builder(
+                                        itemCount: filteredCultos.length,
+                                        itemBuilder: (context, index) {
+                                          Map<String, dynamic> cultoData =
+                                              filteredCultos[index].data()
+                                                  as Map<String, dynamic>;
+                                          String cultoName =
+                                              cultoData['nome'] ??
+                                                  'Culto sem nome';
+                                          DateTime cultoDate =
+                                              (cultoData['date'] as Timestamp)
+                                                  .toDate();
 
-                                                          return SlideTransition(
-                                                            position:
-                                                                offsetAnimation,
-                                                            child: child,
-                                                          );
-                                                        },
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Container(
-                                                      width: 250,
-                                                      decoration: BoxDecoration(
-                                                          color: Colors.black,
-                                                          /*   gradient:
-                                                              LinearGradient(
-                                                            colors: [
-                                                              Color(0xff4c5be3),
-                                                              Color(0xff6a51b0)
-                                                            ],
-                                                            begin: Alignment
-                                                                .topLeft, // Início do gradiente
-                                                            end: Alignment
-                                                                .bottomRight, // Fim do gradiente
-                                                          ),*/
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(12),
-                                                          border: Border.all(
-                                                              color:
-                                                                  Colors.black,
-                                                              width: 1)),
-                                                      child: Column(
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(8.0),
-                                                            child: Container(
-                                                              margin: EdgeInsets
-                                                                  .only(
-                                                                      bottom:
-                                                                          12),
-                                                              child: Row(
-                                                                children: [
-                                                                  /*
-                                                                  Container(
-                                                                    height: 78,
-                                                                    width: 72,
-                                                                    decoration: BoxDecoration(
-                                                                        color: const Color
-                                                                            .fromARGB(
-                                                                            255,
-                                                                            66,
-                                                                            0,
-                                                                            0),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(12)),
-                                                                    margin: EdgeInsets.only(
-                                                                        right:
-                                                                            12),
-                                                                    child:
-                                                                        ClipRRect(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              12),
-                                                                      child: Image
-                                                                          .asset(
-                                                                        data['nome'] ==
-                                                                                "Culto da Fé"
-                                                                            ? "assets/hq720.jpg"
-                                                                            : "assets/hq720 (1).jpg", // URL da imagem
-                                                                        fit: BoxFit
-                                                                            .cover, // Ajusta a imagem para cobrir o container
-                                                                      ),
-                                                                    ),
-                                                                  ),*/
-                                                                  Column(
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .spaceAround,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      Column(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.start,
-                                                                        crossAxisAlignment:
-                                                                            CrossAxisAlignment.start,
-                                                                        children: [
-                                                                          Text(
-                                                                            data['nome'],
-                                                                            style: TextStyle(
-                                                                                fontSize: 13,
-                                                                                fontWeight: FontWeight.bold,
-                                                                                color: Colors.white),
-                                                                          ),
-                                                                          Text(
-                                                                            instrumentText,
-                                                                            style: TextStyle(
-                                                                                fontSize: 10,
-                                                                                fontWeight: FontWeight.normal,
-                                                                                color: Colors.white),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      Text(
-                                                                        "Noite, " +
-                                                                            DateFormat('MMM d').format(dataDocumento!),
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                10,
-                                                                            fontWeight:
-                                                                                FontWeight.normal,
-                                                                            color: Colors.white),
-                                                                      ),
-                                                                      ElevatedButton
-                                                                          .icon(
-                                                                        style: ButtonStyle(
-                                                                            backgroundColor:
-                                                                                WidgetStatePropertyAll(Colors.white),
-                                                                            iconColor: WidgetStatePropertyAll(Colors.black)),
-                                                                        icon: Icon(
-                                                                            Icons.info_outline),
-                                                                        onPressed:
-                                                                            () =>
-                                                                                {},
-                                                                        label:
-                                                                            Text(
-                                                                          "Saiba Mais",
-                                                                          style:
-                                                                              TextStyle(color: Colors.black),
-                                                                        ),
-                                                                      )
-                                                                    ],
-                                                                  )
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
+                                          return Card(
+                                            child: ListTile(
+                                              title: Text(cultoName),
+                                              subtitle: Text(
+                                                  'Data: ${cultoDate.toLocal()}'),
+                                              onTap: () {
+                                                // Ao clicar, você pode navegar para a tela de detalhes do culto
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ScheduleDetailsMusician(
+                                                      id: 'asdas',
                                                     ),
                                                   ),
                                                 );
                                               },
-                                            );
-                                          },
-                                        ),
+                                            ),
+                                          );
+                                        },
                                       );
                                     },
                                   );
@@ -1813,405 +1164,116 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                height: 600,
-                                margin: EdgeInsets.only(bottom: 100),
-                                child: FutureBuilder<QuerySnapshot>(
-                                  future: FirebaseFirestore.instance
-                                      .collection('Cultos')
-                                      .orderBy(
-                                          "date") // Ordena por data se necessário
-                                      .get(), // Obtém todos os documentos
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return Center(
-                                          child: CircularProgressIndicator());
-                                    }
+                            Container(
+                              height: 150,
+                              width: 500,
+                              margin: EdgeInsets.only(bottom: 0),
+                              child: FutureBuilder<QuerySnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .collection(
+                                        'user_culto_instrument') // Coleção onde está o relacionamento entre usuários e cultos
+                                    .where('idUser',
+                                        isEqualTo: int.parse(widget
+                                            .id)) // Filtra pelo userId do músico
+                                    .get(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  }
 
-                                    if (snapshot.hasError) {
-                                      return Center(
-                                          child:
-                                              Text('Erro: ${snapshot.error}'));
-                                    }
+                                  if (snapshot.hasError) {
+                                    return Center(
+                                        child: Text('Erro: ${snapshot.error}'));
+                                  }
 
-                                    if (!snapshot.hasData ||
-                                        snapshot.data!.docs.isEmpty) {
-                                      return Center(
-                                          child:
-                                              Text('Nenhum culto encontrado.'));
-                                    }
+                                  if (!snapshot.hasData ||
+                                      snapshot.data!.docs.isEmpty) {
+                                    return Center(
+                                        child: Text(
+                                            'Nenhum culto escalado encontrado.'));
+                                  }
 
-                                    List<DocumentSnapshot> docs =
-                                        snapshot.data!.docs;
+                                  List<DocumentSnapshot> userCultosDocs =
+                                      snapshot.data!.docs;
 
-                                    // Filtra os documentos para encontrar aqueles que contêm o user_id específico
-                                    List<DocumentSnapshot> filteredDocs =
-                                        docs.where((doc) {
-                                      final musicos =
-                                          (doc['musicos'] as List<dynamic>?) ??
-                                              [];
-                                      return musicos.any((musico) {
-                                        return (musico as Map<String, dynamic>)[
-                                                'user_id'] ==
-                                            int.parse(widget.id);
-                                      });
-                                    }).toList();
+                                  // Agora vamos buscar os cultos na coleção 'Cultos' que correspondem aos cultos escalados
+                                  List<Future<DocumentSnapshot>> cultosFutures =
+                                      userCultosDocs.map((userCultoDoc) {
+                                    final cultoId = userCultoDoc[
+                                        'idCulto']; // Supondo que o campo cultoId está armazenado no documento
+                                    return FirebaseFirestore.instance
+                                        .collection('Cultos')
+                                        .doc(cultoId)
+                                        .get();
+                                  }).toList();
 
-                                    if (filteredDocs.isEmpty) {
-                                      return Center(
-                                          child: Text(
-                                              'Nenhum culto encontrado para o usuário.'));
-                                    }
-
-                                    // Lista para armazenar todas as músicas de todos os cultos
-                                    List<List<Map<String, dynamic>>>
-                                        allMusicDataList = List.generate(
-                                            filteredDocs.length, (_) => []);
-
-                                    // Função para carregar as músicas de um culto específico
-                                    Future<void> loadMusicsForDocument(
-                                        int docIndex) async {
-                                      final doc = filteredDocs[docIndex];
-                                      final data =
-                                          doc.data() as Map<String, dynamic>;
-                                      final playlist =
-                                          data['playlist'] as List<dynamic>?;
-
-                                      if (playlist != null) {
-                                        List<Future<DocumentSnapshot>>
-                                            musicFutures = playlist.map((song) {
-                                          String musicDocumentId =
-                                              song['music_document'] as String;
-                                          return FirebaseFirestore.instance
-                                              .collection('music_database')
-                                              .doc(musicDocumentId)
-                                              .get();
-                                        }).toList();
-
-                                        List<DocumentSnapshot> musicSnapshots =
-                                            await Future.wait(musicFutures);
-                                        List<Map<String, dynamic>>
-                                            musicDataList =
-                                            musicSnapshots.map((musicSnapshot) {
-                                          if (musicSnapshot.exists) {
-                                            Map<String, dynamic> musicData =
-                                                musicSnapshot.data()
-                                                    as Map<String, dynamic>;
-                                            musicData['document_id'] =
-                                                musicSnapshot
-                                                    .id; // Adiciona o documentId
-
-                                            // Adiciona o campo 'bpm' se estiver disponível no documento
-                                            musicData['bpm'] =
-                                                musicData.containsKey('bpm')
-                                                    ? musicData['bpm']
-                                                    : ' Unkown';
-
-                                            // Adiciona o campo 'bpm' se estiver disponível no documento
-                                            musicData['letra'] =
-                                                musicData.containsKey('letra')
-                                                    ? musicData['letra']
-                                                    : ' Unkown';
-
-                                            musicData['link_audio'] = musicData
-                                                    .containsKey('link_audio')
-                                                ? musicData['link_audio']
-                                                : ' Desconhecido';
-
-                                            musicData['id_musica'] =
-                                                musicSnapshot.id;
-
-                                            // Encontra o item correspondente no playlist para adicionar a key e link
-                                            var song = playlist.firstWhere(
-                                              (song) =>
-                                                  song['music_document'] ==
-                                                  musicSnapshot.id,
-                                              orElse: () => null,
-                                            );
-
-                                            print("asdasd" + musicData['bpm']);
-
-                                            if (song != null) {
-                                              musicData['key'] = song['key'] ??
-                                                  'Key Desconhecida'; // Adiciona o campo key
-                                              musicData['link'] = song[
-                                                      'link'] ??
-                                                  'Link não disponível'; // Adiciona o campo link
-                                              musicData['bpm'] = musicData[
-                                                      'bpm'] ??
-                                                  'Link não disponível'; // Adiciona o campo link
-
-                                              musicData['letra'] = musicData[
-                                                      'letra'] ??
-                                                  'letra não disponível'; // Adiciona o campo link
-
-                                              musicData[
-                                                  'link_audio'] = musicData[
-                                                      'link_audio'] ??
-                                                  'Link não disponível'; // Adiciona o campo link
-
-                                              musicData[
-                                                  'id_musica'] = musicData[
-                                                      'id_musica'] ??
-                                                  'Nao Encontrado'; // Adiciona o campo link
-                                            } else {
-                                              // Caso não encontre a música no playlist, define valores padrão para key e link
-                                              musicData['key'] =
-                                                  'Key Desconhecida';
-                                              musicData['link'] =
-                                                  'Link não disponível';
-                                            }
-
-                                            return musicData;
-                                          } else {
-                                            return {
-                                              'Music': 'Música Desconhecida',
-                                              'Author': 'Autor Desconhecido',
-                                              'key': 'Key Desconhecida',
-                                              'link':
-                                                  'Link não disponível', // Adiciona o campo link
-                                              'document_id':
-                                                  '', // Adiciona um campo vazio se o documento não existir
-                                            };
-                                          }
-                                        }).toList();
-
-                                        allMusicDataList[docIndex] =
-                                            musicDataList;
+                                  return FutureBuilder<List<DocumentSnapshot>>(
+                                    future: Future.wait(cultosFutures),
+                                    builder: (context, cultosSnapshot) {
+                                      if (cultosSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Center(
+                                            child: CircularProgressIndicator());
                                       }
-                                    }
 
-                                    // Carregar as músicas para todos os documentos
-                                    Future<void> loadAllMusics() async {
-                                      for (int i = 0;
-                                          i < filteredDocs.length;
-                                          i++) {
-                                        await loadMusicsForDocument(i);
+                                      if (cultosSnapshot.hasError) {
+                                        return Center(
+                                            child: Text(
+                                                'Erro ao carregar os cultos.'));
                                       }
-                                    }
 
-                                    return FutureBuilder<void>(
-                                      future: loadAllMusics(),
-                                      builder: (context, musicSnapshot) {
-                                        if (musicSnapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Center(
-                                              child:
-                                                  CircularProgressIndicator());
-                                        }
+                                      if (!cultosSnapshot.hasData ||
+                                          cultosSnapshot.data!.isEmpty) {
+                                        return Center(
+                                            child: Text(
+                                                'Nenhum culto encontrado para o usuário.'));
+                                      }
 
-                                        if (musicSnapshot.hasError) {
-                                          return Center(
-                                              child: Text(
-                                                  'Erro ao carregar músicas'));
-                                        }
+                                      // Agora você tem todos os cultos escalados para o usuário
+                                      List<DocumentSnapshot> cultos =
+                                          cultosSnapshot.data!;
 
-                                        return Container(
-                                          margin: EdgeInsets.only(bottom: 120),
-                                          child: ListView.builder(
-                                            padding: EdgeInsets.zero,
-                                            itemCount: filteredDocs.length,
-                                            itemBuilder: (context, index) {
-                                              Map<String, dynamic> data =
-                                                  filteredDocs[index].data()
-                                                      as Map<String, dynamic>;
-                                              String idDocument =
-                                                  filteredDocs[index].id;
+                                      return ListView.builder(
+                                        itemCount: cultos.length,
+                                        itemBuilder: (context, index) {
+                                          Map<String, dynamic> cultoData =
+                                              cultos[index].data()
+                                                  as Map<String, dynamic>;
+                                          String cultoName =
+                                              cultoData['nome'] ??
+                                                  'Culto sem nome';
+                                          DateTime cultoDate =
+                                              (cultoData['date'] as Timestamp)
+                                                  .toDate();
 
-                                              DateTime? dataDocumento;
-                                              try {
-                                                dataDocumento =
-                                                    (data['date'] as Timestamp?)
-                                                        ?.toDate();
-                                              } catch (e) {
-                                                print(
-                                                    'Erro ao converter data: $e');
-                                                dataDocumento = null;
-                                              }
-
-                                              return FutureBuilder<String>(
-                                                future:
-                                                    loadInstrumentForDocument(
-                                                        widget.id, idDocument),
-                                                builder: (context,
-                                                    instrumentSnapshot) {
-                                                  String instrumentText =
-                                                      'Instrumento Desconhecido';
-                                                  if (instrumentSnapshot
-                                                          .connectionState ==
-                                                      ConnectionState.waiting) {
-                                                    return Center(
-                                                        child:
-                                                            CircularProgressIndicator());
-                                                  }
-
-                                                  if (instrumentSnapshot
-                                                      .hasData) {
-                                                    instrumentText =
-                                                        instrumentSnapshot
-                                                            .data!;
-                                                  } else if (instrumentSnapshot
-                                                      .hasError) {
-                                                    print(
-                                                        'Erro ao carregar instrumento: ${instrumentSnapshot.error}');
-                                                  }
-
-                                                  return GestureDetector(
-                                                    onTap: () {
-                                                      print("O Index");
-                                                      print(index);
-                                                      Navigator.push(
-                                                        context,
-                                                        PageRouteBuilder(
-                                                          pageBuilder: (context,
-                                                                  animation,
-                                                                  secondaryAnimation) =>
-                                                              ScheduleDetailsMusician(
-                                                            documents:
-                                                                filteredDocs,
-                                                            id: idDocument,
-                                                            currentIndex: index,
-                                                            musics:
-                                                                allMusicDataList,
-                                                          ),
-                                                          transitionsBuilder:
-                                                              (context,
-                                                                  animation,
-                                                                  secondaryAnimation,
-                                                                  child) {
-                                                            const begin = Offset(
-                                                                1.0,
-                                                                0.0); // Início do movimento (fora da tela, à direita)
-                                                            const end = Offset
-                                                                .zero; // Fim do movimento (posição final)
-                                                            const curve = Curves
-                                                                .easeInOut;
-
-                                                            var tween = Tween(
-                                                                    begin:
-                                                                        begin,
-                                                                    end: end)
-                                                                .chain(CurveTween(
-                                                                    curve:
-                                                                        curve));
-                                                            var offsetAnimation =
-                                                                animation.drive(
-                                                                    tween);
-
-                                                            return SlideTransition(
-                                                              position:
-                                                                  offsetAnimation,
-                                                              child: child,
-                                                            );
-                                                          },
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: Column(
-                                                      children: [
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(8.0),
-                                                          child: Container(
-                                                            margin:
-                                                                EdgeInsets.only(
-                                                                    bottom: 12),
-                                                            child: Row(
-                                                              children: [
-                                                                Container(
-                                                                  height: 78,
-                                                                  width: 72,
-                                                                  decoration: BoxDecoration(
-                                                                      color: Colors
-                                                                          .black,
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              12)),
-                                                                  margin: EdgeInsets
-                                                                      .only(
-                                                                          right:
-                                                                              12),
-                                                                  child:
-                                                                      ClipRRect(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            12),
-                                                                    child: Image
-                                                                        .asset(
-                                                                      data['nome'] ==
-                                                                              "Culto da Fé"
-                                                                          ? "assets/hq720.jpg"
-                                                                          : "assets/hq720 (1).jpg", // URL da imagem
-                                                                      fit: BoxFit
-                                                                          .cover, // Ajusta a imagem para cobrir o container
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                Column(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceAround,
-                                                                  crossAxisAlignment:
-                                                                      CrossAxisAlignment
-                                                                          .start,
-                                                                  children: [
-                                                                    Column(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .start,
-                                                                      crossAxisAlignment:
-                                                                          CrossAxisAlignment
-                                                                              .start,
-                                                                      children: [
-                                                                        Text(
-                                                                          data[
-                                                                              'nome'],
-                                                                          style: TextStyle(
-                                                                              fontSize: 13,
-                                                                              fontWeight: FontWeight.bold),
-                                                                        ),
-                                                                        Text(
-                                                                          instrumentText,
-                                                                          style: TextStyle(
-                                                                              fontSize: 10,
-                                                                              fontWeight: FontWeight.bold),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    Text(
-                                                                      "Noite, " +
-                                                                          DateFormat('MMM d')
-                                                                              .format(dataDocumento!),
-                                                                      style: TextStyle(
-                                                                          fontSize:
-                                                                              10,
-                                                                          fontWeight:
-                                                                              FontWeight.bold),
-                                                                    ),
-                                                                  ],
-                                                                )
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
+                                          return Card(
+                                            child: ListTile(
+                                              title: Text(cultoName),
+                                              subtitle: Text(
+                                                  'Data: ${cultoDate.toLocal()}'),
+                                              onTap: () {
+                                                // Ao clicar, você pode navegar para a tela de detalhes do culto
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ScheduleDetailsMusician(
+                                                      id: cultos[index].id,
                                                     ),
-                                                  );
-                                                },
-                                              );
-                                            },
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),

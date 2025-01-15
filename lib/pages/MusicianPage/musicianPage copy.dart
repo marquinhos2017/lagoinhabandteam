@@ -502,10 +502,7 @@ class _MusicianPageCopyState extends State<MusicianPageCopy> {
                                             MaterialPageRoute(
                                               builder: (context) =>
                                                   ScheduleDetailsMusician(
-                                                documents: docs,
                                                 id: idDocument,
-                                                currentIndex: index,
-                                                musics: allMusicDataList,
                                               ),
                                             ),
                                           );

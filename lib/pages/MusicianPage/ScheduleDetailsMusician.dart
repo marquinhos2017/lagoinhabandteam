@@ -15,17 +15,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart'; // Pacote para reproduzir som (adicionar no pubspec.yaml)
 
 class AudioPlayerBottomSheet extends StatefulWidget {
-  final String audioUrl;
-  final String music;
-  final String author;
-  final String lyrics;
   final String documentId; // Use documentId to fetch lyrics from Firestore
 
   AudioPlayerBottomSheet({
-    required this.audioUrl,
-    required this.music,
-    required this.author,
-    required this.lyrics,
     required this.documentId, // Update parameter to use documentId
   });
 
@@ -293,20 +285,6 @@ class _AudioPlayerBottomSheetState extends State<AudioPlayerBottomSheet>
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            widget.music,
-                            style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                          Text(
-                            widget.author,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.white),
-                          ),
                           SizedBox(height: 24),
                           /*
                           Container(
@@ -661,10 +639,6 @@ void showPlayerBlurBottomSheet(BuildContext context, String audioUrl,
     builder: (BuildContext context) {
       return Container(
         child: AudioPlayerBottomSheet(
-          audioUrl: audioUrl,
-          music: musica,
-          author: author,
-          lyrics: lyrics,
           documentId: documentId,
         ),
       );
@@ -953,15 +927,9 @@ extension StringCasingExtension on String {
 
 class ScheduleDetailsMusician extends StatefulWidget {
   final String id;
-  final List<DocumentSnapshot> documents;
-  final int currentIndex;
-  final List<List<Map<String, dynamic>>> musics;
 
   const ScheduleDetailsMusician({
     required this.id,
-    required this.documents,
-    required this.currentIndex,
-    required this.musics,
   });
 
   @override
@@ -1007,30 +975,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   @override
   void initState() {
     super.initState();
-    currentIndex = widget.currentIndex;
-    _loadInitialData(); // Carrega os dados iniciais ao iniciar
-  }
-
-  Future<void> _loadInitialData([String? cultoId]) async {
-    try {
-      Map<String, dynamic> fetchedCultoData =
-          await _getCultoData(cultoId ?? widget.id);
-
-      // Buscar documentos na coleção 'user_culto_instrument'
-      List<Map<String, dynamic>> userCultoInstruments =
-          await _getUserCultoInstruments(widget.documents[currentIndex].id);
-
-      setState(() {
-        cultoData = fetchedCultoData;
-        musicos = List<Map<String, dynamic>>.from(cultoData?['musicos'] ?? []);
-        isLoading = false;
-      });
-    } catch (e) {
-      print('Erro ao carregar dados iniciais: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
+    // currentIndex = widget.currentIndex;
+    //_loadInitialData(); // Carrega os dados iniciais ao iniciar
   }
 
   Future<List<Map<String, dynamic>>> _getUserCultoInstruments(
@@ -1138,465 +1084,118 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     }
   }
 
-  void _navigateToDocument(int index) async {
-    if (index < 0 || index >= widget.documents.length)
-      return; // Check index bounds
+  Future<List<Map<String, String>>> fetchCultosAndMusic() async {
+    // Passo 1: Buscar a referência do documento de culto usando o widget.id
+    var cultosSnapshot = await FirebaseFirestore.instance
+        .collection('Cultos')
+        .doc(widget.id) // Usando o widget.id para buscar o documento específico
+        .get();
 
-    setState(() {
-      isLoading = true;
-      currentIndex = index;
-    });
+    // Verificar se o documento existe
+    if (!cultosSnapshot.exists) {
+      return []; // Retorna uma lista vazia caso o culto não exista
+    }
 
-    await _loadInitialData(widget.documents[currentIndex].id);
+    // Passo 2: Buscar a playlist dentro do documento de culto
+    var playlist = cultosSnapshot['playlist']
+        as List; // Supondo que o campo 'playlist' seja uma lista
+
+    List<Map<String, String>> musicDataList = [];
+
+    // Passo 3: Iterar sobre os itens da playlist
+    for (var item in playlist) {
+      // Cada item é um mapa, então pegamos a chave 'music_document'
+      var musicDocumentId = item['music_document'];
+
+      // Passo 4: Buscar os dados da música na collection 'music_database'
+      var musicSnapshot = await FirebaseFirestore.instance
+          .collection('music_database')
+          .doc(musicDocumentId)
+          .get();
+
+      if (musicSnapshot.exists) {
+        var musicData = musicSnapshot.data();
+        String musicName = musicData?['Music'] ??
+            'Unknown Music'; // Substitua 'name' pelo nome correto do campo
+        String musicAuthor = musicData?['Author'] ??
+            'Unknown Author'; // Substitua 'author' pelo campo correto
+
+        // Passo 5: Adicionar os dados da música à lista
+        musicDataList.add({
+          'author': musicAuthor,
+          'music': musicName,
+        });
+      }
+    }
+
+    return musicDataList;
   }
 
   Widget _buildContent() {
     switch (selectedMenu) {
       case 'Musicas':
-        List<Map<String, dynamic>> musicasAtuais = widget.musics[currentIndex];
-
-        return Container(
-          color: Colors.white,
-          child: ListView(
-            children: musicasAtuais
-                .map((musica) => Container(
-                      margin: EdgeInsets.symmetric(vertical: 4),
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                            left: 24.0, right: 24, top: 8),
-                        child: ExpansionTile(
-                          initiallyExpanded: false,
-                          maintainState: false,
-                          iconColor: Colors.black,
-                          shape: Border.all(color: Colors.black),
-                          dense: false,
-                          title: Row(
-                            children: [
-                              Text("1"),
-                              SizedBox(
-                                width: 12,
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    musica['Music'] ?? 'Título desconhecido',
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w400),
-                                  ),
-                                  Text(
-                                    musica['Author'] ?? 'Autor desconhecido',
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius:
-                                            BorderRadius.circular(25)),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8.0),
-                                      child: Text(
-                                        'Tom: ${musica['key'] ?? 'Desconhecido'}',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      openMetronome(
-                                          context, int.parse(musica['bpm']));
-                                    },
-                                    child: Text(
-                                      'BPM: ${musica['bpm'] ?? ''}',
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 10),
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      GestureDetector(
-                                          onTap: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: Text('Link da Música'),
-                                                  content: Text(musica[
-                                                          'link'] ??
-                                                      'Link não disponível'),
-                                                  actions: <Widget>[
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: Text('Fechar'),
-                                                    ),
-                                                    if (musica['link'] !=
-                                                            null &&
-                                                        musica['link']
-                                                            .isNotEmpty)
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          void _openLink(
-                                                              String
-                                                                  url) async {
-                                                            final Uri uri =
-                                                                Uri.parse(url);
-                                                            if (await canLaunchUrl(
-                                                                uri)) {
-                                                              await launchUrl(
-                                                                  uri,
-                                                                  mode: LaunchMode
-                                                                      .externalApplication);
-                                                            } else {
-                                                              throw 'Não foi possível abrir o URL: $url';
-                                                            }
-                                                          }
-
-                                                          _openLink(
-                                                              musica['link']);
-                                                        },
-                                                        child: Text(
-                                                            'Abrir no Navegador'),
-                                                      ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-
-                                            print(musica['link']);
-                                          },
-                                          child: Icon(Icons.music_video)),
-                                      SizedBox(
-                                        width: 12,
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  VerCifraUserNewUI(
-                                                documentId:
-                                                    musica['document_id'],
-                                                isAdmin: false,
-                                                tone: musica['key'],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: Icon(
-                                          Icons.library_music_rounded,
-                                          color: Colors.black,
-                                          size: 24,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 12,
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          showPlayerBlurBottomSheet(
-                                              context,
-                                              musica['link_audio'].toString(),
-                                              musica['Music'],
-                                              musica['Author'],
-                                              musica['letra'],
-                                              musica['id_musica']);
-                                        },
-                                        child: Icon(
-                                          Icons.play_circle,
-                                          color: Colors.black,
-                                          size: 24,
-                                        ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  VerLetraUser(
-                                                documentId:
-                                                    musica['document_id'],
-                                                isAdmin: false,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: Hero(
-                                          // Adicione um Hero aqui se estiver fazendo animações com Hero
-                                          tag:
-                                              'song-hero-${musica['document_id']}', // Certifique-se de que a tag seja única
-                                          child: Icon(
-                                            Icons.lyrics,
-                                            color: Colors.black,
-                                            size: 24,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-        );
-      case 'Teams':
-        if (isLoading) {
-          return Container(
-            color: Colors.white,
-            child: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-              ),
-            ),
-          );
-        }
-
-        return FutureBuilder<List<Map<String, dynamic>>>(
-          future: _getUserCultoInstruments(widget.documents[currentIndex].id),
+        return FutureBuilder<List<Map<String, String>>>(
+          future: fetchCultosAndMusic(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container(
-                color: Colors.white,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                  ),
-                ),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Text('Erro ao carregar dados: ${snapshot.error}',
-                    style: TextStyle(color: Colors.white)),
-              );
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Text('Nenhum dado disponível',
-                    style: TextStyle(color: Colors.white)),
-              );
+              return Center(child: CircularProgressIndicator());
             }
 
-            // Agrupar os itens por nome
-            Map<String, List<Map<String, dynamic>>> groupedData = {};
-            for (var item in snapshot.data!) {
-              String name = item['name'].toString();
-              if (!groupedData.containsKey(name)) {
-                groupedData[name] = [];
-              }
-              groupedData[name]!.add(item);
+            if (snapshot.hasError) {
+              return Center(child: Text('Erro ao carregar os dados.'));
             }
 
-            // Separar banda e vocais
-            Map<String, List<Map<String, dynamic>>> bandItems = {};
-            Map<String, List<Map<String, dynamic>>> vocalItems = {};
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: Text('Nenhuma música encontrada.'));
+            }
 
-            groupedData.forEach((name, userItems) {
-              bool isVocal = userItems.any((item) =>
-                  item['Instrument'] == 'BV 1' ||
-                  item['Instrument'] == 'BV 2' ||
-                  item['Instrument'] == 'BV 3' ||
-                  item['Instrument'] == 'Ministro');
-
-              if (isVocal) {
-                vocalItems[name] = userItems;
-              } else {
-                bandItems[name] = userItems;
-              }
-            });
-
-            Widget buildUserList(
-                Map<String, List<Map<String, dynamic>>> items) {
-              return Column(
-                children: items.entries.map((entry) {
-                  String name = entry.key;
-                  List<Map<String, dynamic>> userItems = entry.value;
-
-                  // Concatena os instrumentos da pessoa
-                  List<Widget> instrumentsWidgets = userItems.map((item) {
-                    Color color;
-                    switch (item['Instrument']) {
-                      case "Piano":
-                        color = Colors.black;
-                        break;
-                      case "Guitarra":
-                        color = Colors.blue;
-                        break;
-                      case "Bateria":
-                        color = Colors.red;
-                        break;
-                      case "Violão":
-                        color = Colors.brown;
-                        break;
-                      case "Baixo":
-                        color = Colors.green;
-                        break;
-                      case "MD":
-                        color = Colors.purple;
-                        break;
-                      case "Ministro":
-                        color = Colors.orange;
-                        break;
-                      case "BV 1":
-                        color = Colors.cyan;
-                        break;
-                      case "BV 2":
-                        color = Colors.black;
-                        break;
-                      case "BV 3":
-                        color = Colors.teal;
-                        break;
-                      default:
-                        color = Colors.grey;
-                    }
-
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          item['Instrument'] ?? 'Desconhecido',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList();
-
-                  return Container(
-                    margin: EdgeInsets.all(12),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ProfileAvatar(avatarUrl: userItems[0]['photoUrl']),
-                          Text(
-                            name.toTitleCase(),
-                            style: GoogleFonts.montserrat(
-                              textStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                          Row(
-                              children:
-                                  instrumentsWidgets), // Exibe os instrumentos juntos
-                        ],
-                      ),
-                    ),
+            var musicData = snapshot.data!;
+            return Scaffold(
+              appBar: AppBar(
+                title: Text('Músicas do Culto'),
+              ),
+              body: ListView.builder(
+                itemCount: musicData.length,
+                itemBuilder: (context, index) {
+                  var music = musicData[index];
+                  return ListTile(
+                    title: Text(music['music']!),
+                    subtitle: Text('Autor: ${music['author']}'),
                   );
-                }).toList(),
-              );
-            }
-
-            return Container(
-              color: Colors.white,
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  buildUserList(bandItems), // Exibe a banda primeiro
-                  buildUserList(vocalItems), // Exibe os vocais depois
-                ],
+                },
               ),
             );
           },
         );
-      case "Notes":
-        final List<DocumentSnapshot> documentsAll = widget.documents;
-        final List<List<Map<String, dynamic>>> musicsAll = widget.musics;
-        final id = documentsAll[currentIndex].id;
-        return Container(
-          height: 100,
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('arquivos')
-                .where('culto_especifico', isEqualTo: id)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(child: Text('Erro ao carregar arquivos.'));
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              }
+      case 'Teams':
+        return FutureBuilder<List<Map<String, dynamic>>>(
+          future: _getEscalados(widget.id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-              final arquivos = snapshot.data!.docs;
+            if (snapshot.hasError) {
+              return Center(child: Text('Erro ao carregar dados.'));
+            }
 
-              if (arquivos.isEmpty) {
-                return Center(child: Text('Nenhum arquivo encontrado.'));
-              }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: Text('Nenhum escalado encontrado.'));
+            }
 
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListView.builder(
-                  itemCount: arquivos.length,
-                  itemBuilder: (context, index) {
-                    var arquivoData =
-                        arquivos[index].data() as Map<String, dynamic>;
-                    var arquivoUrl = arquivoData['arquivo_url'] ?? '';
-                    var name = arquivoData['nome_arquivo'] ?? '';
+            var escalados = snapshot.data!;
 
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: () async {
-                              if (arquivoUrl.isNotEmpty) {
-                                // Baixar o arquivo quando o ícone é clicado
-                                //   await _downloadFile(arquivoUrl, name);
-                              }
-                            },
-                            child: Row(
-                              children: [
-                                Icon(Icons.file_present),
-                                SizedBox(width: 12),
-                                Text(name,
-                                    style: TextStyle(color: Colors.black)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
+            return ListView.builder(
+              itemCount: escalados.length,
+              itemBuilder: (context, index) {
+                var escalado = escalados[index];
+                return ListTile(
+                  title: Text(escalado['nome']),
+                  subtitle: Text('Instrumento: ${escalado['instrument']}'),
+                );
+              },
+            );
+          },
         );
 
       case 'Ensaio':
@@ -1619,12 +1218,62 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     }
   }
 
+  Future<List<Map<String, dynamic>>> _getEscalados(String idCulto) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('user_culto_instrument')
+          .where('idCulto', isEqualTo: idCulto)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        return [];
+      }
+
+      List<Map<String, dynamic>> escaladosData = querySnapshot.docs.map((doc) {
+        return {
+          'idUser': doc['idUser'].toString(),
+          'instrument': doc['Instrument'] ?? 'Instrumento não informado',
+        };
+      }).toList();
+
+      List<Map<String, dynamic>> escalados = [];
+
+      for (var escaladoData in escaladosData) {
+        final userId = escaladoData['idUser'];
+        final instrument = escaladoData['instrument'];
+
+        final musicoDoc = await FirebaseFirestore.instance
+            .collection('musicos')
+            .where('user_id', isEqualTo: int.parse(userId))
+            .get();
+
+        if (musicoDoc.docs.isNotEmpty) {
+          final musico = musicoDoc.docs.first.data();
+          escalados.add({
+            'nome': musico['name'] ?? 'Nome não disponível',
+            'instrument': instrument,
+          });
+        } else {
+          escalados.add({
+            'nome': 'Músico não encontrado',
+            'instrument': instrument,
+          });
+        }
+      }
+
+      return escalados;
+    } catch (e) {
+      print('Erro ao buscar escalados: $e');
+      return [];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final List<DocumentSnapshot> documentsAll = widget.documents;
-    final List<List<Map<String, dynamic>>> musicsAll = widget.musics;
-    final id = documentsAll[currentIndex].id;
-    print(documentsAll[currentIndex].id);
+    // final List<DocumentSnapshot> documentsAll = widget.documents;
+    // final List<List<Map<String, dynamic>>> musicsAll = widget.musics;
+
+    //  print(documentsAll[currentIndex].id);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -1648,34 +1297,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.black,
-                      ),
-                      icon: Icon(Icons.arrow_left, color: Colors.white),
-                      onPressed: () {
-                        if (currentIndex > 0) {
-                          _navigateToDocument(currentIndex - 1);
-                        } else {
-                          print("Não há documento anterior.");
-                        }
-                      },
-                    ),
-                    IconButton(
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.black,
-                      ),
-                      icon: Icon(Icons.arrow_right, color: Colors.white),
-                      onPressed: () {
-                        if (currentIndex < widget.documents.length - 1) {
-                          _navigateToDocument(currentIndex + 1);
-                        } else {
-                          print("Não há documento seguinte.");
-                        }
-                      },
-                    ),
-                  ],
+                  children: [],
                 ),
                 Center(
                   child: Row(
@@ -1689,25 +1311,6 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                         children: [
                           Row(
                             children: [
-                              Container(
-                                height: 78,
-                                width: 72,
-                                decoration: BoxDecoration(
-                                    color: Colors.black,
-                                    borderRadius: BorderRadius.circular(12)),
-                                margin: EdgeInsets.only(right: 12),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.asset(
-                                    documentsAll[currentIndex]['nome'] ==
-                                            "Culto da Fé"
-                                        ? "assets/hq720.jpg"
-                                        : "assets/hq720 (1).jpg", // URL da imagem
-                                    fit: BoxFit
-                                        .cover, // Ajusta a imagem para cobrir o container
-                                  ),
-                                ),
-                              ),
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1719,26 +1322,8 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                             Radius.circular(6))),
                                     child: Padding(
                                       padding: const EdgeInsets.all(4.0),
-                                      child: Text(
-                                        DateFormat('dd/MM/yyyy').format(
-                                                (documentsAll[currentIndex]
-                                                        ['date'] as Timestamp)
-                                                    .toDate()) ??
-                                            'Nome desconhecido',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 8,
-                                            fontWeight: FontWeight.bold),
-                                      ),
+                                      child: Text("asd"),
                                     ),
-                                  ),
-                                  Text(
-                                    documentsAll[currentIndex]['nome'] ??
-                                        'Nome desconhecido',
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
                                   ),
                                   Container(
                                     decoration: BoxDecoration(
@@ -1748,14 +1333,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                                             Radius.circular(6))),
                                     child: Padding(
                                       padding: const EdgeInsets.all(4.0),
-                                      child: Text(
-                                        documentsAll[currentIndex]['horario'] ??
-                                            'Nome desconhecido',
-                                        style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 8,
-                                            fontWeight: FontWeight.bold),
-                                      ),
+                                      child: Text(""),
                                     ),
                                   ),
                                 ],
