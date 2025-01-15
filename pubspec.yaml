@@ -56,6 +56,7 @@ dependencies:
   shared_preferences: ^2.3.2
   flutter_email_sender: ^6.0.3
   mailer: ^6.3.0
+  rxdart: ^0.27.0
 #  flutter_mailer: ^2.1.2 // Na versao de jdk, gradle, flutter, isso ano funciona
 
 
@@ -99,6 +100,8 @@ flutter:
     - assets/md.png
     - assets/cantor.png
     - assets/avatar.png
+    - assets/placeholderalbumcover.png
+
     
 
     - assets/profile_drum.png

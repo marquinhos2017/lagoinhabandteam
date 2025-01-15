@@ -384,16 +384,11 @@ class _AddtoPlaylistState extends State<AddtoPlaylist> {
                                               height:
                                                   40, // Defina a altura do quadrado para ser igual à largura
                                               decoration: BoxDecoration(
-                                                image: DecorationImage(
-                                                  image: NetworkImage(
-                                                      'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/7caaae22728159.56317655cb7d8.jpg',
-                                                      scale: 1.0),
-                                                  fit: BoxFit
-                                                      .cover, // Define o ajuste da imagem
-                                                ),
                                                 borderRadius: BorderRadius.circular(
                                                     8), // Opcional: bordas arredondadas
                                               ),
+                                              child: Image.asset(
+                                                  "assets/placeholderalbumcover.png"),
                                             ),
                                             contentPadding: EdgeInsets.zero,
                                             trailing: GestureDetector(

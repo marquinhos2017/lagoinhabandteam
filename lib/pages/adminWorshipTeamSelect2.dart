@@ -64,24 +64,7 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
         throw Exception('Documento de culto não encontrado');
       }
 
-      // Cria uma identificação única para cada entrada no array
       final entryId = DateTime.now().millisecondsSinceEpoch.toString();
-
-      // Adiciona a nova entrada ao array de músicos
-      await cultoRef.update({
-        'musicos': FieldValue.arrayUnion([
-          {
-            'id': entryId, // Identificador único
-            'user_id': userId,
-            'instrument': instrument
-          }
-        ])
-      }).then((_) {
-        print('Músico adicionado com sucesso ao culto.');
-      }).catchError((error) {
-        print('Erro ao adicionar músico ao culto: $error');
-        throw Exception('Erro ao adicionar músico ao culto.');
-      });
 
       CollectionReference userCultoInstrument =
           _firestore.collection('user_culto_instrument');
@@ -91,57 +74,50 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
         'Instrument': instrument,
       });
 
-      // Busca o usuário pelo campo 'idUser'
       QuerySnapshot userSnapshot = await _firestore
           .collection('musicos')
           .where('user_id', isEqualTo: userId)
-          .limit(1) // Limita a consulta para retornar no máximo um usuário
+          .limit(1)
           .get();
 
       if (userSnapshot.docs.isEmpty) {
         throw Exception('Usuário não encontrado');
       }
 
-      // Recupera o e-mail do primeiro usuário encontrado
       String userEmail = userSnapshot.docs.first['email'];
       print("Email Encontrado");
       print(userEmail);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Músico adicionado!'),
-            backgroundColor: Color(0xff4465D9),
-          ),
-        );
-      }
 
       final smtpServer =
           gmail("marcosrodriguescorreiajc@gmail.com", "dpec dpql isvc wkau");
 
       final message = Message()
         ..from = Address("marcosrodriguescorreiajc@gmail.com")
-        ..recipients.add(userEmail) // Aqui está o e-mail do usuário
+        ..recipients.add(userEmail)
         ..subject = 'Você acabou de ser escalado'
         ..html = '''
-        <!doctype html>
-        <html>
-        <head>
-          <title>Escala de Culto</title>
-        </head>
-        <body>
-          <p>Olá, tudo bem?</p>
-          <p>Você acabou de ser escalado para o Culto no dia $date, Horário: $horario, no instrumento: $instrument.</p>
-          <p>Para que você possa visualizar suas escalas, baixe o aplicativo de acordo com seu smartphone.</p>
-          <footer>© 2024 Lake Music Todos os Direitos Reservados</footer>
-        </body>
-        </html>
+      <!doctype html>
+      <html>
+      <head>
+        <title>Escala de Culto</title>
+      </head>
+      <body>
+        <p>Olá, tudo bem?</p>
+        <p>Você acabou de ser escalado para o Culto no dia $date, Horário: $horario, no instrumento: $instrument.</p>
+        <p>Para que você possa visualizar suas escalas, baixe o aplicativo de acordo com seu smartphone.</p>
+        <footer>© 2024 Lake Music Todos os Direitos Reservados</footer>
+      </body>
+      </html>
     '''
         ..text = 'Você foi escalado para o culto...';
 
-      // await send(message, smtpServer); // Envia o e-mail
-
       print('E-mail configurado mas nao enviado para $userEmail');
+      print("ADICIONADO");
+
+      if (mounted) {
+        Navigator.pop(context, true);
+        Navigator.pop(context, true);
+      }
     } catch (error) {
       print('Erro ao adicionar músico: $error');
     }
@@ -286,6 +262,8 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                   var musicosAtuais =
                                       List<Map<String, dynamic>>.from(
                                           cultoData['musicos'] ?? []);
+                                  print("-------musicos atuais-------");
+                                  print(musicosAtuais);
 
                                   return StreamBuilder<QuerySnapshot>(
                                     stream: FirebaseFirestore.instance
@@ -346,6 +324,9 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                           var nomeMusico = musicos['name'];
                                           var isMd = musicos['role'] == 'md';
 
+                                          print("Musicos disponiveis");
+                                          print(nomeMusico);
+
                                           return FutureBuilder<bool>(
                                             future: (date != null &&
                                                     horario != null)
@@ -386,8 +367,6 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                 padding: EdgeInsets.all(8),
                                                 child: GestureDetector(
                                                   onTap: () async {
-                                                    if (!mounted) return;
-
                                                     String mensagem;
                                                     if (disponivel || isMd) {
                                                       mensagem =
@@ -517,9 +496,14 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                                     // Botão de OK/Adicionar
                                                                     ElevatedButton
                                                                         .icon(
-                                                                      onPressed: () => Navigator.pop(
-                                                                          context,
-                                                                          true),
+                                                                      onPressed:
+                                                                          () async =>
+                                                                              {
+                                                                        await adicionarMusico(
+                                                                            widget.document_id,
+                                                                            musicoId,
+                                                                            widget.instrument),
+                                                                      },
                                                                       icon: Icon(
                                                                           Icons
                                                                               .add,
@@ -554,21 +538,8 @@ class _MusicianSelect2State extends State<MusicianSelect2> {
                                                         );
                                                       },
                                                     );
-
-                                                    if (resposta == true) {
-                                                      if (!mounted) return;
-
-                                                      await adicionarMusico(
-                                                          widget.document_id,
-                                                          musicoId,
-                                                          widget.instrument);
-                                                      print("iniciando");
-
-                                                      // Aguarda o fechamento do SnackBar
-                                                      await Future.delayed(
-                                                          Duration(seconds: 3));
-                                                      print("Acabando");
-                                                    }
+                                                    print("Resposta.......");
+                                                    print(resposta);
                                                   },
                                                   child: Container(
                                                     decoration: BoxDecoration(
