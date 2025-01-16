@@ -50,14 +50,15 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
   }
 
   // Função para adicionar um novo registro
-  Future<void> _addNewRecord(
-      String author, String music, String bpm, String letra) async {
+  Future<void> _addNewRecord(String author, String music, String bpm,
+      String letra, String link) async {
     try {
       await _firestore.collection('music_database').add({
         'Author': author,
         'Music': music,
         'bpm': bpm,
         'letra': letra,
+        'link': link
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Novo registro adicionado com sucesso!')),
@@ -74,6 +75,8 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
     final _musicController = TextEditingController();
     final _bpmController = TextEditingController();
     final _letraController = TextEditingController();
+    final _linkController =
+        TextEditingController(); // Novo controlador para o link
 
     showModalBottomSheet(
       context: context,
@@ -134,6 +137,12 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                   decoration: InputDecoration(labelText: 'Letra'),
                   maxLines: 3,
                 ),
+                SizedBox(height: 8),
+                // Novo campo para o link
+                TextField(
+                  controller: _linkController,
+                  decoration: InputDecoration(labelText: 'Link'),
+                ),
                 SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,12 +157,16 @@ class _MainMusicDataBaseState extends State<MainMusicDataBase> {
                         final music = _musicController.text.trim();
                         final bpm = _bpmController.text.trim();
                         final letra = _letraController.text.trim();
+                        final link =
+                            _linkController.text.trim(); // Obtendo o link
 
                         if (author.isNotEmpty &&
                             music.isNotEmpty &&
                             bpm.isNotEmpty &&
-                            letra.isNotEmpty) {
-                          _addNewRecord(author, music, bpm, letra);
+                            letra.isNotEmpty &&
+                            link.isNotEmpty) {
+                          _addNewRecord(author, music, bpm, letra,
+                              link); // Passando o link para a função
                           Navigator.pop(context);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(

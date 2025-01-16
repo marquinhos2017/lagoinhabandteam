@@ -1155,174 +1155,260 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
   }
 
   Widget _buildContent() {
+// Função para mostrar os botões flutuantes
+
     switch (selectedMenu) {
       case 'Musicas':
-        return FutureBuilder<List<Map<String, String>>>(
-            future: fetchCultosAndMusic(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              }
+        return Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: FutureBuilder<List<Map<String, String>>>(
+                      future: fetchCultosAndMusic(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
 
-              if (snapshot.hasError) {
-                return Center(child: Text('Erro ao carregar os dados.'));
-              }
+                        if (snapshot.hasError) {
+                          return Center(
+                              child: Text('Erro ao carregar os dados.'));
+                        }
 
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(child: Text('Nenhuma música encontrada.'));
-              }
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                              child: Text('Nenhuma música encontrada.'));
+                        }
 
-              var musicData = snapshot.data!;
-              return ListView.builder(
-                itemCount: musicData.length,
-                itemBuilder: (context, index) {
-                  var music = musicData[index];
-                  bool isExpanded = false;
+                        var musicData = snapshot.data!;
 
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: StatefulBuilder(
-                      builder: (context, setState) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(
-                              color: isExpanded
-                                  ? Colors.blue
-                                  : Colors.grey.shade300,
-                              width: isExpanded ? 1.0 : 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(12.0),
-                            boxShadow: [
-                              if (isExpanded)
-                                BoxShadow(
-                                  color: Colors.blue.withOpacity(0.2),
-                                  blurRadius: 8.0,
-                                  spreadRadius: 2.0,
-                                  offset: Offset(0, 4),
-                                ),
-                            ],
-                          ),
-                          child: Theme(
-                            data: Theme.of(context).copyWith(
-                              dividerColor: Colors
-                                  .transparent, // Remove a linha entre o título e os filhos
-                            ),
-                            child: Padding(
+                        return ListView.builder(
+                          itemCount: musicData.length,
+                          itemBuilder: (context, index) {
+                            var music = musicData[index];
+                            bool isExpanded = false;
+
+                            return Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: ExpansionTile(
-                                onExpansionChanged: (expanded) {
-                                  setState(() {
-                                    isExpanded = expanded;
-                                  });
+                              child: StatefulBuilder(
+                                builder: (context, setState) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: isExpanded
+                                            ? const Color.fromARGB(67, 0, 0, 0)
+                                            : Colors.grey.shade300,
+                                        width: isExpanded ? 1.0 : 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      boxShadow: [
+                                        if (isExpanded)
+                                          BoxShadow(
+                                            color: const Color.fromARGB(
+                                                    255, 0, 0, 0)
+                                                .withOpacity(0.2),
+                                            blurRadius: 8.0,
+                                            spreadRadius: 1.0,
+                                            offset: Offset(0, 4),
+                                          ),
+                                      ],
+                                    ),
+                                    child: Theme(
+                                      data: Theme.of(context).copyWith(
+                                        dividerColor: Colors
+                                            .transparent, // Remove a linha entre o título e os filhos
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: ExpansionTile(
+                                          onExpansionChanged: (expanded) {
+                                            setState(() {
+                                              isExpanded = expanded;
+                                            });
+                                          },
+                                          tilePadding: EdgeInsets
+                                              .zero, // Remove o padding do título
+                                          childrenPadding: EdgeInsets
+                                              .zero, // Remove o padding dos filhos
+                                          leading: Text(
+                                            music['tone'] ?? "Sem Tom",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: const Color.fromARGB(
+                                                  91, 0, 0, 0),
+                                            ),
+                                          ),
+                                          title: Text(
+                                            music['music'] ??
+                                                'Música não disponível',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            '${music['author'] ?? 'Autor desconhecido'}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                          ),
+                                          children: [
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                SizedBox(height: 8),
+                                                Row(
+                                                  children: [],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
+                                                  children: [
+                                                    GestureDetector(
+                                                      onTap: () => {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                VerLetraUser(
+                                                              documentId:
+                                                                  music['id'] ??
+                                                                      '',
+                                                              isAdmin: false,
+                                                            ),
+                                                          ),
+                                                        )
+                                                      },
+                                                      child: Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                                color: Colors
+                                                                    .black),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal:
+                                                                      8.0,
+                                                                  vertical: 4),
+                                                          child: Text(
+                                                            "Ver Letra",
+                                                            style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Colors
+                                                                    .white),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    GestureDetector(
+                                                      onTap: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                VerCifraUserNewUI(
+                                                              documentId:
+                                                                  music['id'] ??
+                                                                      '',
+                                                              tone: music[
+                                                                      'tone'] ??
+                                                                  '',
+                                                              isAdmin: false,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                                color: Colors
+                                                                    .black),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal:
+                                                                      8.0,
+                                                                  vertical: 4),
+                                                          child: Text(
+                                                            "Ver Cifra",
+                                                            style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Colors
+                                                                    .white),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    GestureDetector(
+                                                      onTap: () {
+                                                        openMetronome(
+                                                            context,
+                                                            int.parse(
+                                                                music['bpm']!));
+                                                      },
+                                                      child: Row(
+                                                        children: [
+                                                          Container(
+                                                            decoration:
+                                                                BoxDecoration(
+                                                                    color: Colors
+                                                                        .black),
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .symmetric(
+                                                                      horizontal:
+                                                                          8.0,
+                                                                      vertical:
+                                                                          4),
+                                                              child: Text(
+                                                                music['bpm']!,
+                                                                style: TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: Colors
+                                                                        .white),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(height: 8),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
                                 },
-                                tilePadding: EdgeInsets
-                                    .zero, // Remove o padding do título
-                                childrenPadding: EdgeInsets
-                                    .zero, // Remove o padding dos filhos
-
-                                title: Text(
-                                  music['music'] ?? 'Música não disponível',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  'Autor: ${music['author'] ?? 'Autor desconhecido'}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Detalhes Adicionais:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        music['tone'] ?? "Sem Tom",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.lyrics),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      VerLetraUser(
-                                                    documentId:
-                                                        music['id'] ?? '',
-                                                    isAdmin: false,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            tooltip: 'Ver Letra',
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.music_note),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      VerCifraUserNewUI(
-                                                    documentId:
-                                                        music['id'] ?? '',
-                                                    tone: music['tone'] ?? '',
-                                                    isAdmin: false,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            tooltip: 'Ver Cifra',
-                                          ),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                  Icons.hourglass_bottom_sharp),
-                                              Text("${music['bpm']}")
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 8),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          print(
-                                              'Ver detalhes de ${music['music']}');
-                                        },
-                                        child: Text('Ver Detalhes'),
-                                      ),
-                                    ],
-                                  ),
-                                ],
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         );
-                      },
-                    ),
-                  );
-                },
-              );
-            });
+                      }),
+                ),
+              ],
+            ), // Botões flutuantes
+          ],
+        );
       case 'Teams':
         return FutureBuilder<List<Map<String, dynamic>>>(
           future: _getEscalados(widget.id),
@@ -1354,96 +1440,63 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                       return Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(
-                            color:
-                                isExpanded ? Colors.blue : Colors.grey.shade300,
-                            width: isExpanded ? 1.0 : 1.0,
-                          ),
                           borderRadius: BorderRadius.circular(12.0),
-                          boxShadow: [
-                            if (isExpanded)
-                              BoxShadow(
-                                color: Colors.blue.withOpacity(0.2),
-                                blurRadius: 8.0,
-                                spreadRadius: 2.0,
-                                offset: Offset(0, 4),
-                              ),
-                          ],
                         ),
                         child: Theme(
                           data: Theme.of(context).copyWith(
                             dividerColor: Colors
                                 .transparent, // Remove a linha entre o título e os filhos
                           ),
-                          child: ExpansionTile(
-                            onExpansionChanged: (expanded) {
-                              setState(() {
-                                isExpanded = expanded;
-                              });
-                            },
-                            tilePadding:
-                                EdgeInsets.zero, // Remove o padding do título
-                            childrenPadding:
-                                EdgeInsets.zero, // Remove o padding dos filhos
-                            title: Text(
-                              escalado['nome'] ?? 'Nome não disponível',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'Instrumento: ${escalado['instrument'] ?? 'Instrumento não definido'}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0, vertical: 8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
                                   children: [
-                                    Text(
-                                      'Detalhes Adicionais:',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                      ),
+                                      clipBehavior: Clip
+                                          .hardEdge, // Recorta o conteúdo do Container no formato definido
+                                      child: Image.network(
+                                        escalado['avatar'],
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      'ID do Escalado: ${escalado['id'] ?? 'ID não disponível'}',
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade700),
+                                    SizedBox(
+                                      width: 12,
                                     ),
                                     Text(
-                                      'Outro Dado: ${escalado['outroDado'] ?? 'Não informado'}',
+                                      escalado['nome'] ?? 'Nome não disponível',
                                       style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade700),
-                                    ),
-                                    SizedBox(height: 8),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                ScheduleDetailsMusician(
-                                                    id: escalado['id']),
-                                          ),
-                                        );
-                                      },
-                                      child: Text('Ver Mais Detalhes'),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffebf4fe),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0, vertical: 2),
+                                    child: Text(
+                                      '${escalado['instrument'] ?? 'Instrumento não definido'}',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade700,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -1508,6 +1561,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
           final musico = musicoDoc.docs.first.data();
           escalados.add({
             'nome': musico['name'] ?? 'Nome não disponível',
+            'avatar': musico['photoUrl'] ?? 'photoUrl não disponível',
             'instrument': instrument,
           });
         } else {
@@ -1533,7 +1587,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     //  print(documentsAll[currentIndex].id);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
         foregroundColor: Colors.black,
         title: Text(
@@ -1689,5 +1743,19 @@ class ProfileAvatar extends StatelessWidget {
           ? CircularProgressIndicator() // Exibe o indicador de carregamento se a URL estiver vazia
           : null,
     );
+  }
+}
+
+class MyWidget extends StatefulWidget {
+  const MyWidget({super.key});
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
   }
 }

@@ -320,16 +320,21 @@ class _VerCifraUserState extends State<VerLetraUser> {
                                 hintStyle: TextStyle(color: Colors.white54),
                               ),
                             )
-                          : Text(
-                              letra,
-                              textAlign: TextAlign.left,
-                              style: GoogleFonts.montserrat(
-                                textStyle: TextStyle(
-                                  color:
-                                      _isDarkMode ? Colors.white : Colors.black,
-                                  fontSize: _fontSize,
+                          : Column(
+                              children: [
+                                Text(
+                                  letra,
+                                  textAlign: TextAlign.left,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: TextStyle(
+                                      color: _isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontSize: _fontSize,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                     )),
               );

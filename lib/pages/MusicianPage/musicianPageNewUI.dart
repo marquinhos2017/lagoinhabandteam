@@ -155,7 +155,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
     });
   }
 
-  late int count;
+  int cultosSemanaCount = 0;
 
   String? musicianName;
   bool isLoading = true;
@@ -196,6 +196,66 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 
     verificarVerFormulario();
     _fetchMusicianByUsrId();
+    contarCultosSemanaDoUsuario();
+  }
+
+  Future<void> contarCultosSemanaDoUsuario() async {
+    try {
+      // Obtém todos os cultos em que o usuário está escalado
+      var userCultoSnapshot = await FirebaseFirestore.instance
+          .collection('user_culto_instrument')
+          .where('idUser',
+              isEqualTo: int.parse(widget.id)) // Filtra pelo idUser
+          .get();
+
+      if (userCultoSnapshot.docs.isEmpty) {
+        setState(() {
+          cultosSemanaCount = 0; // Nenhum culto escalado
+        });
+        return;
+      }
+
+      // Converte os documentos para uma lista
+      List<DocumentSnapshot> userCultosDocs = userCultoSnapshot.docs;
+
+      // Busca os cultos na coleção 'Cultos'
+      List<Future<Map<String, dynamic>>> cultosFutures =
+          userCultosDocs.map((userCultoDoc) async {
+        final cultoId = userCultoDoc['idCulto'];
+        DocumentSnapshot cultoDoc = await FirebaseFirestore.instance
+            .collection('Cultos')
+            .doc(cultoId)
+            .get();
+
+        Map<String, dynamic> cultoData =
+            cultoDoc.data() as Map<String, dynamic>;
+        cultoData['date'] = (cultoData['date'] as Timestamp).toDate();
+        return cultoData;
+      }).toList();
+
+      // Aguarda todos os cultos serem carregados
+      List<Map<String, dynamic>> cultos = await Future.wait(cultosFutures);
+
+      // Define o intervalo da semana atual
+      DateTime startOfWeek = getStartOfWeek();
+      DateTime endOfWeek = getEndOfWeek();
+
+      // Filtra os cultos que estão dentro da semana atual
+      int countsemana = cultos.where((cultoData) {
+        DateTime cultoDate = cultoData['date'];
+        return cultoDate.isAfter(startOfWeek) && cultoDate.isBefore(endOfWeek);
+      }).length;
+
+      // Atualiza o estado com a contagem
+      setState(() {
+        cultosSemanaCount = countsemana;
+      });
+      print("asdasd");
+
+      // print("Total de cultos escalados na semana: $count");
+    } catch (e) {
+      print('Erro ao contar cultos da semana: $e');
+    }
   }
 
   Future<void> _navigateAndReload() async {
@@ -618,7 +678,259 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
 // Definindo um número de notificações fictício
     int notificationCount = 4;
     return Scaffold(
-      backgroundColor: Color(0xfffafcff),
+      appBar: AppBar(
+          centerTitle: true,
+          surfaceTintColor: Colors.black,
+          foregroundColor: Colors.black,
+          shadowColor: Colors.black,
+          backgroundColor: Colors.white,
+          toolbarHeight: 100,
+          title: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      formattedDate,
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xffD9D9D9),
+                          fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      isLoading
+                          ? 'Carregando...' // Exibe enquanto carrega
+                          : errorMessage ??
+                              'Bom dia, ${musicianName?.toCapitalized() ?? 'Músico'}',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: Stack(
+                    children: [
+                      Container(
+                        height: 40,
+                        child: Icon(Icons.notifications, color: Colors.black),
+                      ),
+                      if (notificationCount > 0)
+                        Positioned(
+                          right: 0,
+                          top: 00,
+                          child: CircleAvatar(
+                            radius: 8,
+                            backgroundColor: Colors.red,
+                            child: Text(
+                              '$notificationCount',
+                              style: TextStyle(
+                                fontSize: 8,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  onPressed: () {
+                    // Lógica para abrir notificações
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: Icon(Icons.notifications),
+                              title: Text('Notificações'),
+                              onTap: () {
+                                // Ação para visualizar as notificações
+                                Navigator.pop(context);
+                              },
+                            ),
+                            // Lista de notificações
+                            Expanded(
+                              child: ListView(
+                                children: [
+                                  // Notificação 1
+                                  ListTile(
+                                    leading: Icon(Icons.event_available),
+                                    title: Text('Novo evento no culto!'),
+                                    subtitle: Text(
+                                        'Não perca a próxima reunião de louvor.'),
+                                    trailing: Text(
+                                      formatDateTime(DateTime
+                                          .now()), // Formata a data e hora
+                                      style: TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
+                                    onTap: () {
+                                      // Ação ao clicar na notificação
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  // Notificação 2
+                                  ListTile(
+                                    leading: Icon(Icons.group_add),
+                                    title: Text('Novo voluntário escalado!'),
+                                    subtitle: Text(
+                                        'Você foi escalado para o culto de amanhã.'),
+                                    trailing: Text(
+                                      formatDateTime(DateTime.now()
+                                          .add(Duration(days: 1))),
+                                      style: TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  // Notificação 3
+                                  ListTile(
+                                    leading: Icon(Icons.update),
+                                    title: Text('Atualização no perfil'),
+                                    subtitle: Text(
+                                        'Seu perfil foi atualizado com sucesso.'),
+                                    trailing: Text(
+                                      formatDateTime(DateTime.now()
+                                          .add(Duration(hours: 1))),
+                                      style: TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  // Notificação 4
+                                  ListTile(
+                                    leading: Icon(Icons.message),
+                                    title: Text('Nova mensagem recebida'),
+                                    subtitle: Text(
+                                        'Você tem uma mensagem nova no seu perfil.'),
+                                    trailing: Text(
+                                      formatDateTime(DateTime.now()
+                                          .add(Duration(minutes: 30))),
+                                      style: TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+                GestureDetector(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled:
+                          true, // Permite ajustar a altura do BottomSheet
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(
+                                20)), // Bordas arredondadas no topo
+                      ),
+                      builder: (context) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 16),
+                          child: Wrap(
+                            // Ajusta a altura automaticamente ao conteúdo
+                            children: <Widget>[
+                              ListTile(
+                                leading: Icon(Icons.abc),
+                                title: Text('Editar Perfil'),
+                                onTap: () {
+                                  // Ação para editar perfil
+                                  Navigator.pop(context);
+                                  _navigateToEditProfile();
+                                },
+                              ),
+                              ListTile(
+                                leading: Icon(Icons.logout),
+                                title: Text('Sair'),
+                                onTap: () {
+                                  // Ação para logout
+                                  final authProvider =
+                                      Provider.of<AuthProvider>(context,
+                                          listen: false);
+
+                                  if (authProvider.userId != null) {
+                                    authProvider.logout();
+                                  }
+
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => login()),
+                                    (Route<dynamic> route) => false,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: _userProfileStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Erro ao carregar perfil'));
+                      } else if (!snapshot.hasData ||
+                          snapshot.data!.docs.isEmpty) {
+                        return Center(child: Text('Nenhum dado encontrado'));
+                      } else {
+                        final userData = snapshot.data!.docs.first.data()
+                            as Map<String, dynamic>;
+                        final photoUrl = userData['photoUrl'] ?? '';
+
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 35,
+                              height: 35,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color.fromARGB(60, 0, 0, 0),
+                                    blurRadius: 5,
+                                    offset: Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: ProfileAvatar(avatarUrl: photoUrl),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          )),
+      backgroundColor: Color.fromARGB(255, 255, 255, 255),
       body: Stack(
         children: [
           PageView(
@@ -642,385 +954,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                         child: Column(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        formattedDate,
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Color(0xffD9D9D9),
-                                            fontWeight: FontWeight.w500),
-                                      ),
-                                      Text(
-                                        isLoading
-                                            ? 'Carregando...' // Exibe enquanto carrega
-                                            : errorMessage ??
-                                                'Bom dia, ${musicianName?.toCapitalized() ?? 'Músico'}',
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        height: 24,
-                                      ),
-                                    ],
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(top: 30),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          builder: (context) {
-                                            return Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: <Widget>[
-                                                ListTile(
-                                                  leading: Icon(Icons.abc),
-                                                  title: Text('Editar Perfil'),
-                                                  onTap: () {
-                                                    // Ação para Opção 1
-
-                                                    Navigator.pop(context);
-                                                    _navigateToEditProfile();
-                                                  },
-                                                ),
-                                                /*ListTile(
-                                                  leading: Icon(Icons.abc),
-                                                  title: Text('Afinador'),
-                                                  onTap: () {
-                                                    // Ação para Opção 1
-
-                                                    Navigator.pop(context);
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              Afinador()),
-                                                    );
-                                                  },
-                                                ),*/
-                                                ListTile(
-                                                  leading: Icon(Icons.logout),
-                                                  title: Text('Sair'),
-                                                  onTap: () {
-                                                    // Ação para Opção 2
-                                                    // Usando Provider.of com listen: false para evitar reconstruções desnecessárias
-                                                    final authProvider =
-                                                        Provider.of<
-                                                                AuthProvider>(
-                                                            context,
-                                                            listen: false);
-
-                                                    // Acessa o authProvider e faz algo com ele
-                                                    if (authProvider.userId !=
-                                                        null) {
-                                                      // Faça algo com authProvider.userId
-                                                      authProvider.logout();
-                                                    }
-
-                                                    Navigator
-                                                        .pushAndRemoveUntil(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              login()),
-                                                      (Route<dynamic> route) =>
-                                                          false,
-                                                    );
-                                                  },
-                                                ),
-                                                IconButton(
-                                                  icon: Icon(
-                                                      Icons.notifications,
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              248,
-                                                              237,
-                                                              237)),
-                                                  onPressed: () {
-                                                    // Lógica para abrir notificações
-                                                    // Você pode adicionar a navegação ou exibir um modal, por exemplo
-                                                    showModalBottomSheet(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return Column(
-                                                          children: [
-                                                            ListTile(
-                                                              leading: Icon(Icons
-                                                                  .notifications),
-                                                              title: Text(
-                                                                  'Notificações'),
-                                                              onTap: () {
-                                                                // Ação para visualizar as notificações
-                                                                Navigator.pop(
-                                                                    context);
-                                                              },
-                                                            ),
-                                                          ],
-                                                        );
-                                                      },
-                                                    );
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      },
-                                      child: StreamBuilder<QuerySnapshot>(
-                                        stream: _userProfileStream,
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            return Center(
-                                                child:
-                                                    CircularProgressIndicator());
-                                          } else if (snapshot.hasError) {
-                                            return Center(
-                                                child: Text(
-                                                    'Erro ao carregar perfil'));
-                                          } else if (!snapshot.hasData ||
-                                              snapshot.data!.docs.isEmpty) {
-                                            return Center(
-                                                child: Text(
-                                                    'Nenhum dado encontrado'));
-                                          } else {
-                                            // Assumindo que há apenas um documento correspondente
-                                            final userData =
-                                                snapshot.data!.docs.first.data()
-                                                    as Map<String, dynamic>;
-                                            final photoUrl =
-                                                userData['photoUrl'] ?? '';
-
-                                            return Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Container(
-                                                  width: 50, // Largura do ícone
-                                                  height: 50, // Altura do ícone
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: const Color
-                                                            .fromARGB(60, 0, 0,
-                                                            0), // Sombra alaranjada com 50% de opacidade
-                                                        blurRadius: 15,
-                                                        offset: Offset(0,
-                                                            10), // Deslocamento da sombra
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ProfileAvatar(
-                                                      avatarUrl: photoUrl),
-                                                ),
-                                                /*      CircleAvatar(
-                                                    radius: 75,
-                                                    backgroundColor:
-                                                        Colors.grey[200],
-                                                    backgroundImage: photoUrl
-                                                            .isNotEmpty
-                                                        ? NetworkImage(photoUrl)
-                                                        : null,
-                                                    child: photoUrl.isEmpty
-                                                        ? Icon(
-                                                            Icons.camera_alt,
-                                                            size: 50,
-                                                            color: Colors
-                                                                .grey[800],
-                                                          )
-                                                        : null,
-                                                  ),
-                                                                                        */
-                                                SizedBox(height: 20),
-                                                /*  Text(
-                                                    'Nome: ${userData['name']}'),*/
-                                                SizedBox(height: 20),
-                                                /* ElevatedButton(
-                                                  onPressed: () async {
-                                                    // Navegar para a página de edição e esperar até que a página retorne
-                                                    await Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            EditProfilePage(
-                                                                userId:
-                                                                    widget.id),
-                                                      ),
-                                                    );
-                                                    // Após retornar da página de edição, o StreamBuilder atualizará automaticamente
-                                                  },
-                                                  child: Text('Edit Profile'),
-                                                ),*/
-                                              ],
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Stack(
-                                      children: [
-                                        Container(
-                                          height: 40,
-                                          child: Icon(Icons.notifications,
-                                              color: Colors.black),
-                                        ),
-                                        if (notificationCount > 0)
-                                          Positioned(
-                                            right: 0,
-                                            top: -0,
-                                            child: CircleAvatar(
-                                              radius: 8,
-                                              backgroundColor: Colors.red,
-                                              child: Text(
-                                                '$notificationCount',
-                                                style: TextStyle(
-                                                  fontSize: 8,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    onPressed: () {
-                                      // Lógica para abrir notificações
-                                      showModalBottomSheet(
-                                        context: context,
-                                        builder: (context) {
-                                          return Column(
-                                            children: [
-                                              ListTile(
-                                                leading:
-                                                    Icon(Icons.notifications),
-                                                title: Text('Notificações'),
-                                                onTap: () {
-                                                  // Ação para visualizar as notificações
-                                                  Navigator.pop(context);
-                                                },
-                                              ),
-                                              // Lista de notificações
-                                              Expanded(
-                                                child: ListView(
-                                                  children: [
-                                                    // Notificação 1
-                                                    ListTile(
-                                                      leading: Icon(Icons
-                                                          .event_available),
-                                                      title: Text(
-                                                          'Novo evento no culto!'),
-                                                      subtitle: Text(
-                                                          'Não perca a próxima reunião de louvor.'),
-                                                      trailing: Text(
-                                                        formatDateTime(DateTime
-                                                            .now()), // Formata a data e hora
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors.grey),
-                                                      ),
-                                                      onTap: () {
-                                                        // Ação ao clicar na notificação
-                                                        Navigator.pop(context);
-                                                      },
-                                                    ),
-                                                    // Notificação 2
-                                                    ListTile(
-                                                      leading:
-                                                          Icon(Icons.group_add),
-                                                      title: Text(
-                                                          'Novo voluntário escalado!'),
-                                                      subtitle: Text(
-                                                          'Você foi escalado para o culto de amanhã.'),
-                                                      trailing: Text(
-                                                        formatDateTime(
-                                                            DateTime.now().add(
-                                                                Duration(
-                                                                    days: 1))),
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors.grey),
-                                                      ),
-                                                      onTap: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                    ),
-                                                    // Notificação 3
-                                                    ListTile(
-                                                      leading:
-                                                          Icon(Icons.update),
-                                                      title: Text(
-                                                          'Atualização no perfil'),
-                                                      subtitle: Text(
-                                                          'Seu perfil foi atualizado com sucesso.'),
-                                                      trailing: Text(
-                                                        formatDateTime(
-                                                            DateTime.now().add(
-                                                                Duration(
-                                                                    hours: 1))),
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors.grey),
-                                                      ),
-                                                      onTap: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                    ),
-                                                    // Notificação 4
-                                                    ListTile(
-                                                      leading:
-                                                          Icon(Icons.message),
-                                                      title: Text(
-                                                          'Nova mensagem recebida'),
-                                                      subtitle: Text(
-                                                          'Você tem uma mensagem nova no seu perfil.'),
-                                                      trailing: Text(
-                                                        formatDateTime(
-                                                            DateTime.now().add(
-                                                                Duration(
-                                                                    minutes:
-                                                                        30))),
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors.grey),
-                                                      ),
-                                                      onTap: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 24.0, vertical: 0),
                               child: Container(
@@ -1038,6 +971,26 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold),
                                         ),
+                                        SizedBox(
+                                          width: 12,
+                                        ),
+                                        Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                              color: Color(0xff000000),
+                                              borderRadius:
+                                                  BorderRadius.circular(100)),
+                                          child: Center(
+                                            child: Text(
+                                              cultosSemanaCount.toString(),
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -1045,8 +998,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               ),
                             ),
                             Container(
-                              height: 230,
-                              width: 500,
+                              height: 215,
                               margin: EdgeInsets.only(bottom: 0),
                               child: FutureBuilder<QuerySnapshot>(
                                 future: FirebaseFirestore.instance
@@ -1198,7 +1150,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                   ],
                                                 ),
                                                 height: 240,
-                                                width: 350,
+                                                width: 300,
                                                 child: Padding(
                                                   padding: const EdgeInsets.all(
                                                       24.0),
@@ -1236,15 +1188,66 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                               ),
                                                               const SizedBox(
                                                                   width: 16),
-                                                              const Text(
-                                                                "Lagoinha Music Faro",
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize: 14,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                ),
+                                                              Row(
+                                                                children: [
+                                                                  Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        cultoDate.day.toString() +
+                                                                            "/",
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                          color: const Color
+                                                                              .fromARGB(
+                                                                              255,
+                                                                              135,
+                                                                              135,
+                                                                              135),
+                                                                          fontSize:
+                                                                              12,
+                                                                        ),
+                                                                      ),
+                                                                      Text(
+                                                                        cultoDate
+                                                                            .month
+                                                                            .toString(),
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                          color: const Color
+                                                                              .fromARGB(
+                                                                              255,
+                                                                              135,
+                                                                              135,
+                                                                              135),
+                                                                          fontSize:
+                                                                              12,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  Text(
+                                                                    " as " +
+                                                                        horario,
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: const Color
+                                                                          .fromARGB(
+                                                                          255,
+                                                                          135,
+                                                                          135,
+                                                                          135),
+                                                                      fontSize:
+                                                                          12,
+                                                                    ),
+                                                                  ),
+                                                                ],
                                                               ),
                                                             ],
                                                           ),
@@ -1260,67 +1263,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                       ),
                                                       const SizedBox(
                                                           height: 16),
-                                                      Row(
-                                                        children: [
-                                                          Row(
-                                                            children: [
-                                                              Text(
-                                                                cultoDate.day
-                                                                        .toString() +
-                                                                    "/",
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: const Color
-                                                                      .fromARGB(
-                                                                      255,
-                                                                      135,
-                                                                      135,
-                                                                      135),
-                                                                  fontSize: 12,
-                                                                ),
-                                                              ),
-                                                              Text(
-                                                                cultoDate.month
-                                                                    .toString(),
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: const Color
-                                                                      .fromARGB(
-                                                                      255,
-                                                                      135,
-                                                                      135,
-                                                                      135),
-                                                                  fontSize: 12,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          SizedBox(
-                                                            width: 23,
-                                                          ),
-                                                          Text(
-                                                            horario,
-                                                            style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: const Color
-                                                                  .fromARGB(
-                                                                  255,
-                                                                  135,
-                                                                  135,
-                                                                  135),
-                                                              fontSize: 12,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
                                                       Text(
                                                         cultoName,
                                                         style: TextStyle(
@@ -1330,29 +1272,52 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                           fontSize: 16,
                                                         ),
                                                       ),
-                                                      Text(
-                                                        "Instrumento: $instrument",
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black,
-                                                          fontSize: 12,
+                                                      Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Color(0xffebf4fe),
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal:
+                                                                      8.0,
+                                                                  vertical: 2),
+                                                          child: Text(
+                                                            instrument,
+                                                            style: TextStyle(
+                                                                fontSize: 14,
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade700,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
                                                         ),
                                                       ),
-                                                      Container(
-                                                        width: double.infinity,
-                                                        child: ElevatedButton(
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                            backgroundColor:
-                                                                Colors.black,
-                                                          ),
-                                                          onPressed: () => {},
-                                                          child: Text(
-                                                            "Mais Informações",
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white),
+                                                      Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: Container(
+                                                          height: 30,
+                                                          child: ElevatedButton(
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.black,
+                                                            ),
+                                                            onPressed: () => {},
+                                                            child: Text(
+                                                              "Clique aqui",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 12),
+                                                            ),
                                                           ),
                                                         ),
                                                       )
@@ -1370,7 +1335,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               ),
                             ),
                             SizedBox(
-                              height: 24,
+                              height: 12,
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
@@ -1414,8 +1379,6 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                               ),
                             ),
                             Container(
-                              height: 400,
-                              width: 500,
                               margin: EdgeInsets.only(bottom: 0),
                               child: FutureBuilder<QuerySnapshot>(
                                 future: FirebaseFirestore.instance
@@ -1497,19 +1460,44 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                           cultosComInstrumentos =
                                           cultosSnapshot.data!;
 
-                                      return ListView.builder(
-                                        padding: EdgeInsets.zero,
-                                        itemCount: cultosComInstrumentos.length,
-                                        itemBuilder: (context, index) {
-                                          final cultoData =
-                                              cultosComInstrumentos[index]
-                                                  ['culto'];
+                                      final today = DateTime.now();
+                                      final normalizedToday = DateTime(
+                                          today.year, today.month, today.day);
+                                      final cultosFuturos =
+                                          cultosComInstrumentos
+                                              .where((cultoItem) {
+                                        final cultoData = cultoItem['culto'];
+                                        if (cultoData != null &&
+                                            cultoData['date'] is Timestamp) {
+                                          DateTime cultoDate =
+                                              (cultoData['date'] as Timestamp)
+                                                  .toDate();
+                                          final normalizedCultoDate = DateTime(
+                                              cultoDate.year,
+                                              cultoDate.month,
+                                              cultoDate.day);
+                                          return normalizedCultoDate
+                                                  .isAtSameMomentAs(
+                                                      normalizedToday) ||
+                                              normalizedCultoDate
+                                                  .isAfter(normalizedToday);
+                                        }
+                                        return false;
+                                      }).toList();
+
+                                      if (cultosFuturos.isEmpty) {
+                                        return Center(
+                                            child: Text(
+                                                'Nenhum culto futuro encontrado.'));
+                                      }
+
+                                      return Column(
+                                        children:
+                                            cultosFuturos.map((cultoItem) {
+                                          final cultoData = cultoItem['culto'];
                                           final instrument =
-                                              cultosComInstrumentos[index]
-                                                  ['instrument'];
-                                          final cultoId =
-                                              cultosComInstrumentos[index]
-                                                  ['cultoId'];
+                                              cultoItem['instrument'];
+                                          final cultoId = cultoItem['cultoId'];
 
                                           String cultoName =
                                               cultoData?['nome'] ??
@@ -1534,7 +1522,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                             },
                                             child: Padding(
                                               padding:
-                                                  const EdgeInsets.all(8.0),
+                                                  const EdgeInsets.all(16.0),
                                               child: Container(
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
@@ -1548,11 +1536,10 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                     ),
                                                   ],
                                                 ),
-                                                height: 170,
-                                                width: 100,
+                                                width: double.infinity,
                                                 child: Padding(
                                                   padding: const EdgeInsets.all(
-                                                      24.0),
+                                                      12.0),
                                                   child: Column(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment.start,
@@ -1567,64 +1554,24 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                         children: [
                                                           Row(
                                                             children: [
-                                                              Container(
-                                                                width: 40,
-                                                                height: 40,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  shape: BoxShape
-                                                                      .circle,
-                                                                  image:
-                                                                      DecorationImage(
-                                                                    image:
-                                                                        NetworkImage(
-                                                                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiomxFAA1cgas1K_PPfGc-4pkW1sLUc3Anog&s",
-                                                                    ),
-                                                                    fit: BoxFit
-                                                                        .cover,
-                                                                  ),
+                                                              Text(
+                                                                "${cultoDate.day}/${cultoDate.month}",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: const Color
+                                                                      .fromARGB(
+                                                                      255,
+                                                                      135,
+                                                                      135,
+                                                                      135),
+                                                                  fontSize: 12,
                                                                 ),
                                                               ),
                                                               const SizedBox(
-                                                                  width: 16),
-                                                              Text(
-                                                                cultoDate.day
-                                                                        .toString() +
-                                                                    "/",
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: const Color
-                                                                      .fromARGB(
-                                                                      255,
-                                                                      135,
-                                                                      135,
-                                                                      135),
-                                                                  fontSize: 12,
-                                                                ),
-                                                              ),
-                                                              Text(
-                                                                cultoDate.month
-                                                                    .toString(),
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: const Color
-                                                                      .fromARGB(
-                                                                      255,
-                                                                      135,
-                                                                      135,
-                                                                      135),
-                                                                  fontSize: 12,
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                width: 24,
-                                                              ),
+                                                                  width: 24),
                                                               Text(
                                                                 horario,
                                                                 style:
@@ -1643,29 +1590,11 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                               ),
                                                             ],
                                                           ),
-                                                          Row(
-                                                            children: [
-                                                              buildTagBasedOnTime(
-                                                                  horario),
-                                                              SizedBox(
-                                                                  width: 8),
-                                                            ],
-                                                          ),
+                                                          buildTagBasedOnTime(
+                                                              horario),
                                                         ],
                                                       ),
-                                                      const SizedBox(
-                                                          height: 16),
-                                                      Row(
-                                                        children: [
-                                                          Row(
-                                                            children: [
-                                                              SizedBox(
-                                                                width: 24,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      ),
+                                                      const SizedBox(height: 8),
                                                       Text(
                                                         cultoName,
                                                         style: TextStyle(
@@ -1675,13 +1604,31 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                                           fontSize: 16,
                                                         ),
                                                       ),
-                                                      Text(
-                                                        "Instrumento: $instrument",
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black,
-                                                          fontSize: 12,
+                                                      const SizedBox(height: 8),
+                                                      Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Color(0xffebf4fe),
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal:
+                                                                      8.0,
+                                                                  vertical: 2),
+                                                          child: Text(
+                                                            instrument,
+                                                            style: TextStyle(
+                                                                fontSize: 14,
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade700,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
@@ -1690,7 +1637,7 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                                               ),
                                             ),
                                           );
-                                        },
+                                        }).toList(),
                                       );
                                     },
                                   );

@@ -297,6 +297,10 @@ class _VerCifraUserState extends State<Verletra> {
               final songDetails = snapshot.data!;
               final letra = songDetails['letra']?.replaceAll('\\n', '\n') ??
                   'Letra não disponível';
+              final Music = songDetails['Music']?.replaceAll('\\n', '\n') ??
+                  'Letra não disponível';
+              final Author = songDetails['Author']?.replaceAll('\\n', '\n') ??
+                  'Letra não disponível';
 
               return GestureDetector(
                 onVerticalDragCancel: () {
@@ -319,16 +323,40 @@ class _VerCifraUserState extends State<Verletra> {
                                 hintStyle: TextStyle(color: Colors.white54),
                               ),
                             )
-                          : Text(
-                              letra,
-                              textAlign: TextAlign.left,
-                              style: GoogleFonts.montserrat(
-                                textStyle: TextStyle(
-                                  color:
-                                      _isDarkMode ? Colors.white : Colors.black,
-                                  fontSize: _fontSize,
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  Music,
+                                  style: TextStyle(
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18),
                                 ),
-                              ),
+                                Text(
+                                  Author,
+                                  style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                ),
+                                SizedBox(
+                                  height: 24,
+                                ),
+                                Text(
+                                  letra,
+                                  textAlign: TextAlign.left,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: TextStyle(
+                                      color: _isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontSize: _fontSize,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                     )),
               );
