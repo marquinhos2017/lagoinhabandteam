@@ -337,6 +337,12 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                     SizedBox(
                       width: 12,
                     ),
+                    /*
+                    MusicianCard(
+                        imageUrl:
+                            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXJr-fGkiy1DE5A0JNOkcmCNGcXuQXdzENZA&s",
+                        musicianName: "Jose",
+                        cultosEscalados: 4),*/ //Avatar com numeros cultos escalados
                     Container(
                       decoration: BoxDecoration(color: Colors.black),
                       child: Padding(
@@ -2342,19 +2348,26 @@ class _BandState extends State<Band> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
+                      tileColor: Colors.white,
                       title: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Text(
+                            musicianName, // Exibe o nome do músico
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: Colors.black,
+                            ),
+                          ),
                           Text(
                             instrument,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
-                              color: Colors.deepPurple,
+                              color: Colors.black,
                             ),
-                          ),
-                          Text(
-                            musicianName, // Exibe o nome do músico
-                            style: TextStyle(color: Colors.black54),
                           ),
                         ],
                       ),
@@ -2541,14 +2554,14 @@ class _AvailableInstrumentsWidgetState
                     style: ElevatedButton.styleFrom(
                       padding:
                           EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: Color(0xfff9fafc), // Fundo branco
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ), // Cor do botão
                     ),
                     child: Text(
                       instrument,
-                      style: TextStyle(fontSize: 12, color: Colors.white),
+                      style: TextStyle(fontSize: 12, color: Colors.blue),
                     ),
                   ),
                 );
@@ -2557,6 +2570,84 @@ class _AvailableInstrumentsWidgetState
           ],
         );
       },
+    );
+  }
+}
+
+class MusicianCard extends StatelessWidget {
+  final String imageUrl;
+  final String musicianName;
+  final int cultosEscalados;
+
+  MusicianCard({
+    required this.imageUrl,
+    required this.musicianName,
+    required this.cultosEscalados,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              // Circular image
+              CircleAvatar(
+                radius: 30,
+                backgroundImage: NetworkImage(imageUrl),
+                backgroundColor: Colors.grey[200],
+              ),
+              SizedBox(width: 12),
+              // Text info
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    musicianName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.event_note,
+                        color: Colors.deepPurple,
+                        size: 18,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        '$cultosEscalados cultos escalados',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
