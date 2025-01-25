@@ -1711,6 +1711,29 @@ class Band extends StatefulWidget {
 }
 
 class _BandState extends State<Band> {
+  void _showSnackBar(String message) {
+    // Usa a referência salva
+    _scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
+  late ScaffoldMessengerState _scaffoldMessenger;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Salva a referência ao ScaffoldMessenger
+    _scaffoldMessenger = ScaffoldMessenger.of(context);
+  }
+
+  @override
+  void dispose() {
+    // Agora, você pode usar a referência salva no dispose() sem problemas
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1824,6 +1847,76 @@ class _BandState extends State<Band> {
     }
   }
 
+  Future<void> _removeMusician2(int userId, String idCulto, String id,
+      int index, String instrument) async {
+    final _firestore = FirebaseFirestore.instance;
+    print("Removendo: $userId");
+    print("Removendo Culto: $idCulto");
+    print("Removendo Documento: $id");
+
+    try {
+      // Remove o documento da coleção 'user_culto_instrument' usando o id
+      final documentRef =
+          _firestore.collection('user_culto_instrument').doc(id);
+      await documentRef.delete();
+
+      // Atualiza o array 'musicos' no documento do culto
+      final cultoRef = _firestore.collection('Cultos').doc(idCulto);
+      final cultoDoc = await cultoRef.get();
+
+      if (cultoDoc.exists) {
+        final musicosList = cultoDoc.data()?['musicos'] as List<dynamic>? ?? [];
+
+        if (index < 0 || index >= musicosList.length) {
+          throw Exception('Índice fora do intervalo');
+        }
+
+        // Remove o músico específico pelo índice
+        final updatedMusicosList = List.from(musicosList)..removeAt(index);
+
+        // Atualiza o documento do culto com a lista de músicos modificada
+        await cultoRef.update({
+          'musicos': updatedMusicosList,
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Músico removido com sucesso')));
+
+        // Configura o servidor SMTP
+        final smtpServer =
+            gmail("marcosrodriguescorreiajc@gmail.com", "dpec dpql isvc wkau");
+
+        final message = Message()
+          ..from = Address("marcosrodriguescorreiajc@gmail.com")
+          ..recipients.add('marcos.rodrigues2015@yahoo.com.br')
+          ..subject = 'Você acabou de ser removido da escala'
+          ..html = '''[HTML Content]'''
+          ..text = 'Olá, tudo bem ? Você acabou de ser removido do culto.';
+
+        try {
+          // Envia o email
+          final sendReport = await send(message, smtpServer);
+          print('Message sent: ' + sendReport.toString());
+        } on MailerException catch (e) {
+          print('Message not sent. \n' + e.toString());
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Documento do culto não encontrado')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Erro ao remover músico: $e')));
+      print('Erro ao remover músico: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          // Atualiza o estado do widget, caso necessário
+        });
+      }
+    }
+  }
+
   Future<void> _removeMusician(int userId, String idCulto, String id, int index,
       String instrument) async {
     final _firestore = FirebaseFirestore.instance;
@@ -1878,6 +1971,7 @@ class _BandState extends State<Band> {
           //       Address('marcos.rodrigues2015@yahoo.com.br')) //bcc Recipents emails
           ..subject =
               'Você acabou de ser removido da escala' //subject of the email
+
           ..html =
               '<!doctype html> <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"> <head> <title></title> <!--[if !mso]><!--> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1"> <style type="text/css"> #outlook a { padding:0; } body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; } table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; } img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; } p { display:block;margin:13px 0; } </style> <!--[if mso]> <noscript> <xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings> </xml> </noscript> <![endif]--> <!--[if lte mso 11]> <style type="text/css"> .mj-outlook-group-fix { width:100% !important; } </style> <![endif]--> <!--[if !mso]><!--> <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,700" rel="stylesheet" type="text/css"> <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css"> <link href="https://fonts.googleapis.com/css?family=Bitter:400,700" rel="stylesheet" type="text/css"> <style type="text/css"> @import url(https://fonts.googleapis.com/css?family=Ubuntu:400,700); @import url(https://fonts.googleapis.com/css?family=Cabin:400,700); @import url(https://fonts.googleapis.com/css?family=Bitter:400,700); </style> <!--<![endif]--> <style type="text/css"> @media only screen and (min-width:480px) { .mj-column-per-100 { width:100% !important; max-width: 100%; } } </style> <style media="screen and (min-width:480px)"> .moz-text-html .mj-column-per-100 { width:100% !important; max-width: 100%; } </style> <style type="text/css"> </style> <style type="text/css"> .hide_on_mobile { display: none !important;} @media only screen and (min-width: 480px) { .hide_on_mobile { display: block !important;} } .hide_section_on_mobile { display: none !important;} @media only screen and (min-width: 480px) { .hide_section_on_mobile { display: table !important; } div.hide_section_on_mobile { display: block !important; } } .hide_on_desktop { display: block !important;} @media only screen and (min-width: 480px) { .hide_on_desktop { display: none !important;} } .hide_section_on_desktop { display: table !important; width: 100%; } @media only screen and (min-width: 480px) { .hide_section_on_desktop { display: none !important;} } p, h1, h2, h3 { margin: 0px; } ul, li, ol { font-size: 11px; font-family: Ubuntu, Helvetica, Arial; } a { text-decoration: none; color: inherit; } @media only screen and (max-width:480px) { .mj-column-per-100 { width:100%!important; max-width:100%!important; }.mj-column-per-100 > .mj-column-per-100 { width:100%!important; max-width:100%!important; } } </style> </head> <body style="word-spacing:normal;background-color:#FFFFFF;"> <div style="background-color:#FFFFFF;"> <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]--> <div style="margin:0px auto;max-width:600px;"> <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"> <tbody> <tr> <td style="direction:ltr;font-size:0px;padding:9px 0px 9px 0px;text-align:center;"> <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]--> <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"> <tbody> <tr> <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;"> <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;&nbsp;<br>&nbsp;<br>&nbsp;<br><span style="font-size: 21px;">Voc&ecirc; acabou de ser escalado</span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br><span style="font-size: 12px;"><strong>Voc&ecirc; foi removido do Culto que ocorreria no dia  para a fun&ccedil;&atilde;o $instrument.</strong></span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><span style="font-family: Bitter, Georgia, serif;">Para que voc&ecirc; possa visualizar suas escalas, baixe o aplicativo de acordo com seu smartphone.</span></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px;">&nbsp;&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><em>&copy; 2024&nbsp; Lake Music Todos os Direitos Reservados</em></p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br>&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;">&nbsp;</p> <p style="font-family: Ubuntu, sans-serif; font-size: 11px; text-align: center;"><br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]></td></tr></table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]></td></tr></table><![endif]--> </div> <div style="color: #ccc; font-size: 12px; width: 600px; margin: 15px auto; text-align: center;"><a href="https://wordtohtml.net/email/designer">Created with WordToHTML.net Email Designer</a></div> </body> </html>'
           ..text =
@@ -1890,6 +1984,8 @@ class _BandState extends State<Band> {
               sendReport.toString()); //print if the email is sent
 
               */
+
+          print("Removido");
         } on MailerException catch (e) {
           print('Message not sent. \n' +
               e.toString()); //print if the email is not sent
@@ -2340,6 +2436,10 @@ class _BandState extends State<Band> {
                 final musicianName = musicianSnapshot.data!.docs[0]['name'] ??
                     'Nome não disponível';
 
+                // Obtendo o nome do músico
+                final avatar = musicianSnapshot.data!.docs[0]['photoUrl'] ??
+                    'Nome não disponível';
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                       vertical: 2.0, horizontal: 5.0),
@@ -2353,21 +2453,30 @@ class _BandState extends State<Band> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            musicianName, // Exibe o nome do músico
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Text(
-                            instrument,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: Colors.black,
-                            ),
+                          Column(
+                            children: [
+                              Container(
+                                  width: 40,
+                                  height: 40,
+                                  child: Image.network(avatar)),
+                              Text(
+                                capitalize(
+                                    musicianName), // Exibe o nome do músico
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                instrument,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: Color(0xff0A7AFF),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -2377,24 +2486,26 @@ class _BandState extends State<Band> {
                           color: Colors.red,
                         ),
                         onPressed: () async {
-                          // Ação para excluir o registro
+                          // Exemplo de ação
                           await FirebaseFirestore.instance
                               .collection('user_culto_instrument')
                               .doc(userCultoData[index].id)
                               .delete()
-                              .then((_) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Registro excluído com sucesso!'),
-                              ),
-                            );
+                              .then((_) async {
+                            _showSnackBar('Registro excluído com sucesso!');
+
+                            final now = DateTime.now();
+                            await FirebaseFirestore.instance
+                                .collection('notificacoes')
+                                .add({
+                              'user_id': userId,
+                              'data': "${now.year}-${now.month}-${now.day}",
+                              'hora': "${now.hour}:${now.minute}:${now.second}",
+                              'titulo': "Escala",
+                              'mensagem': "Registro excluído com sucesso!",
+                            });
                           }).catchError((error) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Erro ao excluir o registro: $error'),
-                              ),
-                            );
+                            _showSnackBar('Erro ao excluir o registro: $error');
                           });
                         },
                       ),

@@ -757,74 +757,50 @@ class _MusicianPageNewUIState extends State<MusicianPageNewUI> {
                             ),
                             // Lista de notificações
                             Expanded(
-                              child: ListView(
-                                children: [
-                                  // Notificação 1
-                                  ListTile(
-                                    leading: Icon(Icons.event_available),
-                                    title: Text('Novo evento no culto!'),
-                                    subtitle: Text(
-                                        'Não perca a próxima reunião de louvor.'),
-                                    trailing: Text(
-                                      formatDateTime(DateTime
-                                          .now()), // Formata a data e hora
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.grey),
-                                    ),
-                                    onTap: () {
-                                      // Ação ao clicar na notificação
-                                      Navigator.pop(context);
+                              child: StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('notificacoes')
+                                    .where('user_id', isEqualTo: 877)
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  if (!snapshot.hasData ||
+                                      snapshot.data!.docs.isEmpty) {
+                                    return Center(
+                                        child: Text(
+                                            'Nenhuma notificação disponível.'));
+                                  }
+
+                                  final notificacoes = snapshot.data!.docs;
+
+                                  return ListView.builder(
+                                    itemCount: notificacoes.length,
+                                    itemBuilder: (context, index) {
+                                      final notificacao = notificacoes[index];
+                                      return ListTile(
+                                        title: Text(notificacao['titulo']),
+                                        subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(notificacao['mensagem']),
+                                            Text(
+                                              "${notificacao['data']} - ${notificacao['hora']}",
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                      );
                                     },
-                                  ),
-                                  // Notificação 2
-                                  ListTile(
-                                    leading: Icon(Icons.group_add),
-                                    title: Text('Novo voluntário escalado!'),
-                                    subtitle: Text(
-                                        'Você foi escalado para o culto de amanhã.'),
-                                    trailing: Text(
-                                      formatDateTime(DateTime.now()
-                                          .add(Duration(days: 1))),
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.grey),
-                                    ),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  // Notificação 3
-                                  ListTile(
-                                    leading: Icon(Icons.update),
-                                    title: Text('Atualização no perfil'),
-                                    subtitle: Text(
-                                        'Seu perfil foi atualizado com sucesso.'),
-                                    trailing: Text(
-                                      formatDateTime(DateTime.now()
-                                          .add(Duration(hours: 1))),
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.grey),
-                                    ),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  // Notificação 4
-                                  ListTile(
-                                    leading: Icon(Icons.message),
-                                    title: Text('Nova mensagem recebida'),
-                                    subtitle: Text(
-                                        'Você tem uma mensagem nova no seu perfil.'),
-                                    trailing: Text(
-                                      formatDateTime(DateTime.now()
-                                          .add(Duration(minutes: 30))),
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.grey),
-                                    ),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
                             ),
                           ],

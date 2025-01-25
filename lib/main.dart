@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:lagoinha_music/firebase_options.dart';
 import 'package:lagoinha_music/models/culto.dart';
 import 'package:lagoinha_music/models/musician.dart';
 import 'package:lagoinha_music/pages/MusicianPage/musicianPageNewUI.dart';
@@ -183,7 +187,7 @@ class CultosProvider extends ChangeNotifier {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await SharedPreferences.getInstance(); // Inicializa as preferências
   await initializeDateFormatting('pt_BR', null);
 
@@ -196,6 +200,10 @@ Future<void> main() async {
     ),
   );
 }
+
+// Instância global para notificações
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

@@ -20,6 +20,15 @@
 	<string>App needs access to the camera to take profile pictures.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>App needs access to the microphone for recording purposes.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
+	<key>aps-environment</key>
+	<string>development</string>
 
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
