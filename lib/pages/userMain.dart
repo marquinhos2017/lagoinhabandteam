@@ -15,6 +15,153 @@ import 'package:lagoinha_music/pages/login.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+
+class BirthdayCalendarPage extends StatefulWidget {
+  @override
+  _BirthdayCalendarPageState createState() => _BirthdayCalendarPageState();
+}
+
+class _BirthdayCalendarPageState extends State<BirthdayCalendarPage> {
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  Map<DateTime, List<String>> _birthdays = {
+    DateTime(DateTime.now().year, 1, 29): ["Vanderson"],
+    DateTime(DateTime.now().year, 2, 6): ["Bruna"],
+    DateTime(DateTime.now().year, 3, 3): ["Mário"],
+    DateTime(DateTime.now().year, 3, 5): ["Matheus"],
+    DateTime(DateTime.now().year, 3, 9): ["Jaime"],
+    DateTime(DateTime.now().year, 3, 27): ["Nicole"],
+    DateTime(DateTime.now().year, 4, 8): ["Marquinhos"],
+    DateTime(DateTime.now().year, 4, 15): ["Génesis"],
+    DateTime(DateTime.now().year, 4, 21): ["Marcos"],
+    DateTime(DateTime.now().year, 8, 29): ["Yego"],
+    DateTime(DateTime.now().year, 9, 9): ["Deivid"],
+    DateTime(DateTime.now().year, 9, 26): ["Ueliton"],
+    DateTime(DateTime.now().year, 9, 27): ["Marina"],
+    DateTime(DateTime.now().year, 10, 2): ["Irlana"],
+    DateTime(DateTime.now().year, 11, 19): ["Juan"],
+    DateTime(DateTime.now().year, 11, 21): ["Amanda"],
+  };
+
+  List<String> _getEventsForDay(DateTime day) {
+    return _birthdays[DateTime(day.year, day.month, day.day)] ?? [];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Calendário de Aniversários"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          TableCalendar(
+            locale: 'pt_BR',
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
+            eventLoader: _getEventsForDay,
+            calendarStyle: CalendarStyle(
+              todayDecoration: BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: Colors.grey,
+                shape: BoxShape.circle,
+              ),
+              defaultTextStyle: TextStyle(color: Colors.black),
+              weekendTextStyle: TextStyle(color: Colors.black87),
+              markerDecoration: BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+            ),
+            headerStyle: HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+              titleTextStyle: TextStyle(color: Colors.black, fontSize: 18),
+              leftChevronIcon: Icon(Icons.chevron_left, color: Colors.black),
+              rightChevronIcon: Icon(Icons.chevron_right, color: Colors.black),
+            ),
+            calendarBuilders: CalendarBuilders(
+              defaultBuilder: (context, day, focusedDay) {
+                List<String> birthdays = _getEventsForDay(day);
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${day.day}',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      if (birthdays.isNotEmpty)
+                        Text(
+                          birthdays.join(", "),
+                          style: TextStyle(color: Colors.black, fontSize: 10),
+                          textAlign: TextAlign.center,
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
+            onPageChanged: (focusedDay) {
+              _focusedDay = focusedDay;
+            },
+          ).animate().fade(duration: 600.ms).slideY(begin: -0.2, end: 0),
+          SizedBox(height: 20),
+          Expanded(
+            child: _selectedDay != null &&
+                    _getEventsForDay(_selectedDay!).isNotEmpty
+                ? ListView.builder(
+                    itemCount: _getEventsForDay(_selectedDay!).length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(
+                          "🎂 Aniversário de ${_getEventsForDay(_selectedDay!)[index]}",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        leading: Icon(Icons.cake, color: Colors.black),
+                      ).animate().fade(duration: 500.ms).scale();
+                    },
+                  )
+                : Center(
+                    child: Text(
+                      "Nenhum aniversário neste dia.",
+                      style: TextStyle(color: Colors.black87),
+                    ).animate().fade(duration: 400.ms),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class MusicianCountProvider with ChangeNotifier {
   int count = 0;
@@ -33,6 +180,66 @@ class userMainPage extends StatefulWidget {
 }
 
 class _userMainPageState extends State<userMainPage> {
+  // Mapeamento de aniversários
+  Map<DateTime, List<String>> _birthdays = {
+    DateTime(DateTime.now().year, 1, 29): ["Vanderson"],
+    DateTime(DateTime.now().year, 2, 6): ["Bruna"],
+    DateTime(DateTime.now().year, 3, 3): ["Mário"],
+    DateTime(DateTime.now().year, 3, 5): ["Matheus"],
+    DateTime(DateTime.now().year, 3, 9): ["Jaime"],
+    DateTime(DateTime.now().year, 3, 27): ["Nicole"],
+    DateTime(DateTime.now().year, 4, 8): ["Marquinhos"],
+    DateTime(DateTime.now().year, 4, 15): ["Génesis"],
+    DateTime(DateTime.now().year, 4, 21): ["Marcos"],
+    DateTime(DateTime.now().year, 8, 29): ["Yego"],
+    DateTime(DateTime.now().year, 9, 9): ["Deivid"],
+    DateTime(DateTime.now().year, 9, 26): ["Ueliton"],
+    DateTime(DateTime.now().year, 9, 27): ["Marina"],
+    DateTime(DateTime.now().year, 10, 2): ["Irlana"],
+    DateTime(DateTime.now().year, 11, 19): ["Juan"],
+    DateTime(DateTime.now().year, 11, 21): ["Amanda"],
+  };
+
+  // Função para calcular aniversários no período entre hoje e os próximos 14 dias
+  List<String> _getUpcomingBirthdays() {
+    DateTime today = DateTime.now();
+    DateTime twoWeeksFromNow = today.add(Duration(days: 14));
+
+    // Filtra os aniversários dentro do intervalo de hoje e 14 dias à frente
+    List<String> upcomingBirthdays = [];
+
+    _birthdays.forEach((date, names) {
+      if (date.isAfter(today) && date.isBefore(twoWeeksFromNow)) {
+        upcomingBirthdays.addAll(names);
+      }
+    });
+
+    return upcomingBirthdays;
+  }
+
+  // Função para exibir o AlertDialog com os aniversariantes
+  void _showBirthdayAlert(List<String> birthdays) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Aniversariantes nos próximos 14 dias"),
+          content: Text(birthdays.isNotEmpty
+              ? birthdays.join(", ")
+              : "Nenhum aniversário nos próximos 14 dias."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Fechar"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   int _musicianCount = 0; // Valor inicial (pode ser 0 ou o valor anterior)
   bool _isLoading = true; // Para saber se estamos carregando ou não
 
@@ -208,6 +415,8 @@ class _userMainPageState extends State<userMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Lista de aniversariantes para os próximos 14 dias
+    List<String> upcomingBirthdays = _getUpcomingBirthdays();
     DocumentSnapshot? proximoCulto = _findProximoCulto();
     var scaffoldKey = GlobalKey<ScaffoldState>();
     //CultosProvider cultosProvider = Provider.of<CultosProvider>(context);
@@ -232,6 +441,49 @@ class _userMainPageState extends State<userMainPage> {
           onPressed: () => scaffoldKey.currentState?.openDrawer(),
         ),
         actions: [
+          // Ícone de aniversário com a quantidade de aniversariantes próximos
+          // Ícone de aniversário com a quantidade de aniversariantes próximos
+          GestureDetector(
+            onTap: () {
+              _showBirthdayAlert(upcomingBirthdays);
+            },
+            child: Stack(
+              alignment: Alignment.topRight,
+              children: [
+                Icon(
+                  Icons.cake,
+                  size: 24,
+                  color: Colors.black,
+                ),
+                if (upcomingBirthdays.isNotEmpty)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 8,
+                        minHeight: 8,
+                      ),
+                      child: Text(
+                        "${upcomingBirthdays.length}",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
           GestureDetector(
               onTap: () => Navigator.pushReplacement(
                     context,
@@ -337,6 +589,18 @@ class _userMainPageState extends State<userMainPage> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => MainMusicDataBase()),
+                      );
+                    },
+                  ),
+                  _createDrawerItem(
+                    icon: Icons.music_note,
+                    text: 'Calendário de aniversariantes',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => BirthdayCalendarPage()),
                       );
                     },
                   ),

@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lagoinha_music/pages/MusicianPage/EditProfilePage.dart';
 import 'package:lagoinha_music/pages/adminAddtoPlaylist.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -22,6 +23,7 @@ import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart'; //For creating the SMTP Server
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class GerenciamentoCulto extends StatefulWidget {
   final String documentId;
@@ -33,6 +35,8 @@ class GerenciamentoCulto extends StatefulWidget {
 }
 
 class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
+  String? imageUrl;
+  final ImagePicker _picker = ImagePicker();
   Map<String, dynamic>? cultoDetails;
 
   Future<void> fetchCultoDetails() async {
@@ -74,6 +78,35 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
     }
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+
+    File file = File(image.path);
+    String fileName = 'uploads/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    try {
+      UploadTask uploadTask =
+          FirebaseStorage.instance.ref(fileName).putFile(file);
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      // Atualiza a coleção "Cultos" no Firestore
+      await FirebaseFirestore.instance
+          .collection("Cultos")
+          .doc(widget.documentId)
+          .update({"palleteimage": downloadUrl});
+
+      setState(() {
+        imageUrl = downloadUrl;
+      });
+    } catch (e) {
+      print("Erro ao enviar a imagem: $e");
+    }
+  }
+
+  List<Color> selectedColors = [];
+
   Future<Map<String, dynamic>> getCultoDetails(String documentId) async {
     try {
       // Buscar o documento no Firestore
@@ -114,6 +147,7 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
     super.initState();
     // _fetchMusicianNames();
     fetchCultoDetails();
+    _loadImage();
   }
 
   String? selectedKey; // Armazena o tom selecionado
@@ -787,7 +821,8 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
-                    Container(
+                    /*
+                         Container(
                       height: 300,
                       child: StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
@@ -837,6 +872,93 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
                         },
                       ),
                     ),
+               
+                    */
+                    PopupMenuDivider(), // Linh
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Paleta do dia",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: imageUrl != null
+                                ? _showFullScreenImage
+                                : _pickAndUploadImage,
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                shape: BoxShape.circle,
+                                image: imageUrl != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(imageUrl!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: imageUrl == null
+                                  ? Center(
+                                      child: Text(
+                                        "Upload\nYour Image",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.black54),
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Wrap(
+                            spacing: 8,
+                            children: selectedColors
+                                .map(
+                                  (color) => Container(
+                                    width: 25,
+                                    height: 25,
+                                    decoration: BoxDecoration(
+                                      color: color,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.black26),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                          SizedBox(width: 16),
+                          IconButton(
+                            onPressed: _pickColor,
+                            icon: Icon(Icons.add,
+                                color: Colors.blue), // Ícone de +
+                            iconSize: 30, // Tamanho do ícone
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    // Mostra as cores selecionadas
                   ],
                 ),
               ),
@@ -845,6 +967,105 @@ class _GerenciamentoCultoState extends State<GerenciamentoCulto> {
         ),
       ),
     );
+  }
+
+  void _pickColor() {
+    if (selectedColors.length >= 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Você só pode adicionar até 5 cores!')),
+      );
+      return;
+    }
+
+    Color pickedColor = Colors.blue;
+
+    showDialog(
+      context: context,
+      builder: (context) => AnimatedOpacity(
+        opacity: 1.0,
+        duration: Duration(milliseconds: 300),
+        child: AlertDialog(
+          backgroundColor: Colors.black, // Cor de fundo preta
+          title: Text(
+            'Escolha uma cor',
+            style: TextStyle(color: Colors.white), // Cor do texto
+          ),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickedColor,
+              onColorChanged: (color) => pickedColor = color,
+              showLabel: true,
+              pickerAreaHeightPercent: 0.8,
+              // Estilo para o ColorPicker
+              colorPickerWidth: 300,
+              pickerAreaBorderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                  foregroundColor: Colors.white), // Cor do texto
+              child: Text('Cancelar'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                  foregroundColor: Colors.white), // Cor do texto
+              child: Text('Adicionar'),
+              onPressed: () async {
+                setState(() {
+                  selectedColors.add(pickedColor);
+                });
+
+                // Converte as cores para formato hexadecimal
+                List<String> colorHexList = selectedColors
+                    .map((color) =>
+                        '#${color.value.toRadixString(16).substring(2)}')
+                    .toList();
+
+                try {
+                  // Atualiza as cores no Firestore
+                  await FirebaseFirestore.instance
+                      .collection('Cultos')
+                      .doc(widget.documentId)
+                      .update({'paletteColors': colorHexList});
+
+                  // Se a atualização for bem-sucedida, loga uma mensagem
+                  print("Cores atualizadas com sucesso!");
+                } catch (e) {
+                  // Se ocorrer um erro, exibe uma mensagem de erro
+                  print("Erro ao salvar as cores no Firestore: $e");
+                }
+
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFullScreenImage() {
+    if (imageUrl != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FullScreenImage(imageUrl: imageUrl!),
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadImage() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection("Cultos")
+        .doc(widget.documentId)
+        .get();
+
+    setState(() {
+      imageUrl = doc["palleteimage"] ?? null;
+    });
   }
 
   Future<void> _downloadFile(String url, String fileName) async {
@@ -973,6 +1194,42 @@ class _CircularKeySelectorState extends State<CircularKeySelector> {
             .onSelect(selectedKey!); // Atualiza o tom selecionado no widget pai
       }
     }
+  }
+}
+
+class FullScreenImage extends StatelessWidget {
+  final String imageUrl;
+
+  const FullScreenImage({Key? key, required this.imageUrl}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Center(
+              child: Image.network(
+                imageUrl,
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.contain, // Preenche a tela inteira
+              ),
+            ),
+          ),
+          Positioned(
+            top: 40,
+            left: 16,
+            child: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white, size: 30),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

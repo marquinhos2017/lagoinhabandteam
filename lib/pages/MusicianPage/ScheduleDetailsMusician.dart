@@ -13,6 +13,8 @@ import 'package:lagoinha_music/pages/MusicianPage/VerLetraUser.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart'; // Pacote para reproduzir som (adicionar no pubspec.yaml)
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 class AudioPlayerBottomSheet extends StatefulWidget {
   final String documentId; // Use documentId to fetch lyrics from Firestore
@@ -938,6 +940,9 @@ class ScheduleDetailsMusician extends StatefulWidget {
 }
 
 class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
+  String? imageUrl;
+  List<Color> selectedColors = [];
+
   void _openYouTubeLink(String? link) async {
     if (link == null || link.isEmpty) {
       // Exibir uma mensagem ou fazer nada se o link for nulo ou vazio
@@ -974,6 +979,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
 
   @override
   void initState() {
+    _fetchPaletteData();
     super.initState();
     // currentIndex = widget.currentIndex;
     //_loadInitialData(); // Carrega os dados iniciais ao iniciar
@@ -1081,6 +1087,31 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
     } catch (e) {
       print('Erro ao buscar dados do culto: $e');
       throw e;
+    }
+  }
+
+  Future<void> _fetchPaletteData() async {
+    try {
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('Cultos')
+          .doc(widget.id)
+          .get();
+
+      if (docSnapshot.exists) {
+        // Obtém a URL da imagem (corrigindo o nome do campo, caso necessário)
+        setState(() {
+          imageUrl = docSnapshot['palleteimage']; // Verifique o nome do campo
+
+          // Obtém as cores e converte de string para Color
+          selectedColors = (docSnapshot['paletteColors'] as List)
+              .map((colorHex) =>
+                  Color(int.parse(colorHex.replaceAll('#', '0xFF'))))
+              .toList();
+          print(selectedColors);
+        });
+      }
+    } catch (e) {
+      print("Erro ao buscar dados: $e");
     }
   }
 
@@ -1523,6 +1554,65 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
             ),
           ],
         );
+      case 'Paleta':
+        return Column(
+          children: [
+            imageUrl != null
+                ? GestureDetector(
+                    onTap: () => _showFullScreenImage(context,
+                        imageUrl!), // Chama a função para exibir o modal
+                    child: Container(
+                      width: 300,
+                      height: 300,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: NetworkImage(imageUrl!),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Upload\nYour Image",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    ),
+                  ),
+
+            SizedBox(height: 20),
+
+            // Exibição das Cores
+            Text('Cores da Paleta:'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: selectedColors.isNotEmpty
+                  ? selectedColors.map((color) {
+                      return Container(
+                        width: 40,
+                        height: 40,
+                        margin: EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color:
+                              color, // Aqui está o objeto Color sendo utilizado
+                        ),
+                      );
+                    }).toList()
+                  : [Text('Nenhuma cor disponível')],
+            )
+          ],
+        );
       default:
         return Container();
     }
@@ -1577,6 +1667,42 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
       print('Erro ao buscar escalados: $e');
       return [];
     }
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      barrierDismissible: true, // Permite fechar o modal tocando fora
+      barrierColor: Colors.black.withOpacity(0.8), // Cor do fundo escurecido
+      builder: (context) {
+        return Dialog(
+          insetPadding:
+              EdgeInsets.all(0), // Remove o padding para ocupar toda a tela
+          backgroundColor: Colors.transparent, // Torna o fundo transparente
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context)
+                  .pop(); // Fecha o modal ao tocar fora da imagem
+            },
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: PhotoView(
+                    imageProvider: NetworkImage(imageUrl),
+                    minScale: PhotoViewComputedScale.contained,
+                    maxScale: PhotoViewComputedScale.covered,
+                    backgroundDecoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.8), // Fundo escurecido
+                    ),
+                    heroAttributes: PhotoViewHeroAttributes(tag: imageUrl),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -1671,6 +1797,7 @@ class _ScheduleDetailsMusicianState extends State<ScheduleDetailsMusician> {
                     _buildMenuButton('Musicas'),
                     _buildMenuButton('Teams'),
                     _buildMenuButton('Notes'),
+                    _buildMenuButton('Paleta'),
                   ],
                 ),
               ),
@@ -1757,5 +1884,27 @@ class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     return const Placeholder();
+  }
+}
+
+class FullScreenImage extends StatelessWidget {
+  final String imageUrl;
+
+  const FullScreenImage({Key? key, required this.imageUrl}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Center(
+          child: Hero(
+            tag: "fullScreenImage",
+            child: Image.network(imageUrl, fit: BoxFit.cover),
+          ),
+        ),
+      ),
+    );
   }
 }
